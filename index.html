@@ -3,281 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Data Peserta Didik 2026</title>
+    <title>Form Peserta Didik 2026</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8f9fa; color: #495057; }
-        [x-cloak] { display: none !important; }
-        .input-field { border: 1px solid #dee2e6; padding: 0.7rem 1rem; border-radius: 0.5rem; width: 100%; font-size: 0.9rem; transition: all 0.2s ease; background-color: #ffffff; }
-        .input-field:focus { border-color: #714B67; outline: none; box-shadow: 0 0 0 3px rgba(113, 75, 103, 0.1); }
-        .label-text { font-weight: 600; font-size: 0.8rem; color: #495057; margin-bottom: 0.4rem; display: block; }
-        .section-card { background: #ffffff; padding: 2rem; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.04); margin-bottom: 2rem; }
-        .photo-box { width: 140px; height: 180px; border: 2px dashed #dee2e6; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; background: #fdfdfd; transition: all 0.2s; }
-        .btn-primary { background-color: #714B67; color: white; font-weight: 700; transition: all 0.3s; }
-        .btn-primary:hover { background-color: #5a3b52; transform: translateY(-2px); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f3f4f6; padding: 2rem 1rem; }
+        .card { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto; }
+        .input-group { margin-bottom: 1.5rem; }
+        label { display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem; }
+        input, select, textarea { width: 100%; padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 0.5rem; outline: none; }
+        input:focus { border-color: #714B67; ring: 2px ring #714B67; }
+        .btn-submit { background: #714B67; color: white; width: 100%; padding: 1rem; border-radius: 0.5rem; font-weight: 700; margin-top: 1rem; transition: 0.3s; }
+        .btn-submit:hover { background: #5a3b52; }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
-<body class="py-10 px-4 antialiased" x-data="app()">
+<body x-data="pendaftaran()">
 
-    <datalist id="list-kota">
-        <template x-for="item in options.kota"><option :value="item"></option></template>
-    </datalist>
-    <datalist id="list-univ">
-        <template x-for="item in options.universitas"><option :value="item"></option></template>
-    </datalist>
-    <datalist id="list-jurusan">
-        <template x-for="item in options.jurusan"><option :value="item"></option></template>
-    </datalist>
-
-    <div class="max-w-5xl mx-auto">
-        <div class="text-center mb-10">
-            <img src="rsudbk.png" alt="Logo" class="h-24 w-auto mx-auto mb-4 object-contain"> 
-            <h1 class="text-3xl font-extrabold text-[#212529]">Data Peserta Didik 2026</h1>
-            <div class="h-1 w-20 bg-[#714B67] mx-auto mt-2 rounded-full"></div>
+    <div class="card">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-gray-800">Pendaftaran Peserta Didik</h1>
+            <p class="text-sm text-gray-500">Isi formulir di bawah ini dengan benar</p>
         </div>
 
-        <template x-if="view === 'menu'">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto mt-10">
-                <div @click="resetForm(); view = 'input';" 
-                     class="section-card cursor-pointer border-2 border-transparent hover:border-[#714B67] transition-all text-center p-10">
-                    <h3 class="text-xl font-bold text-blue-600">Input Data Peserta Baru</h3>
-                    <p class="text-gray-400 text-sm mt-2">Daftarkan mahasiswa ke sistem Supabase.</p>
+        <form @submit.prevent="kirimData">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+                <div class="md:col-span-2"><h3 class="font-bold text-[#714B67]">I. Informasi Institusi</h3></div>
+                
+                <div class="input-group">
+                    <label>Bagian</label>
+                    <select x-model="f.bagian" required>
+                        <option value="">-- Pilih --</option>
+                        <option>Pelayanan Medik</option>
+                        <option>Penunjang Medik</option>
+                        <option>Umum</option>
+                    </select>
                 </div>
-                <div @click="window.location.href='edit.html'" 
-                     class="section-card cursor-pointer border-2 border-transparent hover:border-amber-500 transition-all text-center p-10">
-                    <h3 class="text-xl font-bold text-amber-600">Edit / Delete Data</h3>
-                    <p class="text-gray-400 text-sm mt-2">Kelola database yang ada.</p>
+                <div class="input-group">
+                    <label>Jenis Praktik</label>
+                    <select x-model="f.jenis" required>
+                        <option>Magang</option><option>PKL</option><option>Resident</option>
+                    </select>
+                </div>
+                <div class="input-group md:col-span-2">
+                    <label>Nama Institusi / Universitas</label>
+                    <input type="text" x-model="f.institusi" placeholder="Contoh: Universitas Indonesia" required>
                 </div>
             </div>
-        </template>
 
-        <template x-if="view === 'input'">
-            <div>
-                <button @click="view = 'menu'" class="mb-6 flex items-center text-[#714B67] font-bold hover:underline">
-                    ← Kembali ke Menu Utama
-                </button>
-
-                <form @submit.prevent="handleSubmit" :class="loading ? 'opacity-50 pointer-events-none' : ''">
-                    <div class="section-card">
-                        <h2 class="text-[#714B67] font-bold uppercase tracking-wider text-xs mb-6 border-b pb-3">I. Data Institusi & Kegiatan</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="md:col-span-2">
-                                <label class="label-text">Bagian</label>
-                                <select x-model="formData.bagian" class="input-field" required>
-                                    <option value="">-- Pilih Bagian --</option>
-                                    <option>Pelayanan Medik</option>
-                                    <option>Penunjang Medik</option>
-                                    <option>Umum</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="label-text">Jenis Praktik</label>
-                                <select x-model="formData.jenis" class="input-field" required>
-                                    <option>PKL</option><option>PBL</option><option>Magang</option><option>Resident</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="label-text">Jenjang Pendidikan</label>
-                                <select x-model="formData.jenjangPendidikan" class="input-field" required>
-                                    <option>SMK</option><option>D3</option><option>D4</option><option>S1</option><option>S2</option><option>Profesi</option>
-                                </select>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="label-text">Level</label>
-                                <select x-model="formData.level" class="input-field" required>
-                                    <option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option><option value="4">Level 4</option>
-                                </select>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="label-text">Nama Institusi</label>
-                                <input type="text" x-model="formData.namaInstitusi" list="list-univ" class="input-field" required>
-                            </div>
-                            <div>
-                                <label class="label-text">Jurusan</label>
-                                <input type="text" x-model="formData.jurusan" list="list-jurusan" class="input-field" required>
-                            </div>
-                            <div>
-                                <label class="label-text">Kota Institusi</label>
-                                <input type="text" x-model="formData.kotaInstitusi" list="list-kota" class="input-field" required>
-                            </div>
-                            <div><label class="label-text">Mulai</label><input type="date" x-model="formData.startDate" class="input-field" required></div>
-                            <div><label class="label-text">Selesai</label><input type="date" x-model="formData.endDate" class="input-field" required></div>
-                            
-                            <div class="md:col-span-2" x-show="formData.allowGroup" x-cloak>
-                                <label class="label-text">Tipe Pendaftaran</label>
-                                <select x-model="formData.tipe" class="input-field">
-                                    <option value="Perorangan">Perorangan</option>
-                                    <option value="Kelompok">Kelompok</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <template x-if="formData.tipe === 'Perorangan'">
-                        <div class="section-card">
-                            <h2 class="text-[#714B67] font-bold uppercase tracking-wider text-xs mb-6 border-b pb-3">II. Biodata & Berkas</h2>
-                            <div class="flex flex-col md:flex-row gap-8">
-                                <div class="flex flex-col items-center">
-                                    <div class="photo-box">
-                                        <template x-if="!photoPreview"><span class="text-xs text-gray-400">Foto 3x4</span></template>
-                                        <template x-if="photoPreview"><img :src="photoPreview" class="w-full h-full object-cover"></template>
-                                        <input type="file" @change="handlePhoto($event, formData)" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer">
-                                    </div>
-                                </div>
-                                <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input type="text" placeholder="Nama Lengkap" x-model="formData.nama" class="input-field" required>
-                                    <input type="text" placeholder="NIM" x-model="formData.nim" class="input-field" required>
-                                    <input type="number" placeholder="No. KTP" x-model="formData.ktp" class="input-field" required>
-                                    <input type="number" placeholder="No. WA (628...)" x-model="formData.hp" class="input-field" required>
-                                    <select x-model="formData.agama" class="input-field"><option>Islam</option><option>Kristen</option><option>Katolik</option></select>
-                                    <select x-model="formData.jenisKelamin" class="input-field"><option>Laki-Laki</option><option>Perempuan</option></select>
-                                    <div class="md:col-span-2">
-                                        <label class="label-text">Dokumen (PDF)</label>
-                                        <input type="file" multiple @change="handleFile($event, formData)" accept=".pdf" class="input-field">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-
-                    <template x-if="formData.tipe === 'Kelompok'">
-                        <div class="section-card" x-data="{ showForm: false, tempMhs: {agama:'Islam', jenisKelamin:'Laki-Laki'} }">
-                            <h2 class="text-[#714B67] font-bold uppercase tracking-wider text-xs mb-6 border-b pb-3">II. Anggota Kelompok</h2>
-                            <table class="w-full text-xs mb-4">
-                                <template x-for="(mhs, index) in kelompok" :key="index">
-                                    <tr class="border-b">
-                                        <td class="py-2" x-text="mhs.nama"></td>
-                                        <td class="py-2 text-right"><button type="button" @click="kelompok.splice(index, 1)" class="text-red-500">Hapus</button></td>
-                                    </tr>
-                                </template>
-                            </table>
-                            <button type="button" @click="showForm = true" class="text-[#714B67] font-bold text-xs">+ Tambah Anggota</button>
-                            
-                            <div x-show="showForm" x-cloak class="mt-4 p-4 bg-gray-50 rounded-lg border">
-                                <div class="grid grid-cols-1 gap-3">
-                                    <input type="text" placeholder="Nama" x-model="tempMhs.nama" class="input-field">
-                                    <input type="text" placeholder="NIM" x-model="tempMhs.nim" class="input-field">
-                                    <input type="file" multiple @change="handleFile($event, tempMhs)" accept=".pdf" class="input-field">
-                                    <div class="flex gap-2">
-                                        <button type="button" @click="kelompok.push({...tempMhs}); showForm = false; tempMhs={agama:'Islam'}" class="bg-[#714B67] text-white px-3 py-2 rounded text-xs">Simpan</button>
-                                        <button type="button" @click="showForm = false" class="bg-gray-300 px-3 py-2 rounded text-xs">Batal</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-
-                    <button type="submit" class="w-full btn-primary py-5 rounded-xl text-lg shadow-lg mb-10" :disabled="loading">
-                        <span x-show="!loading" x-text="formData.tipe === 'Kelompok' ? 'SUBMIT SEMUA (' + kelompok.length + ')' : 'SUBMIT DATA'"></span>
-                        <span x-show="loading" x-text="progressText || 'MENGIRIM...'"></span>
-                    </button>
-                </form>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="md:col-span-2"><h3 class="font-bold text-[#714B67]">II. Biodata Peserta</h3></div>
+                
+                <div class="input-group md:col-span-2">
+                    <label>Nama Lengkap</label>
+                    <input type="text" x-model="f.nama" required>
+                </div>
+                <div class="input-group">
+                    <label>NIM / NISN</label>
+                    <input type="text" x-model="f.nim" required>
+                </div>
+                <div class="input-group">
+                    <label>No. HP (WhatsApp)</label>
+                    <input type="number" x-model="f.hp" placeholder="62812..." required>
+                </div>
+                <div class="input-group">
+                    <label>Pas Foto (3x4)</label>
+                    <input type="file" @change="handleFoto" accept="image/*" class="text-xs">
+                </div>
+                <div class="input-group">
+                    <label>Dokumen PDF (STR/Ijazah)</label>
+                    <input type="file" @change="handleFile" accept=".pdf" class="text-xs">
+                </div>
             </div>
-        </template>
+
+            <button type="submit" class="btn-submit" :disabled="loading">
+                <span x-show="!loading">KIRIM PENDAFTARAN</span>
+                <span x-show="loading">SEDANG MEMPROSES...</span>
+            </button>
+        </form>
+        
+        <button @click="window.location.href='edit.html'" class="w-full mt-4 text-sm text-gray-500 hover:underline">
+            Lihat / Edit Data Terdaftar →
+        </button>
     </div>
 
-    <div @click="formData.allowGroup = !formData.allowGroup" class="fixed bottom-0 right-0 w-10 h-10 cursor-pointer opacity-0 z-50"></div>
-
     <script>
-    function app() {
-        const SUPABASE_URL = 'https://gyiucoognxykakksrulo.supabase.co'; 
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5aXVjb29nbnh5a2Fra3NydWxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNjQ0MDQsImV4cCI6MjA5Mjg0MDQwNH0.Ht_yQbty5AaWYZWPp7sLWwIRDrmNs-LPot0NnVi3VIU';
-        const supabase = supabasejs.createClient(SUPABASE_URL, SUPABASE_KEY);
+        function pendaftaran() {
+            // Konfigurasi Supabase
+            const SB_URL = 'https://gyiucoognxykakksrulo.supabase.co';
+            const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5aXVjb29nbnh5a2Fra3NydWxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNjQ0MDQsImV4cCI6MjA5Mjg0MDQwNH0.Ht_yQbty5AaWYZWPp7sLWwIRDrmNs-LPot0NnVi3VIU';
+            const supabase = supabasejs.createClient(SB_URL, SB_KEY);
 
-        return {
-            view: 'menu',
-            loading: false,
-            progressText: '',
-            photoPreview: null,
-            options: {
-                kota: ["Bandung", "Jakarta", "Bekasi", "Bogor", "Tangerang"],
-                universitas: ["UI", "UNPAD", "UBK", "UNJANI", "Poltekkes"],
-                jurusan: ["Keperawatan", "Kebidanan", "Farmasi"]
-            },
-            formData: {},
-            kelompok: [],
+            return {
+                loading: false,
+                f: {
+                    bagian: '', jenis: 'Magang', institusi: '', 
+                    nama: '', nim: '', hp: '',
+                    fileFoto: null, fileDoc: null
+                },
 
-            resetForm() {
-                this.photoPreview = null;
-                this.kelompok = [];
-                this.formData = { 
-                    allowGroup: false, tipe: 'Perorangan', bagian: '', jenis: 'Magang', 
-                    jenjangPendidikan: 'S1', namaInstitusi: '', jurusan: '', kotaInstitusi: '', 
-                    level: 1, startDate: '', endDate: '', nama: '', nim: '', ktp: '', 
-                    hp: '', agama: 'Islam', jenisKelamin: 'Laki-Laki'
-                };
-            },
+                handleFoto(e) { this.f.fileFoto = e.target.files[0]; },
+                handleFile(e) { this.f.fileDoc = e.target.files[0]; },
 
-            handlePhoto(e, target) {
-                const file = e.target.files[0];
-                if (file) {
-                    this.photoPreview = URL.createObjectURL(file);
-                    target.fileFotoRaw = file;
-                }
-            },
+                async upload(file, folder) {
+                    if (!file) return "";
+                    const ext = file.name.split('.').pop();
+                    const fileName = `${folder}/${this.f.nim}_${Date.now()}.${ext}`;
+                    const { data, error } = await supabase.storage.from('berkas').upload(fileName, file);
+                    if (error) throw error;
+                    return supabase.storage.from('berkas').getPublicUrl(fileName).data.publicUrl;
+                },
 
-            handleFile(e, target) {
-                target.fileDokumenRaw = Array.from(e.target.files);
-            },
+                async kirimData() {
+                    this.loading = true;
+                    try {
+                        // 1. Upload file dulu
+                        const urlFoto = await this.upload(this.f.fileFoto, 'foto');
+                        const urlDoc = await this.upload(this.f.fileDoc, 'dokumen');
 
-            async uploadFile(file, folder, nim) {
-                const ext = file.name.split('.').pop();
-                const path = `${folder}/${nim}_${Date.now()}.${ext}`;
-                const { data, error } = await supabase.storage.from('berkas').upload(path, file);
-                if (error) throw error;
-                return supabase.storage.from('berkas').getPublicUrl(path).data.publicUrl;
-            },
+                        // 2. Simpan ke Tabel 'peserta_didik'
+                        const { error } = await supabase.from('peserta_didik').insert([{
+                            nama: this.f.nama,
+                            nim: this.f.nim,
+                            hp: this.f.hp,
+                            bagian: this.f.bagian,
+                            jenis_praktik: this.f.jenis,
+                            nama_institusi: this.f.institusi,
+                            foto_url: urlFoto,
+                            dokumen_url: urlDoc
+                        }]);
 
-            async handleSubmit() {
-                this.loading = true;
-                try {
-                    if (this.formData.tipe === 'Perorangan') {
-                        this.progressText = "Mengirim data...";
-                        await this.saveData(this.formData);
-                    } else {
-                        for (let [i, mhs] of this.kelompok.entries()) {
-                            this.progressText = `Mengirim Anggota ${i+1}/${this.kelompok.length}...`;
-                            await this.saveData({ ...this.formData, ...mhs });
-                        }
-                    }
-                    alert("Berhasil!");
-                    this.view = 'menu';
-                } catch (e) {
-                    alert("Gagal: " + e.message);
-                } finally {
-                    this.loading = false;
-                }
-            },
+                        if (error) throw error;
 
-            async saveData(payload) {
-                let fotoUrl = "";
-                let docUrls = [];
-
-                if (payload.fileFotoRaw) fotoUrl = await this.uploadFile(payload.fileFotoRaw, 'foto', payload.nim);
-                if (payload.fileDokumenRaw) {
-                    for (let f of payload.fileDokumenRaw) {
-                        const url = await this.uploadFile(f, 'dokumen', payload.nim);
-                        docUrls.push(url);
+                        alert("Berhasil Terdaftar!");
+                        location.reload();
+                    } catch (err) {
+                        alert("Gagal: " + err.message);
+                        console.error(err);
+                    } finally {
+                        this.loading = false;
                     }
                 }
-
-                const { error } = await supabase.from('peserta_didik').insert([{
-                    nama: payload.nama, nim: payload.nim, ktp: payload.ktp, hp: payload.hp,
-                    agama: payload.agama, jenis_kelamin: payload.jenisKelamin,
-                    bagian: payload.bagian, jenis_praktik: payload.jenis,
-                    jenjang_pendidikan: payload.jenjangPendidikan, level: parseInt(payload.level),
-                    nama_institusi: payload.namaInstitusi, jurusan: payload.jurusan,
-                    kota_institusi: payload.kotaInstitusi, start_date: payload.startDate,
-                    end_date: payload.endDate, foto_url: fotoUrl, dokumen_url: docUrls.join(",")
-                }]);
-                if (error) throw error;
             }
         }
-    }
     </script>
 </body>
 </html>
