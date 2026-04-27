@@ -272,11 +272,13 @@
     <!-- Tombol Rahasia di Pojok Kanan Bawah -->
     <div @click="formData.allowGroup = !formData.allowGroup" class="fixed bottom-0 right-0 w-10 h-10 cursor-pointer opacity-0 z-50"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-    function app() {
+ <script>
+function app() {
     // --- KONFIGURASI SUPABASE ---
-    const SUPABASE_URL = 'https://gyiucoognxykakksrulo.supabase.co/rest/v1/'; // Ganti dengan URL kamu
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5aXVjb29nbnh5a2Fra3NydWxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNjQ0MDQsImV4cCI6MjA5Mjg0MDQwNH0.Ht_yQbty5AaWYZWPp7sLWwIRDrmNs-LPot0NnVi3VIU'; // Ganti dengan Key kamu
+    // HAPUS /rest/v1/ dari URL di bawah ini
+    const SUPABASE_URL = 'https://gyiucoognxykakksrulo.supabase.co'; 
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5aXVjb29nbnh5a2Fra3NydWxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNjQ0MDQsImV4cCI6MjA5Mjg0MDQwNH0.Ht_yQbty5AaWYZWPp7sLWwIRDrmNs-LPot0NnVi3VIU';
+    
     const supabase = supabasejs.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     return {
@@ -285,8 +287,14 @@
         isEdit: false,
         progressText: '',
         photoPreview: null,
-        options: { /* ... tetap sama seperti kode lama kamu ... */ },
+        // KEMBALIKAN DATA OPTIONS AGAR DATALIST TIDAK ERROR
+        options: {
+            kota: ["Aceh Barat", "Ambon", "Bandung", "Bekasi", "Bogor", "Cimahi", "Cirebon", "Denpasar", "Depok", "Jakarta", "Semarang", "Surabaya", "Tangerang", "Yogyakarta"],
+            universitas: ["Universitas Indonesia (UI)", "Universitas Padjajaran (UNPAD)", "Universitas Bhakti Kencana (UBK)", "Universitas Jendral Ahmad Yani (UNJANI)", "Poltekkes Bandung"],
+            jurusan: ["Keperawatan", "Kebidanan", "Kedokteran", "Farmasi", "Analis Kesehatan", "Radiologi"]
+        },
         formData: { 
+            allowGroup: false, // Tambahkan ini agar tombol rahasia tetap bekerja
             tipe: 'Perorangan', bagian: '', jenis: 'Magang', jenjangPendidikan: 'S1', 
             namaInstitusi: '', jurusan: '', kotaInstitusi: '', level: 1, 
             startDate: '', endDate: '', nama: '', nim: '', ktp: '', hp: '', 
@@ -295,7 +303,7 @@
         },
         kelompok: [],
 
-        // Handle Photo - Simpan File Asli
+        // Handle Photo
         handlePhoto(e, target) {
             const file = e.target.files[0];
             if (file) {
@@ -305,13 +313,11 @@
             }
         },
 
-        // Handle Dokumen - Simpan Array File Asli
+        // Handle Dokumen
         handleFile(e, target) {
-            const files = Array.from(e.target.files);
-            target.fileDokumenRaw = files;
+            target.fileDokumenRaw = Array.from(e.target.files);
         },
 
-        // Fungsi Upload ke Storage
         async uploadFile(file, folder, nim) {
             const ext = file.name.split('.').pop();
             const fileName = `${folder}/${nim}_${Date.now()}.${ext}`;
@@ -323,9 +329,13 @@
         },
 
         async handleSubmit() {
+            if (this.formData.tipe === 'Kelompok' && this.kelompok.length < 1) { 
+                alert("Tambahkan minimal 1 anggota!"); return; 
+            }
             this.loading = true;
             try {
                 if (this.formData.tipe === 'Perorangan') {
+                    this.progressText = "Mengunggah data...";
                     await this.saveData(this.formData);
                 } else {
                     for (let [i, mhs] of this.kelompok.entries()) {
@@ -342,15 +352,13 @@
         },
 
         async saveData(payload) {
-            let fotoUrl = payload.foto_url || "";
+            let fotoUrl = "";
             let docUrls = [];
 
-            // 1. Upload Foto
             if (payload.fileFotoRaw) {
                 fotoUrl = await this.uploadFile(payload.fileFotoRaw, 'foto', payload.nim);
             }
 
-            // 2. Upload Dokumen
             if (payload.fileDokumenRaw) {
                 for (let doc of payload.fileDokumenRaw) {
                     const url = await this.uploadFile(doc, 'dokumen', payload.nim);
@@ -358,7 +366,6 @@
                 }
             }
 
-            // 3. Simpan ke Database
             const { error } = await supabase
                 .from('peserta_didik')
                 .insert([{
@@ -389,8 +396,9 @@
         }
     }
 }
+</script>
+   
 
-    </script>
 </body>
 </html>
 
