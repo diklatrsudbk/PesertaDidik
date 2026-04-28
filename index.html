@@ -140,7 +140,7 @@
             // Upload Foto
             if (fotoFile) {
                 const { data: dataFoto, error: errorFoto } = await supabaseClient.storage
-                    .from('foto-peserta')
+                    .from('Foto')
                     .upload(`foto_${Date.now()}_${fotoFile.name}`, fotoFile);
                 if (errorFoto) throw errorFoto;
                 fotoPath = dataFoto.path;
@@ -149,7 +149,7 @@
             // Upload Dokumen
             if (dokFile) {
                 const { data: dataDok, error: errorDok } = await supabaseClient.storage
-                    .from('dokumen-peserta')
+                    .from('Berkas Dokumen')
                     .upload(`dok_${Date.now()}_${dokFile.name}`, dokFile);
                 if (errorDok) throw errorDok;
                 dokPath = dataDok.path;
