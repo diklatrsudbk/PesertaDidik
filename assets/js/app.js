@@ -1,302 +1,195 @@
-document.addEventListener('alpine:init', () => {
+function app() {
 
-    Alpine.data('app', () => ({
+  return {
 
-        /* =========================
-           STATE
-        ========================= */
+    loading: false,
 
-        loading: false,
+    form: {
 
-        progressText: '',
+      nama: "",
+      nim: "",
+      ktp: "",
+      alamat: "",
+      kelurahan: "",
+      tempatlahir: "",
+      tanggallahir: "",
+      kelamin: "Laki-Laki",
+      agama: "Islam",
 
-        photoPreview: null,
+      namasekolah: "",
+      jurusan: "",
+      alamatsekolah: "",
+      jenjangpend: "S1",
 
-        kelompok: [],
+      jenis: "Magang",
 
-        formData: {
+      hp: "",
 
-            tipe: 'Perorangan',
+      tipe: "Perorangan",
 
-            bagian: '',
+      id_parent: "1",
 
-            jenis: 'Magang',
+      tanggal_mulai: "",
+      tanggal_selesai: "",
 
-            jenjangpend: 'S1',
+      bagian: "Pelayanan Medik"
 
-            namasekolah: '',
+    },
 
-            jurusan: '',
+    photoBase64: "",
 
-            alamatsekolah: '',
+    photoMimeType: "",
 
-            id_parent: 1,
+    documents: [],
 
-            tanggal_mulai: '',
+    async handlePhoto(event) {
 
-            tanggal_selesai: '',
+      const file = event.target.files[0];
 
-            nama: '',
+      if (!file) return;
 
-            nim: '',
+      if (file.size > CONFIG.MAX_PHOTO_SIZE) {
 
-            ktp: '',
+        alert("Foto terlalu besar");
 
-            hp: '',
+        return;
 
-            agama: 'Islam',
+      }
 
-            kelamin: 'Laki-Laki',
+      this.photoMimeType = file.type;
 
-            tempatlahir: '',
+      const reader = new FileReader();
 
-            tanggallahir: '',
+      reader.onload = (e) => {
 
-            alamat: '',
+        this.photoBase64 =
+          e.target.result.split(",")[1];
 
-            kelurahan: '',
+      };
 
-            pasFotoData: '',
+      reader.readAsDataURL(file);
 
-            dokumenList: []
-        },
+    },
 
-        /* =========================
-           OPTIONS
-        ========================= */
+    async handlePdf(event) {
 
-        options: {
+      const files =
+        Array.from(event.target.files);
 
-            agama: [
-                'Islam',
-                'Kristen',
-                'Protestan',
-                'Katolik',
-                'Hindu',
-                'Budha',
-                'Konghucu'
-            ],
+      this.documents = [];
 
-            kelamin: [
-                'Laki-Laki',
-                'Perempuan'
-            ],
+      let totalSize = 0;
 
-            bagian: [
-                'Pelayanan Medik',
-                'Penunjang Medik',
-                'Umum'
-            ],
+      for (const file of files) {
 
-            jenis: [
-                'PKL',
-                'PBL',
-                'Resident',
-                'Magang'
-            ],
+        totalSize += file.size;
 
-            jenjangpend: [
-                'SMK',
-                'D3',
-                'S1',
-                'S2',
-                'Profesi'
-            ]
-        },
+        if (
+          totalSize >
+          CONFIG.MAX_TOTAL_PDF
+        ) {
 
-        /* =========================
-           PHOTO
-        ========================= */
+          alert(
+            "Total PDF terlalu besar"
+          );
 
-        async handlePhoto(event) {
+          return;
 
-            const file = event.target.files[0];
-
-            if (!file) return;
-
-            if (file.size > CONFIG.MAX_PHOTO_SIZE) {
-                alert('Ukuran foto maksimal 400KB');
-                return;
-            }
-
-            const allowed = ['image/jpeg', 'image/png'];
-
-            if (!allowed.includes(file.type)) {
-                alert('Foto harus JPG atau PNG');
-                return;
-            }
-
-            this.photoPreview = URL.createObjectURL(file);
-
-            this.formData.pasFotoData = await fileToBase64(file);
-        },
-
-        /* =========================
-           PDF
-        ========================= */
-
-        async handleFiles(event) {
-
-            const files = Array.from(event.target.files);
-
-            let totalSize = 0;
-
-            this.formData.dokumenList = [];
-
-            for (const file of files) {
-
-                totalSize += file.size;
-
-                if (totalSize > CONFIG.MAX_DOC_SIZE) {
-                    alert('Total dokumen maksimal 4MB');
-                    this.formData.dokumenList = [];
-                    return;
-                }
-
-                if (file.type !== 'application/pdf') {
-                    alert(file.name + ' bukan PDF');
-                    continue;
-                }
-
-                const base64 = await fileToBase64(file);
-
-                this.formData.dokumenList.push({
-                    name: file.name,
-                    base64: base64
-                });
-            }
-        },
-
-        /* =========================
-           VALIDATION
-        ========================= */
-
-        validateForm() {
-
-            if (!this.formData.nama) {
-                alert('Nama wajib diisi');
-                return false;
-            }
-
-            if (!this.formData.nim) {
-                alert('NIM wajib diisi');
-                return false;
-            }
-
-            if (!validateDates(
-                this.formData.tanggal_mulai,
-                this.formData.tanggal_selesai
-            )) {
-
-                alert('Tanggal selesai tidak valid');
-                return false;
-            }
-
-            return true;
-        },
-
-        /* =========================
-           SUBMIT
-        ========================= */
-
-        async handleSubmit() {
-
-            if (!this.validateForm()) return;
-
-            this.loading = true;
-
-            this.progressText = 'Mengirim data...';
-
-            try {
-
-                const payload = {
-
-                    ...this.formData,
-
-                    targetSheet: CONFIG.TARGET_SHEET
-
-                };
-
-                const result = await submitData(payload);
-
-                console.log(result);
-
-                this.progressText = 'Berhasil dikirim';
-
-                alert('Data berhasil dikirim');
-
-                this.resetForm();
-
-            } catch (error) {
-
-                console.error(error);
-
-                alert(error.message || 'Terjadi kesalahan');
-
-            } finally {
-
-                this.loading = false;
-
-                this.progressText = '';
-            }
-        },
-
-        /* =========================
-           RESET
-        ========================= */
-
-        resetForm() {
-
-            this.photoPreview = null;
-
-            this.formData = {
-
-                tipe: 'Perorangan',
-
-                bagian: '',
-
-                jenis: 'Magang',
-
-                jenjangpend: 'S1',
-
-                namasekolah: '',
-
-                jurusan: '',
-
-                alamatsekolah: '',
-
-                id_parent: 1,
-
-                tanggal_mulai: '',
-
-                tanggal_selesai: '',
-
-                nama: '',
-
-                nim: '',
-
-                ktp: '',
-
-                hp: '',
-
-                agama: 'Islam',
-
-                kelamin: 'Laki-Laki',
-
-                tempatlahir: '',
-
-                tanggallahir: '',
-
-                alamat: '',
-
-                kelurahan: '',
-
-                pasFotoData: '',
-
-                dokumenList: []
-            };
         }
 
-    }));
+        const reader =
+          new FileReader();
 
-});
+        reader.onload = (e) => {
+
+          this.documents.push({
+
+            name: file.name,
+
+            base64:
+              e.target.result
+                .split(",")[1]
+
+          });
+
+        };
+
+        reader.readAsDataURL(file);
+
+      }
+
+    },
+
+    async submitForm() {
+
+      this.loading = true;
+
+      try {
+
+        const payload = {
+
+          ...this.form,
+
+          umur:
+            calculateAge(
+              this.form.tanggallahir
+            ),
+
+          set_periode:
+            calculatePeriod(
+              this.form.tanggal_mulai,
+              this.form.tanggal_selesai
+            ),
+
+          pasfoto:
+            this.photoBase64,
+
+          photoMimeType:
+            this.photoMimeType,
+
+          documents:
+            this.documents
+
+        };
+
+        console.log(payload);
+
+        const result =
+          await sendData(payload);
+
+        console.log(result);
+
+        if (
+          result.status === "success"
+        ) {
+
+          alert(
+            "Data berhasil dikirim"
+          );
+
+          location.reload();
+
+        } else {
+
+          alert(
+            result.message ||
+            "Gagal submit"
+          );
+
+        }
+
+      } catch(err) {
+
+        console.error(err);
+
+        alert(err.toString());
+
+      }
+
+      this.loading = false;
+
+    }
+
+  }
+
+}
