@@ -111,52 +111,52 @@
 
         </form>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
     // 1. Konfigurasi Supabase
-    const SUPABASE_URL = 'https://gyiucoognxykakksrulo.supabase.co'; // Ganti dengan URL dari Project Settings > API
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5aXVjb29nbnh5a2Fra3NydWxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNjQ0MDQsImV4cCI6MjA5Mjg0MDQwNH0.Ht_yQbty5AaWYZWPp7sLWwIRDrmNs-LPot0NnVi3VIU'; // Ganti dengan Anon Key dari Project Settings > API
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const SUPABASE_URL = 'https://gyiucoognxykakksrulo.supabase.co'; 
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5aXVjb29nbnh5a2Fra3NydWxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNjQ0MDQsImV4cCI6MjA5Mjg0MDQwNH0.Ht_yQbty5AaWYZWPp7sLWwIRDrmNs-LPot0NnVi3VIU';
+    
+    // Perbaikan di sini: variabel diberi nama 'supabaseClient'
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const form = document.getElementById('biodataForm');
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        // Ganti teks tombol saat proses loading
         const btn = e.target.querySelector('button');
         btn.innerText = 'Sedang Mengirim...';
         btn.disabled = true;
 
         try {
-            // A. Ambil File dari Input
             const fotoFile = document.getElementById('pas_foto').files[0];
             const dokFile = document.getElementById('upload_dokumen').files[0];
 
             let fotoPath = null;
             let dokPath = null;
 
-            // B. Upload Foto jika ada
+            // Upload Foto
             if (fotoFile) {
-                const { data, error } = await supabase.storage
+                const { data: dataFoto, error: errorFoto } = await supabaseClient.storage
                     .from('foto-peserta')
-                    .upload(`foto_${Date.now()}`, fotoFile);
-                if (error) throw error;
-                fotoPath = data.path;
+                    .upload(`foto_${Date.now()}_${fotoFile.name}`, fotoFile);
+                if (errorFoto) throw errorFoto;
+                fotoPath = dataFoto.path;
             }
 
-            // C. Upload Dokumen jika ada
+            // Upload Dokumen
             if (dokFile) {
-                const { data, error } = await supabase.storage
+                const { data: dataDok, error: errorDok } = await supabaseClient.storage
                     .from('dokumen-peserta')
-                    .upload(`dok_${Date.now()}`, dokFile);
-                if (error) throw error;
-                dokPath = data.path;
+                    .upload(`dok_${Date.now()}_${dokFile.name}`, dokFile);
+                if (errorDok) throw errorDok;
+                dokPath = dataDok.path;
             }
 
-            // D. Simpan Data ke Tabel
-            const { error: insertError } = await supabase
+            // Simpan Data
+            const { error: insertError } = await supabaseClient
                 .from('peserta_didik')
                 .insert([{
                     nama: document.getElementById('nama').value,
@@ -172,8 +172,8 @@
                     bagian: document.getElementById('bagian').value,
                     pas_foto: fotoPath,
                     upload_dokumen: dokPath,
-                    tipe: 'perorangan', // default sesuai request
-                    id_parent: 1 // default sesuai request
+                    tipe: 'perorangan',
+                    id_parent: 1
                 }]);
 
             if (insertError) throw insertError;
@@ -182,8 +182,8 @@
             form.reset();
 
         } catch (error) {
-            console.error(error);
-            alert('Terjadi kesalahan: ' + error.message);
+            console.error("Detail Error:", error);
+            alert('Terjadi kesalahan: ' + (error.message || error.error_description));
         } finally {
             btn.innerText = 'Kirim Data Registrasi';
             btn.disabled = false;
