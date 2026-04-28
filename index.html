@@ -1,194 +1,107 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrasi Peserta Didik 2026</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Test API Diklat</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 p-4 md:p-10">
 
-    <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-        <div class="bg-blue-600 p-6">
-            <h2 class="text-white text-2xl font-bold">Form Biodata Peserta Didik</h2>
-            <p class="text-blue-100">Silakan lengkapi data diri Anda dengan benar.</p>
-        </div>
+<body class="bg-gray-100 p-10">
 
-        <form id="biodataForm" class="p-8 space-y-6">
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Nama Lengkap</label>
-                    <input type="text" id="nama" required class="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">NIM/NIK</label>
-                    <input type="text" id="nim" required class="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">No. KTP</label>
-                    <input type="number" id="ktp" required class="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">No. HP</label>
-                    <input type="number" id="hp" required class="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm">
-                </div>
-            </div>
+  <div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow">
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Tempat Lahir</label>
-                    <input type="text" id="tempatlahir" placeholder="Contoh: Jakarta" class="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Tanggal Lahir</label>
-                    <input type="date" id="tanggallahir" class="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Agama</label>
-                    <select id="agama" class="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm">
-                        <option value="islam">Islam</option>
-                        <option value="kristen">Kristen</option>
-                        <option value="protestan">Protestan</option>
-                        <option value="katolik">Katolik</option>
-                        <option value="buddha">Buddha</option>
-                        <option value="hindu">Hindu</option>
-                        <option value="konghucu">Konghucu</option>
-                    </select>
-                </div>
-            </div>
+    <h1 class="text-2xl font-bold mb-6">
+      Test Input Peserta
+    </h1>
 
-            <div class="border-t pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Nama Sekolah/Institusi</label>
-                    <input type="text" id="namasekolah" class="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Jenjang Pendidikan</label>
-                    <select id="jenjangpend" class="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm">
-                        <option value="SMK">SMK</option>
-                        <option value="D3">D3</option>
-                        <option value="S1">S1</option>
-                        <option value="S2">S2</option>
-                        <option value="Profesi">Profesi</option>
-                    </select>
-                </div>
-            </div>
+    <form id="myForm" class="space-y-4">
 
-            <div class="border-t pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Jenis Program</label>
-                    <select id="jenis" class="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm">
-                        <option value="PKL">PKL</option>
-                        <option value="PBL">PBL</option>
-                        <option value="Magang">Magang</option>
-                        <option value="Resident">Resident</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Bagian</label>
-                    <select id="Bagian" class="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm">
-                        <option value="Pelayanan Medik">Pelayanan Medik</option>
-                        <option value="Penunjang Medik">Penunjang Medik</option>
-                        <option value="Umum">Umum</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 text-red-600">Pas Foto (JPG/PNG)</label>
-                    <input type="file" id="pas_foto" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 text-red-600">Upload Dokumen (PDF)</label>
-                    <input type="file" id="upload_dokumen" accept=".pdf" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                </div>
-            </div>
+      <input
+        type="text"
+        id="nama"
+        placeholder="Nama"
+        class="w-full border p-3 rounded"
+        required
+      >
 
-            <div class="pt-6">
-                <button type="submit" class="w-full bg-blue-600 text-white py-3 px-4 rounded-md font-bold hover:bg-blue-700 transition duration-200">
-                    Kirim Data Registrasi
-                </button>
-            </div>
+      <input
+        type="text"
+        id="nim"
+        placeholder="NIM"
+        class="w-full border p-3 rounded"
+        required
+      >
 
-        </form>
-    </div>
-   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+      <button
+        type="submit"
+        class="bg-blue-600 text-white px-5 py-3 rounded"
+      >
+        Kirim
+      </button>
+
+    </form>
+
+    <div id="result" class="mt-5 text-sm"></div>
+
+  </div>
 
 <script>
-    // 1. Konfigurasi Supabase
-    const SUPABASE_URL = 'https://gyiucoognxykakksrulo.supabase.co'; 
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5aXVjb29nbnh5a2Fra3NydWxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNjQ0MDQsImV4cCI6MjA5Mjg0MDQwNH0.Ht_yQbty5AaWYZWPp7sLWwIRDrmNs-LPot0NnVi3VIU';
-    
-    // Perbaikan di sini: variabel diberi nama 'supabaseClient'
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const form = document.getElementById('biodataForm');
+const API_URL = "PASTE_APPS_SCRIPT_URL";
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const btn = e.target.querySelector('button');
-        btn.innerText = 'Sedang Mengirim...';
-        btn.disabled = true;
+document
+.getElementById("myForm")
+.addEventListener("submit", async function(e){
 
-        try {
-            const fotoFile = document.getElementById('pas_foto').files[0];
-            const dokFile = document.getElementById('upload_dokumen').files[0];
+  e.preventDefault();
 
-            let fotoPath = null;
-            let dokPath = null;
+  const result = document.getElementById("result");
 
-            // Upload Foto
-            if (fotoFile) {
-                const { data: dataFoto, error: errorFoto } = await supabaseClient.storage
-                    .from('Foto')
-                    .upload(`foto_${Date.now()}_${fotoFile.name}`, fotoFile);
-                if (errorFoto) throw errorFoto;
-                fotoPath = dataFoto.path;
-            }
+  result.innerHTML = "Mengirim data...";
 
-            // Upload Dokumen
-            if (dokFile) {
-                const { data: dataDok, error: errorDok } = await supabaseClient.storage
-                    .from('Berkas Dokumen')
-                    .upload(`dok_${Date.now()}_${dokFile.name}`, dokFile);
-                if (errorDok) throw errorDok;
-                dokPath = dataDok.path;
-            }
+  const payload = {
 
-            // Simpan Data
-            const { error: insertError } = await supabaseClient
-                .from('Peserta Didik GEL6')
-                .insert([{
-                    nama: document.getElementById('nama').value,
-                    nim: document.getElementById('nim').value,
-                    ktp: document.getElementById('ktp').value,
-                    hp: document.getElementById('hp').value,
-                    tempatlahir: document.getElementById('tempatlahir').value,
-                    tanggallahir: document.getElementById('tanggallahir').value,
-                    agama: document.getElementById('agama').value,
-                    namasekolah: document.getElementById('namasekolah').value,
-                    jenjangpend: document.getElementById('jenjangpend').value,
-                    jenis: document.getElementById('jenis').value,
-                    bagian: document.getElementById('Bagian').value,
-                    pas_foto: fotoPath,
-                    upload_dokumen: dokPath,
-                    tipe: 'perorangan',
-                    id_parent: 1
-                }]);
+    nama: document.getElementById("nama").value,
 
-            if (insertError) throw insertError;
+    nim: document.getElementById("nim").value,
 
-            alert('Data berhasil terkirim!');
-            form.reset();
+    tanggallahir: "2000-01-01",
 
-        } catch (error) {
-            console.error("Detail Error:", error);
-            alert('Terjadi kesalahan: ' + (error.message || error.error_description));
-        } finally {
-            btn.innerText = 'Kirim Data Registrasi';
-            btn.disabled = false;
-        }
+    tanggal_mulai: "2026-01-01",
+
+    tanggal_selesai: "2026-02-01"
+
+  };
+
+  try {
+
+    const response = await fetch(API_URL, {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+
+      body: JSON.stringify(payload)
+
     });
+
+    const data = await response.json();
+
+    result.innerHTML = JSON.stringify(data);
+
+  } catch(err) {
+
+    result.innerHTML = err.toString();
+
+  }
+
+});
+
 </script>
 
 </body>
