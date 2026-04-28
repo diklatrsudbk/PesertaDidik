@@ -111,6 +111,85 @@
 
         </form>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+    // 1. Konfigurasi Supabase
+    const SUPABASE_URL = 'https://gyiucoognxykakksrulo.supabase.co'; // Ganti dengan URL dari Project Settings > API
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5aXVjb29nbnh5a2Fra3NydWxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNjQ0MDQsImV4cCI6MjA5Mjg0MDQwNH0.Ht_yQbty5AaWYZWPp7sLWwIRDrmNs-LPot0NnVi3VIU'; // Ganti dengan Anon Key dari Project Settings > API
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const form = document.getElementById('biodataForm');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Ganti teks tombol saat proses loading
+        const btn = e.target.querySelector('button');
+        btn.innerText = 'Sedang Mengirim...';
+        btn.disabled = true;
+
+        try {
+            // A. Ambil File dari Input
+            const fotoFile = document.getElementById('pas_foto').files[0];
+            const dokFile = document.getElementById('upload_dokumen').files[0];
+
+            let fotoPath = null;
+            let dokPath = null;
+
+            // B. Upload Foto jika ada
+            if (fotoFile) {
+                const { data, error } = await supabase.storage
+                    .from('foto-peserta')
+                    .upload(`foto_${Date.now()}`, fotoFile);
+                if (error) throw error;
+                fotoPath = data.path;
+            }
+
+            // C. Upload Dokumen jika ada
+            if (dokFile) {
+                const { data, error } = await supabase.storage
+                    .from('dokumen-peserta')
+                    .upload(`dok_${Date.now()}`, dokFile);
+                if (error) throw error;
+                dokPath = data.path;
+            }
+
+            // D. Simpan Data ke Tabel
+            const { error: insertError } = await supabase
+                .from('peserta_didik')
+                .insert([{
+                    nama: document.getElementById('nama').value,
+                    nim: document.getElementById('nim').value,
+                    ktp: document.getElementById('ktp').value,
+                    hp: document.getElementById('hp').value,
+                    tempatlahir: document.getElementById('tempatlahir').value,
+                    tanggallahir: document.getElementById('tanggallahir').value,
+                    agama: document.getElementById('agama').value,
+                    namasekolah: document.getElementById('namasekolah').value,
+                    jenjangpend: document.getElementById('jenjangpend').value,
+                    jenis: document.getElementById('jenis').value,
+                    bagian: document.getElementById('bagian').value,
+                    pas_foto: fotoPath,
+                    upload_dokumen: dokPath,
+                    tipe: 'perorangan', // default sesuai request
+                    id_parent: 1 // default sesuai request
+                }]);
+
+            if (insertError) throw insertError;
+
+            alert('Data berhasil terkirim!');
+            form.reset();
+
+        } catch (error) {
+            console.error(error);
+            alert('Terjadi kesalahan: ' + error.message);
+        } finally {
+            btn.innerText = 'Kirim Data Registrasi';
+            btn.disabled = false;
+        }
+    });
+</script>
 
 </body>
 </html>
