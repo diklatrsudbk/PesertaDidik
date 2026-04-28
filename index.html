@@ -1,106 +1,534 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Test API Diklat</title>
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>
+    Sistem Data Peserta Didik 2026
+  </title>
 
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <script
+    defer
+    src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
+  ></script>
+
 </head>
 
-<body class="bg-gray-100 p-10">
+<body
+  class="bg-gray-100 min-h-screen p-4"
+  x-data="app()"
+>
 
-  <div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow">
+<div class="max-w-4xl mx-auto">
 
-    <h1 class="text-2xl font-bold mb-6">
-      Test Input Peserta
-    </h1>
+  <!-- HEADER -->
 
-    <form id="myForm" class="space-y-4">
+  <div class="bg-white rounded-2xl shadow p-6 mb-6">
 
-      <input
-        type="text"
-        id="nama"
-        placeholder="Nama"
-        class="w-full border p-3 rounded"
-        required
+    <div class="flex items-center gap-4">
+
+      <img
+        src="assets/img/rsudbk.png"
+        class="h-20"
       >
 
-      <input
-        type="text"
-        id="nim"
-        placeholder="NIM"
-        class="w-full border p-3 rounded"
-        required
-      >
+      <div>
 
-      <button
-        type="submit"
-        class="bg-blue-600 text-white px-5 py-3 rounded"
-      >
-        Kirim
-      </button>
+        <h1 class="text-2xl font-bold">
+          Sistem Data Peserta Didik 2026
+        </h1>
 
-    </form>
+        <p class="text-gray-500 text-sm">
+          Form Pendaftaran Peserta
+        </p>
 
-    <div id="result" class="mt-5 text-sm"></div>
+      </div>
+
+    </div>
 
   </div>
 
+  <!-- FORM -->
+
+  <form
+    @submit.prevent="submitForm"
+    class="space-y-6"
+  >
+
+    <!-- DATA PRIBADI -->
+
+    <div class="bg-white rounded-2xl shadow p-6">
+
+      <h2 class="font-bold text-lg mb-5">
+        Data Pribadi
+      </h2>
+
+      <div class="grid md:grid-cols-2 gap-4">
+
+        <div>
+          <label class="text-sm font-bold">
+            Nama Lengkap
+          </label>
+
+          <input
+            type="text"
+            x-model="form.nama"
+            class="w-full border rounded-lg p-3"
+            required
+          >
+        </div>
+
+        <div>
+          <label class="text-sm font-bold">
+            NIM
+          </label>
+
+          <input
+            type="text"
+            x-model="form.nim"
+            class="w-full border rounded-lg p-3"
+            required
+          >
+        </div>
+
+        <div>
+          <label class="text-sm font-bold">
+            No KTP
+          </label>
+
+          <input
+            type="number"
+            x-model="form.ktp"
+            class="w-full border rounded-lg p-3"
+          >
+        </div>
+
+        <div>
+          <label class="text-sm font-bold">
+            No WhatsApp
+          </label>
+
+          <input
+            type="number"
+            x-model="form.hp"
+            class="w-full border rounded-lg p-3"
+          >
+        </div>
+
+        <div>
+          <label class="text-sm font-bold">
+            Tempat Lahir
+          </label>
+
+          <input
+            type="text"
+            x-model="form.tempatlahir"
+            class="w-full border rounded-lg p-3"
+          >
+        </div>
+
+        <div>
+          <label class="text-sm font-bold">
+            Tanggal Lahir
+          </label>
+
+          <input
+            type="date"
+            x-model="form.tanggallahir"
+            class="w-full border rounded-lg p-3"
+          >
+        </div>
+
+        <div>
+          <label class="text-sm font-bold">
+            Jenis Kelamin
+          </label>
+
+          <select
+            x-model="form.kelamin"
+            class="w-full border rounded-lg p-3"
+          >
+            <option>Laki-Laki</option>
+            <option>Perempuan</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-sm font-bold">
+            Agama
+          </label>
+
+          <select
+            x-model="form.agama"
+            class="w-full border rounded-lg p-3"
+          >
+            <option>Islam</option>
+            <option>Kristen</option>
+            <option>Protestan</option>
+            <option>Katolik</option>
+            <option>Budha</option>
+            <option>Hindu</option>
+            <option>Konghucu</option>
+          </select>
+        </div>
+
+        <div class="md:col-span-2">
+
+          <label class="text-sm font-bold">
+            Alamat
+          </label>
+
+          <textarea
+            x-model="form.alamat"
+            class="w-full border rounded-lg p-3"
+          ></textarea>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- DATA PENDIDIKAN -->
+
+    <div class="bg-white rounded-2xl shadow p-6">
+
+      <h2 class="font-bold text-lg mb-5">
+        Data Pendidikan
+      </h2>
+
+      <div class="grid md:grid-cols-2 gap-4">
+
+        <div>
+          <label class="text-sm font-bold">
+            Nama Institusi
+          </label>
+
+          <input
+            type="text"
+            x-model="form.namasekolah"
+            class="w-full border rounded-lg p-3"
+          >
+        </div>
+
+        <div>
+          <label class="text-sm font-bold">
+            Jurusan
+          </label>
+
+          <input
+            type="text"
+            x-model="form.jurusan"
+            class="w-full border rounded-lg p-3"
+          >
+        </div>
+
+        <div>
+          <label class="text-sm font-bold">
+            Jenjang Pendidikan
+          </label>
+
+          <select
+            x-model="form.jenjangpend"
+            class="w-full border rounded-lg p-3"
+          >
+            <option>SMK</option>
+            <option>D3</option>
+            <option>S1</option>
+            <option>S2</option>
+            <option>Profesi</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-sm font-bold">
+            Jenis
+          </label>
+
+          <select
+            x-model="form.jenis"
+            class="w-full border rounded-lg p-3"
+          >
+            <option>PKL</option>
+            <option>PBL</option>
+            <option>Resident</option>
+            <option>Magang</option>
+          </select>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- TANGGAL -->
+
+    <div class="bg-white rounded-2xl shadow p-6">
+
+      <h2 class="font-bold text-lg mb-5">
+        Periode
+      </h2>
+
+      <div class="grid md:grid-cols-2 gap-4">
+
+        <div>
+
+          <label class="text-sm font-bold">
+            Tanggal Mulai
+          </label>
+
+          <input
+            type="date"
+            x-model="form.tanggal_mulai"
+            class="w-full border rounded-lg p-3"
+          >
+
+        </div>
+
+        <div>
+
+          <label class="text-sm font-bold">
+            Tanggal Selesai
+          </label>
+
+          <input
+            type="date"
+            x-model="form.tanggal_selesai"
+            class="w-full border rounded-lg p-3"
+          >
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- FOTO -->
+
+    <div class="bg-white rounded-2xl shadow p-6">
+
+      <h2 class="font-bold text-lg mb-5">
+        Upload Foto
+      </h2>
+
+      <input
+        type="file"
+        accept=".jpg,.jpeg,.png"
+        @change="handlePhoto"
+      >
+
+    </div>
+
+    <!-- PDF -->
+
+    <div class="bg-white rounded-2xl shadow p-6">
+
+      <h2 class="font-bold text-lg mb-5">
+        Upload PDF
+      </h2>
+
+      <input
+        type="file"
+        multiple
+        accept=".pdf"
+        @change="handlePdf"
+      >
+
+    </div>
+
+    <!-- SUBMIT -->
+
+    <button
+      type="submit"
+      class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg"
+      :disabled="loading"
+    >
+
+      <span x-show="!loading">
+        SUBMIT DATA
+      </span>
+
+      <span x-show="loading">
+        MENGIRIM...
+      </span>
+
+    </button>
+
+  </form>
+
+</div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/helpers.js"></script>
+<script src="assets/js/api.js"></script>
+
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycby2878XyWx79MpBjwQSR137ocsaYIz_IwTSgzJruTu1Ls-X1VIG6hvG4ooPVPteukLUVg/exec";
+function app() {
 
-document
-.getElementById("myForm")
-.addEventListener("submit", async function(e){
+  return {
 
-  e.preventDefault();
+    loading: false,
 
-  const result = document.getElementById("result");
+    form: {
 
-  result.innerHTML = "Mengirim data...";
+      nama: "",
+      nim: "",
+      ktp: "",
+      alamat: "",
+      kelurahan: "",
+      tempatlahir: "",
+      tanggallahir: "",
+      kelamin: "Laki-Laki",
+      agama: "Islam",
 
-  const payload = {
+      namasekolah: "",
+      jurusan: "",
+      alamatsekolah: "",
+      jenjangpend: "S1",
 
-    nama: document.getElementById("nama").value,
+      jenis: "Magang",
 
-    nim: document.getElementById("nim").value,
+      hp: "",
 
-    tanggallahir: "2000-01-01",
+      tipe: "Perorangan",
 
-    tanggal_mulai: "2026-01-01",
+      id_parent: "1",
 
-    tanggal_selesai: "2026-02-01"
+      tanggal_mulai: "",
+      tanggal_selesai: "",
 
-  };
+      bagian: "Pelayanan Medik"
 
-  try {
+    },
 
-    const response = await fetch(API_URL, {
+    photoBase64: "",
 
-      method: "POST",
+    photoMimeType: "",
 
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
+    documents: [],
 
-      body: JSON.stringify(payload)
+    async handlePhoto(event) {
 
-    });
+      const file = event.target.files[0];
 
-    const data = await response.json();
+      if (!file) return;
 
-    result.innerHTML = JSON.stringify(data);
+      if (file.size > CONFIG.MAX_PHOTO_SIZE) {
 
-  } catch(err) {
+        alert("Foto terlalu besar");
 
-    result.innerHTML = err.toString();
+        return;
+
+      }
+
+      this.photoMimeType = file.type;
+
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+
+        this.photoBase64 = e.target.result.split(",")[1];
+
+      };
+
+      reader.readAsDataURL(file);
+
+    },
+
+    async handlePdf(event) {
+
+      const files = Array.from(event.target.files);
+
+      this.documents = [];
+
+      let totalSize = 0;
+
+      for (const file of files) {
+
+        totalSize += file.size;
+
+        if (totalSize > CONFIG.MAX_TOTAL_PDF) {
+
+          alert("Total PDF terlalu besar");
+
+          return;
+
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+
+          this.documents.push({
+
+            name: file.name,
+
+            base64: e.target.result.split(",")[1]
+
+          });
+
+        };
+
+        reader.readAsDataURL(file);
+
+      }
+
+    },
+
+    async submitForm() {
+
+      this.loading = true;
+
+      try {
+
+        const payload = {
+
+          ...this.form,
+
+          pasfoto: this.photoBase64,
+
+          photoMimeType: this.photoMimeType,
+
+          documents: this.documents
+
+        };
+
+        const result = await sendData(payload);
+
+        if (result.status === "success") {
+
+          alert("Data berhasil dikirim");
+
+          location.reload();
+
+        } else {
+
+          alert(result.message);
+
+        }
+
+      } catch(err) {
+
+        alert(err.toString());
+
+      }
+
+      this.loading = false;
+
+    }
 
   }
 
-});
+}
 
 </script>
 
