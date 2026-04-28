@@ -1,0 +1,181 @@
+/* =========================
+   GLOBAL
+========================= */
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #f8f9fa;
+    color: #495057;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+/* =========================
+   INPUT
+========================= */
+
+.input-field {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #dee2e6;
+    background: #ffffff;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: #714B67;
+    box-shadow: 0 0 0 3px rgba(113, 75, 103, 0.1);
+}
+
+/* =========================
+   LABEL
+========================= */
+
+.label-text {
+    display: block;
+    margin-bottom: 0.45rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #495057;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+/* =========================
+   CARD
+========================= */
+
+.section-card {
+    background: #ffffff;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    margin-bottom: 2rem;
+}
+
+/* =========================
+   PHOTO
+========================= */
+
+.photo-box {
+    width: 140px;
+    height: 180px;
+    border: 2px dashed #d1d5db;
+    border-radius: 1rem;
+    overflow: hidden;
+    position: relative;
+    background: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.photo-box:hover {
+    border-color: #714B67;
+}
+
+.photo-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* =========================
+   BUTTON
+========================= */
+
+.btn-primary {
+    background-color: #714B67;
+    color: #ffffff;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: #5a3b52;
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background-color: #dc2626;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #b91c1c;
+}
+
+/* =========================
+   TABLE
+========================= */
+
+.table-container {
+    background: white;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+}
+
+/* =========================
+   LOADING
+========================= */
+
+.loader-ring {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #714B67;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* =========================
+   SCROLLBAR
+========================= */
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 768px) {
+
+    .section-card {
+        padding: 1.25rem;
+    }
+
+    .photo-box {
+        width: 120px;
+        height: 150px;
+    }
+
+}
