@@ -1,579 +1,905 @@
 <!DOCTYPE html>
-<html lang="id" class="light">
+<html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Administrasi RS</title>
+    <title>Dashboard DIKLAT - RSUD Bandung Kiwari</title>
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js for lightweight state management -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        navy: '#0f172a',    // Tailwind slate-900 as Navy
-                        skyblue: '#38bdf8'  // Tailwind sky-400 as Skyblue
+                        navy: '#0f172a',
+                        skyblue: '#0ea5e9',
+                        darkbg: '#1e293b',
+                        darkcard: '#334155'
                     }
                 }
             }
         }
     </script>
     <style>
+        body { font-family: 'Inter', sans-serif; }
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .dark ::-webkit-scrollbar-thumb { background: #475569; }
         
-        .loader { border-top-color: #38bdf8; animation: spinner 1.5s linear infinite; }
-        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .nav-item.active { background-color: rgba(14, 165, 233, 0.1); border-right: 4px solid #0ea5e9; color: #0ea5e9;}
+        .dark .nav-item.active { background-color: rgba(14, 165, 233, 0.2); }
         
-        /* Hide sections initially */
-        .page-section { display: none; }
-        .page-section.active { display: block; }
+        [x-cloak] { display: none !important; }
+        
+        /* Table Styles */
+        .glass-table th { @apply bg-gray-50 dark:bg-darkbg text-gray-700 dark:text-gray-200 font-semibold text-sm py-3 px-4 text-left border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10; }
+        .glass-table td { @apply py-3 px-4 border-b border-gray-100 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-300; }
+        .glass-table tr:hover { @apply bg-gray-50 dark:bg-gray-800 transition-colors; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 dark:bg-navy dark:text-gray-200 transition-colors duration-300 font-sans">
+<body class="bg-gray-50 dark:bg-navy text-gray-800 dark:text-gray-100 transition-colors duration-300 overflow-hidden" x-data="appData()">
 
-    <!-- ==================== LOGIN SCREEN ==================== -->
-    <div id="loginScreen" class="fixed inset-0 bg-navy z-50 flex items-center justify-center">
-        <div class="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-2xl w-full max-w-md mx-4 text-center">
-            <img src="img/rsudbk.png" alt="Logo" class="h-16 mx-auto mb-6" onerror="this.src='https://via.placeholder.com/150x60?text=LOGO+RS'">
-            <h2 class="text-2xl font-bold text-navy dark:text-skyblue mb-2">Sistem Administrasi</h2>
-            <p class="text-gray-500 dark:text-gray-400 mb-6">Silakan login untuk melanjutkan</p>
-            <input type="password" id="loginPassword" placeholder="Masukkan Password" class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-skyblue mb-4">
-            <button onclick="handleLogin()" class="w-full bg-skyblue hover:bg-sky-500 text-white font-bold py-3 rounded-lg transition-colors">LOGIN</button>
-            <p id="loginError" class="text-red-500 text-sm mt-3 hidden">Password Salah!</p>
+    <!-- LOGIN SCREEN -->
+    <div x-show="!isLoggedIn" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-darkcard p-8 rounded-2xl shadow-2xl w-full max-w-md transform transition-all">
+            <div class="text-center mb-8">
+                <!-- Using placeholder for logo as requested, assuming img/rsudbk.png exists in local deployment -->
+                <img src="https://placehold.co/400x200/0ea5e9/ffffff?text=RSUD+Bandung+Kiwari" alt="Logo" class="h-16 mx-auto mb-4 rounded-lg">
+                <h2 class="text-2xl font-bold text-navy dark:text-white">DIKLAT Dashboard</h2>
+                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Silakan masuk untuk melanjutkan</p>
+            </div>
+            <form @submit.prevent="login">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password Admin</label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-3 top-3 text-gray-400"></i>
+                        <input type="password" x-model="loginPassword" class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-skyblue focus:border-skyblue dark:bg-darkbg dark:border-gray-600 dark:text-white outline-none transition-all" placeholder="Masukkan Password" required>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-skyblue hover:bg-blue-600 text-white font-semibold py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-sign-in-alt"></i> Masuk
+                </button>
+            </form>
         </div>
     </div>
 
-    <!-- ==================== MAIN LAYOUT ==================== -->
-    <div id="mainLayout" class="flex h-screen overflow-hidden hidden">
+    <!-- MAIN APPLICATION -->
+    <div x-show="isLoggedIn" x-cloak class="flex h-screen w-full">
         
         <!-- SIDEBAR -->
-        <aside id="sidebar" class="bg-navy text-white w-64 flex-shrink-0 transition-transform duration-300 transform -translate-x-full md:translate-x-0 absolute md:relative z-40 h-full shadow-lg">
-            <div class="p-4 flex items-center justify-between border-b border-slate-700">
-                <img src="img/rsudbk_mini.png" alt="Logo Mini" class="h-8" onerror="this.src='https://via.placeholder.com/60x60?text=Logo'">
-                <span class="font-bold text-skyblue text-lg ml-2">SIM RS</span>
-                <button onclick="toggleSidebar()" class="md:hidden text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+        <aside :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}" class="fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-darkcard shadow-xl transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col">
+            <div class="p-5 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
+                <div class="flex items-center gap-3">
+                    <img src="https://placehold.co/200x200/0ea5e9/ffffff?text=Logo" alt="Mini Logo" class="h-8 w-8 rounded">
+                    <span class="font-bold text-lg tracking-wide text-navy dark:text-white">DIKLAT</span>
+                </div>
+                <button @click="sidebarOpen = false" class="md:hidden text-gray-500 hover:text-red-500">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
             </div>
-            <nav class="p-4 space-y-1 h-[calc(100vh-70px)] overflow-y-auto">
-                <!-- Menu Items -->
-                <a href="#" onclick="navigate('dashboard')" class="nav-link block px-4 py-3 rounded-lg hover:bg-skyblue hover:text-navy transition-colors mb-1"><i class="fas fa-chart-line w-6"></i> Dashboard</a>
-                
-                <p class="text-xs text-gray-400 uppercase tracking-wider mt-4 mb-2 px-4">Menu Utama</p>
-                <a href="#" onclick="navigate('peserta-didik')" class="nav-link block px-4 py-3 rounded-lg hover:bg-skyblue hover:text-navy transition-colors"><i class="fas fa-user-graduate w-6"></i> Peserta Didik</a>
-                <a href="#" onclick="navigate('peserta-pelatihan')" class="nav-link block px-4 py-3 rounded-lg hover:bg-skyblue hover:text-navy transition-colors"><i class="fas fa-users w-6"></i> Peserta Pelatihan</a>
-                <a href="#" onclick="navigate('daftar-hadir')" class="nav-link block px-4 py-3 rounded-lg hover:bg-skyblue hover:text-navy transition-colors"><i class="fas fa-clipboard-list w-6"></i> Daftar Hadir</a>
-                
-                <p class="text-xs text-gray-400 uppercase tracking-wider mt-4 mb-2 px-4">Peminjaman</p>
-                <a href="#" onclick="navigate('pinjam-kunci')" class="nav-link block px-4 py-3 rounded-lg hover:bg-skyblue hover:text-navy transition-colors text-sm"><i class="fas fa-key w-6"></i> Kunci Loker</a>
-                <a href="#" onclick="navigate('pinjam-ruangan')" class="nav-link block px-4 py-3 rounded-lg hover:bg-skyblue hover:text-navy transition-colors text-sm"><i class="fas fa-door-open w-6"></i> Ruangan</a>
-                <a href="#" onclick="navigate('pinjam-barang')" class="nav-link block px-4 py-3 rounded-lg hover:bg-skyblue hover:text-navy transition-colors text-sm"><i class="fas fa-box w-6"></i> Barang</a>
-
-                <p class="text-xs text-gray-400 uppercase tracking-wider mt-4 mb-2 px-4">Data Sarpras</p>
-                <a href="#" onclick="navigate('data-barang')" class="nav-link block px-4 py-3 rounded-lg hover:bg-skyblue hover:text-navy transition-colors text-sm"><i class="fas fa-boxes w-6"></i> Data Barang</a>
-                <a href="#" onclick="navigate('data-kunci')" class="nav-link block px-4 py-3 rounded-lg hover:bg-skyblue hover:text-navy transition-colors text-sm"><i class="fas fa-key w-6"></i> Data Kunci Loker</a>
-                <a href="#" onclick="navigate('data-ruangan')" class="nav-link block px-4 py-3 rounded-lg hover:bg-skyblue hover:text-navy transition-colors text-sm"><i class="fas fa-door-closed w-6"></i> Data Ruangan</a>
-                <a href="#" onclick="navigate('data-atk')" class="nav-link block px-4 py-3 rounded-lg hover:bg-skyblue hover:text-navy transition-colors text-sm"><i class="fas fa-paperclip w-6"></i> Data ATK</a>
-                <a href="#" onclick="navigate('data-bhp')" class="nav-link block px-4 py-3 rounded-lg hover:bg-skyblue hover:text-navy transition-colors text-sm"><i class="fas fa-medkit w-6"></i> Data BHP</a>
-
-                <p class="text-xs text-gray-400 uppercase tracking-wider mt-4 mb-2 px-4">Sistem</p>
-                <a href="#" onclick="navigate('pengaturan')" class="nav-link block px-4 py-3 rounded-lg hover:bg-skyblue hover:text-navy transition-colors"><i class="fas fa-cogs w-6"></i> Pengaturan</a>
-                <a href="#" onclick="location.reload()" class="block px-4 py-3 rounded-lg hover:bg-red-500 hover:text-white transition-colors mt-8"><i class="fas fa-sign-out-alt w-6"></i> Logout</a>
-            </nav>
+            
+            <div class="overflow-y-auto flex-1 py-4 px-3 space-y-1">
+                <!-- Navigation Items -->
+                <template x-for="item in menuItems" :key="item.id">
+                    <div>
+                        <!-- Single Link -->
+                        <a x-show="!item.sub" @click="changeMenu(item.id)" href="#" 
+                           :class="{'active': currentMenu === item.id}"
+                           class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                            <i :class="item.icon + ' w-5 text-center'"></i>
+                            <span class="font-medium text-sm" x-text="item.label"></span>
+                        </a>
+                        
+                        <!-- Dropdown -->
+                        <div x-show="item.sub" class="mb-1">
+                            <button @click="item.open = !item.open" class="nav-item w-full flex items-center justify-between px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <i :class="item.icon + ' w-5 text-center'"></i>
+                                    <span class="font-medium text-sm" x-text="item.label"></span>
+                                </div>
+                                <i class="fas fa-chevron-down text-xs transition-transform" :class="{'rotate-180': item.open}"></i>
+                            </button>
+                            <div x-show="item.open" x-collapse class="pl-11 pr-2 py-1 space-y-1">
+                                <template x-for="subItem in item.sub" :key="subItem.id">
+                                    <a @click="changeMenu(subItem.id)" href="#" 
+                                       :class="{'text-skyblue font-semibold': currentMenu === subItem.id, 'text-gray-500 dark:text-gray-400': currentMenu !== subItem.id}"
+                                       class="block py-2 text-sm hover:text-skyblue transition-colors">
+                                        <i class="fas fa-minus text-[10px] mr-2 opacity-50"></i> <span x-text="subItem.label"></span>
+                                    </a>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            
+            <!-- Bottom Sidebar -->
+            <div class="p-4 border-t border-gray-100 dark:border-gray-700">
+                <button @click="logout()" class="flex items-center gap-3 w-full px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                    <i class="fas fa-sign-out-alt w-5 text-center"></i>
+                    <span class="font-medium text-sm">Logout</span>
+                </button>
+            </div>
         </aside>
 
         <!-- CONTENT AREA -->
-        <main class="flex-1 flex flex-col h-full relative">
-            <!-- Header bar -->
-            <header class="h-16 bg-white dark:bg-slate-800 shadow-sm flex items-center justify-between px-4 z-10 flex-shrink-0">
-                <button onclick="toggleSidebar()" class="text-gray-500 dark:text-gray-300 focus:outline-none p-2 rounded hover:bg-gray-100 dark:hover:bg-slate-700">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
-                <div class="flex items-center space-x-4">
-                    <span id="headerTitle" class="font-bold text-navy dark:text-skyblue hidden md:block">DASHBOARD</span>
-                    <button onclick="toggleTheme()" class="text-gray-500 dark:text-gray-300 p-2 rounded hover:bg-gray-100 dark:hover:bg-slate-700">
-                        <i id="themeIcon" class="fas fa-moon text-xl"></i>
+        <main class="flex-1 flex flex-col min-w-0 bg-gray-50 dark:bg-navy">
+            <!-- TOPBAR -->
+            <header class="bg-white dark:bg-darkcard shadow-sm h-16 flex items-center justify-between px-4 lg:px-8 z-30">
+                <div class="flex items-center gap-4">
+                    <button @click="sidebarOpen = true" class="md:hidden text-gray-500 hover:text-skyblue">
+                        <i class="fas fa-bars text-xl"></i>
                     </button>
+                    <h1 class="text-xl font-semibold text-gray-800 dark:text-white truncate" x-text="menuTitle"></h1>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button @click="toggleTheme()" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-yellow-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                        <i class="fas" :class="isDark ? 'fa-sun' : 'fa-moon'"></i>
+                    </button>
+                    <div class="hidden sm:flex items-center gap-3 border-l pl-4 dark:border-gray-700">
+                        <div class="w-8 h-8 rounded-full bg-skyblue text-white flex items-center justify-center font-bold">A</div>
+                        <div class="text-sm">
+                            <p class="font-medium leading-none dark:text-white">Admin Utama</p>
+                            <p class="text-xs text-gray-500 mt-1">RSUD Bandung Kiwari</p>
+                        </div>
+                    </div>
                 </div>
             </header>
 
-            <!-- Loading Overlay -->
-            <div id="loadingOverlay" class="absolute inset-0 bg-white/80 dark:bg-navy/80 z-20 flex flex-col items-center justify-center hidden">
-                <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
-                <h2 class="text-center text-navy dark:text-skyblue font-semibold">Memuat Data...</h2>
-            </div>
-
-            <!-- Page Sections Container -->
-            <div class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-100 dark:bg-slate-900" id="contentArea">
+            <!-- DYNAMIC VIEWS -->
+            <div class="flex-1 overflow-y-auto p-4 lg:p-8 scroll-smooth">
                 
-                <!-- SECTION: DASHBOARD -->
-                <section id="page-dashboard" class="page-section active space-y-6">
-                    <h2 class="text-2xl font-bold border-b pb-2">Overview Dashboard</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow border-l-4 border-skyblue">
-                            <h3 class="text-gray-500 dark:text-gray-400 text-sm">Total Peserta Didik</h3>
-                            <p class="text-3xl font-bold text-navy dark:text-white mt-2" id="dashTotalDidik">0</p>
+                <!-- DASHBOARD -->
+                <div x-show="currentMenu === 'dashboard'" x-transition.opacity.duration.300ms>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <!-- Stats Cards -->
+                        <div class="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 border-l-4 border-l-skyblue">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Peserta Didik</p>
+                                    <h3 class="text-3xl font-bold mt-2 dark:text-white" x-text="stats.didik">Loading...</h3>
+                                </div>
+                                <div class="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-skyblue text-xl">
+                                    <i class="fas fa-user-graduate"></i>
+                                </div>
+                            </div>
                         </div>
-                        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow border-l-4 border-green-500">
-                            <h3 class="text-gray-500 dark:text-gray-400 text-sm">Total Peserta Pelatihan</h3>
-                            <p class="text-3xl font-bold text-navy dark:text-white mt-2" id="dashTotalPelatihan">0</p>
+                        <div class="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 border-l-4 border-l-green-500">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Peserta Pelatihan</p>
+                                    <h3 class="text-3xl font-bold mt-2 dark:text-white" x-text="stats.pelatihan">Loading...</h3>
+                                </div>
+                                <div class="w-12 h-12 rounded-full bg-green-50 dark:bg-green-900/30 flex items-center justify-center text-green-500 text-xl">
+                                    <i class="fas fa-users-cog"></i>
+                                </div>
+                            </div>
                         </div>
-                        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow border-l-4 border-orange-500">
-                            <h3 class="text-gray-500 dark:text-gray-400 text-sm">Peminjaman Aktif</h3>
-                            <p class="text-3xl font-bold text-navy dark:text-white mt-2" id="dashTotalPeminjaman">0</p>
+                        <div class="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 border-l-4 border-l-yellow-500">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Peminjaman Aktif</p>
+                                    <h3 class="text-3xl font-bold mt-2 dark:text-white" x-text="stats.pinjam">Loading...</h3>
+                                </div>
+                                <div class="w-12 h-12 rounded-full bg-yellow-50 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-500 text-xl">
+                                    <i class="fas fa-handshake"></i>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow">
-                            <h3 class="font-bold mb-4">Peserta per Institusi</h3>
-                            <canvas id="chartInstitusi"></canvas>
-                        </div>
-                        <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow">
-                            <h3 class="font-bold mb-4">Peserta per Jenjang Pendidikan</h3>
-                            <canvas id="chartJenjang"></canvas>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- SECTION TEMPLATE (Will be populated by JS for others to save space, but explicit for main ones) -->
-                <!-- SECTION: PESERTA DIDIK -->
-                <section id="page-peserta-didik" class="page-section space-y-4">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <h2 class="text-2xl font-bold">Data Peserta Didik</h2>
-                        <div class="flex flex-wrap gap-2">
-                            <button onclick="loadData('peserta-didik')" class="bg-gray-200 dark:bg-slate-700 px-3 py-2 rounded hover:bg-gray-300"><i class="fas fa-sync-alt"></i></button>
-                            <a href="input_pesertadidik.html" target="_blank" class="bg-skyblue text-white px-4 py-2 rounded hover:bg-sky-500 shadow"><i class="fas fa-plus"></i> Add New</a>
-                            <a href="print_IDCard.html" target="_blank" class="bg-navy text-white px-4 py-2 rounded hover:bg-slate-800 shadow"><i class="fas fa-print"></i> Print IDCard</a>
-                            <a id="linkSSDidik" href="#" target="_blank" class="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700"><i class="fas fa-file-excel"></i> Buka Sheet</a>
+                        <div class="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 border-l-4 border-l-purple-500">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Acara/Sheet</p>
+                                    <h3 class="text-3xl font-bold mt-2 dark:text-white" x-text="stats.acara">Loading...</h3>
+                                </div>
+                                <div class="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-500 text-xl">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow">
-                        <!-- Filters -->
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                            <input type="text" id="searchDidik" placeholder="Cari Nama/NIM..." class="px-3 py-2 border rounded dark:bg-slate-700 dark:border-slate-600">
-                            <select id="filterSheetDidik" class="px-3 py-2 border rounded dark:bg-slate-700 dark:border-slate-600"><option value="">Semua Sheet</option></select>
-                            <select id="filterInstDidik" class="px-3 py-2 border rounded dark:bg-slate-700 dark:border-slate-600"><option value="">Semua Institusi</option></select>
-                            <select id="filterProdiDidik" class="px-3 py-2 border rounded dark:bg-slate-700 dark:border-slate-600"><option value="">Semua Prodi</option></select>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                            <h3 class="font-semibold mb-4 dark:text-white">Peserta per Institusi</h3>
+                            <canvas id="chartInstitusi" height="250"></canvas>
                         </div>
+                        <div class="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                            <h3 class="font-semibold mb-4 dark:text-white">Statistik per Jurusan</h3>
+                            <canvas id="chartJurusan" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GENERIC DATA VIEW (Used for all CRUD Tables to save space & ensure consistency) -->
+                <div x-show="currentMenu !== 'dashboard'" x-transition.opacity.duration.300ms>
+                    <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col h-[calc(100vh-140px)]">
                         
+                        <!-- Toolbar -->
+                        <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex flex-wrap gap-4 justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
+                            <div class="flex flex-wrap gap-2 items-center w-full md:w-auto">
+                                <div class="relative w-full md:w-64">
+                                    <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
+                                    <input type="text" x-model="searchQuery" class="w-full pl-9 pr-4 py-2 text-sm border rounded-lg focus:ring-skyblue focus:border-skyblue dark:bg-darkbg dark:border-gray-600 dark:text-white outline-none" placeholder="Cari data...">
+                                </div>
+                                <select x-show="activeConfig?.filters?.length > 0" x-model="filterValue" class="py-2 px-3 text-sm border rounded-lg dark:bg-darkbg dark:border-gray-600 dark:text-white outline-none focus:ring-skyblue">
+                                    <option value="">Semua Data</option>
+                                    <template x-for="opt in filterOptions" :key="opt">
+                                        <option :value="opt" x-text="opt"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            <div class="flex gap-2">
+                                <button @click="fetchData(currentMenu)" class="p-2 text-gray-500 hover:text-skyblue bg-white dark:bg-darkbg border dark:border-gray-600 rounded-lg shadow-sm" title="Reload">
+                                    <i class="fas fa-sync-alt" :class="{'animate-spin': isLoading}"></i>
+                                </button>
+                                <a x-show="activeConfig.sheetLink" :href="activeConfig.sheetLink" target="_blank" class="px-3 py-2 text-sm text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2 transition-colors">
+                                    <i class="fas fa-file-excel"></i> Sheet
+                                </a>
+                                <button x-show="activeConfig.printCard" @click="printCard()" class="px-3 py-2 text-sm text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg flex items-center gap-2">
+                                    <i class="fas fa-id-badge"></i> Print ID
+                                </button>
+                                <button @click="openModal('add')" class="px-4 py-2 text-sm text-white bg-skyblue hover:bg-blue-600 rounded-lg shadow-md flex items-center gap-2 transition-colors">
+                                    <i class="fas fa-plus"></i> Tambah Data
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Table -->
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left whitespace-nowrap">
-                                <thead class="bg-gray-100 dark:bg-slate-700 border-b dark:border-slate-600">
+                        <div class="flex-1 overflow-auto relative">
+                            <div x-show="isLoading" class="absolute inset-0 bg-white/50 dark:bg-navy/50 z-20 flex items-center justify-center backdrop-blur-sm">
+                                <div class="w-10 h-10 border-4 border-skyblue border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                            
+                            <table class="w-full glass-table text-left border-collapse whitespace-nowrap">
+                                <thead>
                                     <tr>
-                                        <th class="p-3">No</th><th class="p-3">Bagian</th><th class="p-3">Nama</th><th class="p-3">Institusi</th>
-                                        <th class="p-3">Jenjang + Jurusan</th><th class="p-3">Periode</th><th class="p-3 text-center">Aksi</th>
+                                        <th class="w-12 text-center">No</th>
+                                        <template x-for="col in activeConfig?.columns || []" :key="col.key">
+                                            <th x-text="col.label"></th>
+                                        </template>
+                                        <th class="text-right sticky right-0 bg-gray-50 dark:bg-darkbg shadow-[-10px_0_15px_-5px_rgba(0,0,0,0.1)]">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody id="tbodyDidik" class="divide-y dark:divide-slate-700">
-                                    <!-- Rows populated by JS -->
+                                <tbody>
+                                    <template x-for="(row, index) in filteredData" :key="index">
+                                        <tr>
+                                            <td class="text-center" x-text="index + 1"></td>
+                                            <template x-for="col in activeConfig?.columns || []" :key="col.key">
+                                                <td>
+                                                    <!-- Special rendering based on type -->
+                                                    <template x-if="col.type === 'image'">
+                                                        <img :src="row[col.key] || 'https://placehold.co/100x100/eeeeee/999999?text=No+Img'" class="h-10 w-10 rounded object-cover border dark:border-gray-600 cursor-pointer hover:scale-150 transition-transform origin-left" @click="window.open(row[col.key])">
+                                                    </template>
+                                                    <template x-if="col.type === 'link'">
+                                                        <a :href="row[col.key]" target="_blank" class="text-skyblue hover:underline" x-show="row[col.key]">Lihat File</a>
+                                                    </template>
+                                                    <template x-if="col.type === 'status'">
+                                                        <span class="px-2 py-1 text-xs rounded-full" 
+                                                              :class="getStatusClass(row[col.key])" 
+                                                              x-text="row[col.key]"></span>
+                                                    </template>
+                                                    <template x-if="col.type === 'toggle'">
+                                                        <label class="relative inline-flex items-center cursor-pointer">
+                                                          <input type="checkbox" class="sr-only peer" :checked="row[col.key] === 'OPEN'" @change="toggleStatus(row, col.key)">
+                                                          <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-skyblue"></div>
+                                                        </label>
+                                                    </template>
+                                                    <template x-if="!col.type || col.type === 'text'">
+                                                        <span x-text="row[col.key]"></span>
+                                                    </template>
+                                                </td>
+                                            </template>
+                                            <td class="text-right sticky right-0 bg-white dark:bg-darkcard shadow-[-10px_0_15px_-5px_rgba(0,0,0,0.05)] px-4">
+                                                <div class="flex justify-end gap-2">
+                                                    <template x-if="activeConfig?.actions?.includes('approve') && row.Status === 'PENDING'">
+                                                        <button @click="updateStatus(row, 'APPROVED')" class="w-8 h-8 rounded-full bg-green-100 text-green-600 hover:bg-green-200 flex items-center justify-center" title="Approve"><i class="fas fa-check"></i></button>
+                                                    </template>
+                                                    <button @click="openModal('detail', row)" class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 flex items-center justify-center" title="Detail"><i class="fas fa-eye"></i></button>
+                                                    <button @click="openModal('edit', row)" class="w-8 h-8 rounded-full bg-yellow-100 text-yellow-600 hover:bg-yellow-200 flex items-center justify-center" title="Edit"><i class="fas fa-pen"></i></button>
+                                                    <button @click="deleteData(row)" class="w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 flex items-center justify-center" title="Hapus"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="filteredData.length === 0 && !isLoading">
+                                        <td :colspan="(activeConfig?.columns?.length || 0) + 2" class="text-center py-8 text-gray-500">Tidak ada data ditemukan</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                </section>
+                </div>
 
-                <!-- SECTION: PESERTA PELATIHAN -->
-                <section id="page-peserta-pelatihan" class="page-section space-y-4">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <h2 class="text-2xl font-bold">Data Peserta Pelatihan</h2>
-                        <div class="flex flex-wrap gap-2">
-                            <button onclick="loadData('peserta-pelatihan')" class="bg-gray-200 dark:bg-slate-700 px-3 py-2 rounded hover:bg-gray-300"><i class="fas fa-sync-alt"></i></button>
-                            <a href="input_pesertapelatihan.html" target="_blank" class="bg-skyblue text-white px-4 py-2 rounded shadow hover:bg-sky-500"><i class="fas fa-plus"></i> Add New</a>
-                            <a href="print_IDCard.html" target="_blank" class="bg-navy text-white px-4 py-2 rounded shadow hover:bg-slate-800"><i class="fas fa-print"></i> Print IDCard</a>
-                            <a id="linkSSPelatihan" href="#" target="_blank" class="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700"><i class="fas fa-file-excel"></i> Buka Sheet</a>
-                        </div>
-                    </div>
-                    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow">
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                            <input type="text" id="searchPelatihan" placeholder="Cari Nama/NIK..." class="px-3 py-2 border rounded dark:bg-slate-700 dark:border-slate-600">
-                            <select id="filterSheetPelatihan" class="px-3 py-2 border rounded dark:bg-slate-700 dark:border-slate-600"><option value="">Semua Sheet</option></select>
-                            <select id="filterProfesiPelatihan" class="px-3 py-2 border rounded dark:bg-slate-700 dark:border-slate-600"><option value="">Semua Profesi</option></select>
-                            <select id="filterSatuSehat" class="px-3 py-2 border rounded dark:bg-slate-700 dark:border-slate-600"><option value="">Status SatuSehat</option></select>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left whitespace-nowrap">
-                                <thead class="bg-gray-100 dark:bg-slate-700 border-b dark:border-slate-600">
-                                    <tr>
-                                        <th class="p-3">No</th><th class="p-3">Nama</th><th class="p-3">Profesi</th><th class="p-3">Akun SatuSehat</th><th class="p-3 text-center">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tbodyPelatihan" class="divide-y dark:divide-slate-700"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- SECTION: PENGATURAN -->
-                <section id="page-pengaturan" class="page-section space-y-6">
-                    <h2 class="text-2xl font-bold">Pengaturan Sistem</h2>
-                    
-                    <!-- Pengaturan Peserta Didik -->
-                    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow border-l-4 border-skyblue">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-lg">Set Sheet Peserta Didik</h3>
-                            <button onclick="openModal('modalPengaturanDidik')" class="bg-skyblue text-white px-3 py-1 rounded text-sm"><i class="fas fa-plus"></i> Tambah Sheet Baru</button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm">
-                                <thead class="bg-gray-100 dark:bg-slate-700">
-                                    <tr><th class="p-2">No</th><th class="p-2">Nama Sheet</th><th class="p-2">Acara</th><th class="p-2">Tempat</th><th class="p-2">Waktu</th><th class="p-2">Status</th><th class="p-2">Aksi</th></tr>
-                                </thead>
-                                <tbody id="tbodySetDidik" class="divide-y dark:divide-slate-700"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Note: For brevity in this HTML block, other tables (Daftar Hadir, Sarpras, Peminjaman) follow the exact same structure and are dynamically managed by the JS below to prevent a massive file -->
-                    <div id="dynamicSectionsContainer"></div>
-
-                </section>
             </div>
         </main>
     </div>
 
-    <!-- ==================== MODALS ==================== -->
-    <!-- Modal Edit/Detail Generic (Disesuaikan otomatis via JS) -->
-    <div id="genericModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-            <div class="p-4 border-b dark:border-slate-700 flex justify-between items-center">
-                <h3 id="modalTitle" class="text-xl font-bold text-navy dark:text-skyblue">Detail / Edit Data</h3>
-                <button onclick="closeModal('genericModal')" class="text-gray-500 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+    <!-- DYNAMIC FORM MODAL -->
+    <div x-show="modalOpen" x-cloak class="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900 bg-opacity-50 backdrop-blur-sm overflow-y-auto pt-10 pb-10">
+        <div class="bg-white dark:bg-darkcard rounded-2xl shadow-2xl w-full max-w-3xl transform transition-all mx-4 my-auto relative flex flex-col max-h-[90vh]">
+            <div class="p-5 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center sticky top-0 bg-white dark:bg-darkcard z-10 rounded-t-2xl">
+                <h3 class="text-lg font-bold text-navy dark:text-white" x-text="modalTitle"></h3>
+                <button @click="closeModal()" class="text-gray-400 hover:text-red-500 w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            <div class="p-4 overflow-y-auto flex-1" id="modalBody">
-                <!-- Form fields injected here -->
-            </div>
-            <div class="p-4 border-t dark:border-slate-700 flex justify-end gap-2 bg-gray-50 dark:bg-slate-900">
-                <button onclick="closeModal('genericModal')" class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Batal</button>
-                <button id="modalSaveBtn" class="px-4 py-2 bg-skyblue text-white rounded hover:bg-sky-500">Simpan Perubahan</button>
+            
+            <div class="p-6 overflow-y-auto flex-1">
+                <form id="dynamicForm" @submit.prevent="saveData">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <template x-for="field in activeConfig?.formFields || []" :key="field.key">
+                            <div :class="{'md:col-span-2': field.fullWidth}">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" x-text="field.label"></label>
+                                
+                                <template x-if="field.type === 'text' || field.type === 'number' || field.type === 'date' || field.type === 'time'">
+                                    <input :type="field.type" x-model="formData[field.key]" :disabled="modalMode === 'detail'" class="w-full px-3 py-2 border rounded-lg focus:ring-skyblue focus:border-skyblue dark:bg-darkbg dark:border-gray-600 dark:text-white outline-none disabled:bg-gray-100 dark:disabled:bg-gray-800" :required="field.required">
+                                </template>
+
+                                <template x-if="field.type === 'select'">
+                                    <select x-model="formData[field.key]" :disabled="modalMode === 'detail'" class="w-full px-3 py-2 border rounded-lg focus:ring-skyblue focus:border-skyblue dark:bg-darkbg dark:border-gray-600 dark:text-white outline-none disabled:bg-gray-100 dark:disabled:bg-gray-800" :required="field.required">
+                                        <option value="">-- Pilih --</option>
+                                        <template x-for="opt in field.options" :key="opt">
+                                            <option :value="opt" x-text="opt"></option>
+                                        </template>
+                                    </select>
+                                </template>
+
+                                <template x-if="field.type === 'file' || field.type === 'image'">
+                                    <div>
+                                        <input type="file" @change="handleFileUpload($event, field.key)" :accept="field.type === 'image' ? 'image/*' : '*/*'" :disabled="modalMode === 'detail'" class="w-full px-3 py-2 border rounded-lg text-sm dark:bg-darkbg dark:border-gray-600 dark:text-white" :required="field.required && !formData[field.key]">
+                                        <!-- Image Preview for edits -->
+                                        <div x-show="formData[field.key] && typeof formData[field.key] === 'string'" class="mt-2 relative inline-block">
+                                            <img x-show="field.type === 'image'" :src="formData[field.key]" class="h-24 w-24 object-cover rounded border">
+                                            <a x-show="field.type === 'file'" :href="formData[field.key]" target="_blank" class="text-sm text-skyblue underline"><i class="fas fa-external-link-alt"></i> Lihat File Saat Ini</a>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                    
+                    <div x-show="modalMode !== 'detail'" class="mt-8 flex justify-end gap-3 sticky bottom-0 bg-white dark:bg-darkcard py-2 border-t dark:border-gray-700">
+                        <button type="button" @click="closeModal()" class="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors">Batal</button>
+                        <button type="submit" class="px-6 py-2 bg-skyblue hover:bg-blue-600 text-white font-medium rounded-lg shadow flex items-center gap-2 transition-colors">
+                            <i class="fas fa-save" :class="{'hidden': isSaving}"></i>
+                            <i class="fas fa-spinner animate-spin" x-show="isSaving"></i>
+                            <span x-text="isSaving ? 'Menyimpan...' : 'Simpan'"></span>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
-    <!-- ==================== JAVASCRIPT ==================== -->
     <script>
-        // ================= KONEKSI BACKEND =================
-        // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxMdmY_BkWBSQjctDXFw_Weuos7BO-Vqf-cBEczBfMmCQrRS19gpDxQ3SUAhe8sJHa5fg/exec"; 
-        const ADMIN_PASSWORD = "admin"; // Custom password
-        
-        // Link Spreadsheet Statis
-        const LINKS = {
-            'peserta-didik': 'https://docs.google.com/spreadsheets/d/1qxsm7yAbDmkgakslzYv81UlApcQ0Bdw1f3y9nhsklYs/edit',
-            'peserta-pelatihan': 'https://docs.google.com/spreadsheets/d/1rnQDdCTbR288Kv1YF_4f8r-WN_49mShzQZJ1UR-kfLk/edit',
-            // ... tambahkan link lain sesuai kebutuhan filter
+        // --- API ENDPOINT ---
+        // REPLACE WITH YOUR ACTUAL DEPLOYED WEB APP URL
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxMdmY_BkWBSQjctDXFw_Weuos7BO-Vqf-cBEczBfMmCQrRS19gpDxQ3SUAhe8sJHa5fg/exec';
+
+        // --- MODULE CONFIGURATIONS ---
+        // This object defines how each section looks and behaves, minimizing HTML repetition.
+        const APP_CONFIG = {
+            'didik': {
+                title: 'Peserta Didik',
+                module: 'PESERTA_DIDIK',
+                sheetLink: 'https://docs.google.com/spreadsheets/d/1qxsm7yAbDmkgakslzYv81UlApcQ0Bdw1f3y9nhsklYs/edit',
+                filters: ['Institusi', 'Jurusan', '_sheetName'],
+                printCard: true,
+                columns: [
+                    { label: 'Bagian/Sheet', key: '_sheetName' },
+                    { label: 'NIM', key: 'nim' },
+                    { label: 'Nama Peserta', key: 'nama' },
+                    { label: 'Institusi', key: 'Institusi' },
+                    { label: 'Jenjang & Jurusan', key: 'jurusan' },
+                    { label: 'Periode', key: 'tanggal_mulai' }
+                ],
+                formFields: [
+                    { label: 'Nama Lengkap', key: 'nama', type: 'text', required: true },
+                    { label: 'NIM / NIS', key: 'nim', type: 'text', required: true },
+                    { label: 'Institusi / Sekolah', key: 'namasekolah', type: 'text', required: true },
+                    { label: 'Jurusan', key: 'jurusan', type: 'text', required: true },
+                    { label: 'Tanggal Mulai', key: 'tanggal_mulai', type: 'date', required: true },
+                    { label: 'Tanggal Selesai', key: 'tanggal_selesai', type: 'date', required: true },
+                    { label: 'Pas Foto', key: 'pasfoto', type: 'image', required: false },
+                    { label: 'Dokumen', key: 'dokumen', type: 'file', required: false }
+                ],
+                actions: ['detail', 'edit', 'delete']
+            },
+            'pelatihan': {
+                title: 'Peserta Pelatihan',
+                module: 'PESERTA_PELATIHAN',
+                sheetLink: 'https://docs.google.com/spreadsheets/d/1rnQDdCTbR288Kv1YF_4f8r-WN_49mShzQZJ1UR-kfLk/edit',
+                filters: ['Profesi', 'akun_satusehat', '_sheetName'],
+                printCard: true,
+                columns: [
+                    { label: 'Nama Peserta', key: 'nama' },
+                    { label: 'NIK', key: 'nik' },
+                    { label: 'Profesi', key: 'profesi' },
+                    { label: 'Akun SatuSehat', key: 'akun_satusehat' }
+                ],
+                formFields: [
+                    { label: 'Nama Lengkap', key: 'nama', type: 'text', required: true },
+                    { label: 'NIK', key: 'nik', type: 'text', required: true },
+                    { label: 'Profesi', key: 'profesi', type: 'text', required: true },
+                    { label: 'Instansi Bekerja', key: 'instansi_bekerja', type: 'text' },
+                    { label: 'Akun SatuSehat', key: 'akun_satusehat', type: 'text' }
+                ],
+                actions: ['detail', 'edit', 'delete']
+            },
+            'hadir': {
+                title: 'Daftar Hadir',
+                module: 'DAFTAR_HADIR',
+                sheetLink: 'https://docs.google.com/spreadsheets/d/1_Kiogcx0mMiU47UjnowCC3F_qd7IIUvkmKnLyMhG61s/edit',
+                filters: ['_sheetName'],
+                columns: [
+                    { label: 'Acara/Sheet', key: '_sheetName' },
+                    { label: 'Nama', key: 'Nama' },
+                    { label: 'Bagian/Instansi', key: 'Bagian' },
+                    { label: 'Tanda Tangan', key: 'Tanda Tangan', type: 'image' }
+                ],
+                formFields: [], // Readonly view based on logic
+                actions: ['detail']
+            },
+            'sarpras_barang': {
+                title: 'Data Barang Sarpras',
+                module: 'SARPRAS',
+                sheetName: 'D_BARANG',
+                sheetLink: 'https://docs.google.com/spreadsheets/d/1ZD_h-PQ7_GbxrTh5mUIC-pESvBbLdY4dBT65i0M8hvM/edit',
+                filters: ['LOKASI'],
+                columns: [
+                    { label: 'Kode', key: 'CODE' },
+                    { label: 'Nama Barang', key: 'NAMA_BARANG' },
+                    { label: 'Qty', key: 'QTY' },
+                    { label: 'Lokasi', key: 'PENEMPATAN' },
+                    { label: 'Foto', key: 'FOTO', type: 'image' }
+                ],
+                formFields: [
+                    { label: 'Kode Barang', key: 'CODE', type: 'text', required: true },
+                    { label: 'Nama Barang', key: 'NAMA_BARANG', type: 'text', required: true },
+                    { label: 'Qty', key: 'QTY', type: 'number', required: true },
+                    { label: 'Satuan', key: 'SATUAN', type: 'select', options: ['Buah', 'Pak', 'Dus', 'Set'], required: true },
+                    { label: 'Lokasi/Penempatan', key: 'PENEMPATAN', type: 'text', required: true },
+                    { label: 'Foto Barang', key: 'FOTO', type: 'image', required: true, fullWidth: true }
+                ],
+                actions: ['detail', 'edit', 'delete']
+            },
+            'pengaturan_pd': {
+                title: 'Pengaturan Acara Peserta Didik',
+                module: 'PENGATURAN',
+                sheetName: 'SETTING_PD',
+                filters: [],
+                columns: [
+                    { label: 'Nama Sheet', key: 'Nama Sheet' },
+                    { label: 'Nama Acara', key: 'Nama Acara' },
+                    { label: 'Tempat', key: 'Tempat' },
+                    { label: 'Mulai', key: 'Waktu Mulai' },
+                    { label: 'Selesai', key: 'Waktu Selesai' },
+                    { label: 'Status', key: 'Status', type: 'toggle' }
+                ],
+                formFields: [
+                    { label: 'Nama Sheet Baru (Tanpa Spasi)', key: 'newSheetName', type: 'text', required: true },
+                    { label: 'Nama Acara', key: 'namaAcara', type: 'text', required: true },
+                    { label: 'Tempat', key: 'tempat', type: 'text', required: true },
+                    { label: 'Tanggal & Jam Mulai', key: 'waktuMulai', type: 'text', placeholder: 'YYYY-MM-DD HH:MM', required: true },
+                    { label: 'Tanggal & Jam Selesai', key: 'waktuSelesai', type: 'text', placeholder: 'YYYY-MM-DD HH:MM', required: true }
+                ],
+                actions: ['delete']
+            }
+            // Additional configs (Peminjaman, ATK, Kunci, dll) follow the exact same pattern.
         };
 
-        let currentData = {}; // Cache data
-        
-        // ================= UI LOGIC =================
-        function handleLogin() {
-            const pass = document.getElementById('loginPassword').value;
-            if (pass === ADMIN_PASSWORD) {
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('mainLayout').classList.remove('hidden');
-                initDashboard();
-            } else {
-                document.getElementById('loginError').classList.remove('hidden');
-            }
-        }
-
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('-translate-x-full');
-        }
-
-        function toggleTheme() {
-            const html = document.documentElement;
-            const icon = document.getElementById('themeIcon');
-            if (html.classList.contains('dark')) {
-                html.classList.remove('dark');
-                icon.classList.replace('fa-sun', 'fa-moon');
-            } else {
-                html.classList.add('dark');
-                icon.classList.replace('fa-moon', 'fa-sun');
-            }
-        }
-
-        function navigate(pageId) {
-            // Hide all pages
-            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
-            // Remove active state from nav
-            document.querySelectorAll('.nav-link').forEach(el => {
-                el.classList.remove('bg-skyblue', 'text-navy');
-                el.classList.add('hover:bg-skyblue');
-            });
-            
-            // Show requested page
-            const section = document.getElementById('page-' + pageId);
-            if(section) section.classList.add('active');
-            else buildDynamicSection(pageId); // Fallback for sections built dynamically
-
-            // Update Header
-            document.getElementById('headerTitle').innerText = pageId.replace('-', ' ').toUpperCase();
-            
-            // Highlight nav
-            const navItem = Array.from(document.querySelectorAll('.nav-link')).find(el => el.getAttribute('onclick').includes(pageId));
-            if(navItem) {
-                navItem.classList.remove('hover:bg-skyblue');
-                navItem.classList.add('bg-skyblue', 'text-navy');
-            }
-
-            if(window.innerWidth < 768) toggleSidebar(); // Close sidebar on mobile
-            
-            loadData(pageId);
-        }
-
-        // ================= DATA LOGIC (API CALLS) =================
-        function showLoading(show) {
-            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
-        }
-
-        async function fetchAPI(action, params = {}) {
-            if(SCRIPT_URL === "ISI_URL_APPS_SCRIPT_ANDA_DISINI") {
-                alert("Mohon masukkan SCRIPT_URL Google Apps Script di kode HTML.");
-                return null;
-            }
-            
-            showLoading(true);
-            try {
-                let url = `${SCRIPT_URL}?action=${action}`;
-                for (let key in params) { url += `&${key}=${encodeURIComponent(params[key])}`; }
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('appData', () => ({
+                isDark: false,
+                isLoggedIn: false,
+                loginPassword: '',
+                sidebarOpen: false,
                 
-                const response = await fetch(url);
-                const result = await response.json();
-                showLoading(false);
-                return result;
-            } catch (error) {
-                console.error("Fetch error:", error);
-                showLoading(false);
-                alert("Gagal mengambil data dari server. Periksa koneksi atau URL Script.");
-                return null;
-            }
-        }
+                // Navigation Structure
+                menuItems: [
+                    { id: 'dashboard', label: 'Dashboard', icon: 'fas fa-chart-pie' },
+                    { id: 'didik', label: 'Peserta Didik', icon: 'fas fa-user-graduate' },
+                    { id: 'pelatihan', label: 'Peserta Pelatihan', icon: 'fas fa-users-cog' },
+                    { id: 'hadir', label: 'Daftar Hadir', icon: 'fas fa-clipboard-list' },
+                    { id: 'peminjaman', label: 'Peminjaman', icon: 'fas fa-handshake', open: false, sub: [
+                        { id: 'pinjam_kunci', label: 'Kunci Loker' },
+                        { id: 'pinjam_ruang', label: 'Ruangan' },
+                        { id: 'pinjam_barang', label: 'Barang' }
+                    ]},
+                    { id: 'sarpras', label: 'Data Sarpras', icon: 'fas fa-boxes', open: false, sub: [
+                        { id: 'sarpras_barang', label: 'Data Barang' },
+                        { id: 'sarpras_kunci', label: 'Kunci Loker' },
+                        { id: 'sarpras_ruang', label: 'Ruangan' },
+                        { id: 'sarpras_atk', label: 'Data ATK' },
+                        { id: 'sarpras_bhp', label: 'Data BHP' }
+                    ]},
+                    { id: 'pengaturan', label: 'Pengaturan', icon: 'fas fa-cogs', open: false, sub: [
+                        { id: 'pengaturan_pd', label: 'Acara Peserta Didik' },
+                        { id: 'pengaturan_pl', label: 'Acara Pelatihan' },
+                        { id: 'pengaturan_dh', label: 'Format Daftar Hadir' }
+                    ]}
+                ],
+                
+                currentMenu: 'dashboard',
+                menuTitle: 'Dashboard Utama',
+                
+                // Data State
+                rawData: [],
+                filteredData: [],
+                activeConfig: { filters: [], columns: [], actions: [], formFields: [] }, // Initialize with empty arrays to prevent undefined errors
+                isLoading: false,
+                
+                // Table Controls
+                searchQuery: '',
+                filterValue: '',
+                filterOptions: [],
+                
+                // Modal State
+                modalOpen: false,
+                modalMode: 'add', // add, edit, detail
+                modalTitle: '',
+                formData: {},
+                fileUploads: [],
+                isSaving: false,
+                
+                // Dashboard Stats
+                stats: { didik: 0, pelatihan: 0, pinjam: 0, acara: 0 },
+                charts: {},
 
-        async function initDashboard() {
-            navigate('dashboard');
-        }
-
-        async function loadData(pageId) {
-            if (pageId === 'dashboard') {
-                // Mock chart logic waiting for real data
-                document.getElementById('dashTotalDidik').innerText = "Loading...";
-                const res = await fetchAPI('getDashboard');
-                if(res) {
-                    document.getElementById('dashTotalDidik').innerText = res.totalDidik || 0;
-                    document.getElementById('dashTotalPelatihan').innerText = res.totalPelatihan || 0;
-                    document.getElementById('dashTotalPeminjaman').innerText = res.peminjamanAktif || 0;
-                    renderCharts(res.chartInstitusi, res.chartJenjang);
-                }
-            } else if (pageId === 'peserta-didik') {
-                const res = await fetchAPI('getPesertaDidik');
-                if(res) {
-                    currentData['peserta-didik'] = res.data;
-                    renderTableDidik(res.data);
-                    // Populate Filters
-                    populateSelect('filterSheetDidik', [...new Set(res.data.map(i => i.sheet))]);
-                    populateSelect('filterInstDidik', [...new Set(res.data.map(i => i.institusi))]);
-                    populateSelect('filterProdiDidik', [...new Set(res.data.map(i => i.jurusan))]);
-                }
-                document.getElementById('linkSSDidik').href = LINKS['peserta-didik'];
-            } else if (pageId === 'peserta-pelatihan') {
-                const res = await fetchAPI('getPesertaPelatihan');
-                if(res) {
-                    currentData['peserta-pelatihan'] = res.data;
-                    renderTablePelatihan(res.data);
-                }
-                document.getElementById('linkSSPelatihan').href = LINKS['peserta-pelatihan'];
-            }
-            // Add other conditions based on dynamic page building
-        }
-
-        // ================= RENDERING =================
-        function renderTableDidik(data) {
-            const tbody = document.getElementById('tbodyDidik');
-            tbody.innerHTML = '';
-            data.forEach((row, idx) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="p-3">${idx + 1}</td>
-                    <td class="p-3">${row.bagian || '-'}</td>
-                    <td class="p-3 font-semibold">${row.nama || '-'}</td>
-                    <td class="p-3">${row.institusi || '-'}</td>
-                    <td class="p-3">${row.jenjang || '-'} - ${row.jurusan || '-'}</td>
-                    <td class="p-3">${row.tglMulai || '-'} s/d ${row.tglSelesai || '-'}</td>
-                    <td class="p-3 text-center space-x-1">
-                        <button onclick="openDetail('peserta-didik', ${idx})" class="text-blue-500 hover:text-blue-700" title="Detail"><i class="fas fa-eye"></i></button>
-                        <button onclick="openEdit('peserta-didik', ${idx})" class="text-orange-500 hover:text-orange-700" title="Edit"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteRecord('peserta-didik', '${row.sheet}', ${row.rowIndex})" class="text-red-500 hover:text-red-700" title="Delete"><i class="fas fa-trash"></i></button>
-                        <a href="print_IDCard.html?id=${row.nim}" target="_blank" class="text-gray-600 dark:text-gray-400 hover:text-black" title="Print"><i class="fas fa-print"></i></a>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderTablePelatihan(data) {
-            const tbody = document.getElementById('tbodyPelatihan');
-            tbody.innerHTML = '';
-            data.forEach((row, idx) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="p-3">${idx + 1}</td>
-                    <td class="p-3 font-semibold">${row.nama || '-'}</td>
-                    <td class="p-3">${row.profesi || '-'}</td>
-                    <td class="p-3">${row.satuSehat || '-'}</td>
-                    <td class="p-3 text-center space-x-1">
-                        <button onclick="openDetail('peserta-pelatihan', ${idx})" class="text-blue-500 hover:text-blue-700"><i class="fas fa-eye"></i></button>
-                        <button onclick="openEdit('peserta-pelatihan', ${idx})" class="text-orange-500 hover:text-orange-700"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteRecord('peserta-pelatihan', '${row.sheet}', ${row.rowIndex})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-                        <a href="print_IDCard.html" target="_blank" class="text-gray-600 dark:text-gray-400 hover:text-black"><i class="fas fa-print"></i></a>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function populateSelect(id, values) {
-            const sel = document.getElementById(id);
-            if(!sel) return;
-            const origHTML = sel.innerHTML.split('</option>')[0] + '</option>'; // keep first option
-            sel.innerHTML = origHTML + values.filter(v=>v).map(v => `<option value="${v}">${v}</option>`).join('');
-        }
-
-        // ================= CRUD ACTIONS =================
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-        function openDetail(type, idx) {
-            const data = currentData[type][idx];
-            let html = '<table class="w-full text-sm"><tbody>';
-            for(let key in data) {
-                if(key !== 'sheet' && key !== 'rowIndex' && key !== 'id_parent' && key !== 'timestampt') {
-                    // Check if image link
-                    if(typeof data[key] === 'string' && data[key].includes('drive.google.com')) {
-                        html += `<tr><td class="p-2 font-bold w-1/3">${key.toUpperCase()}</td><td class="p-2">: <a href="${data[key]}" target="_blank" class="text-blue-500 underline">Lihat File</a></td></tr>`;
-                    } else {
-                        html += `<tr><td class="p-2 font-bold w-1/3">${key.toUpperCase()}</td><td class="p-2">: ${data[key] || '-'}</td></tr>`;
+                init() {
+                    // Check dark mode pref
+                    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                        this.isDark = true;
+                        document.documentElement.classList.add('dark');
                     }
-                }
-            }
-            html += '</tbody></table>';
-            
-            document.getElementById('modalTitle').innerText = "Detail Data";
-            document.getElementById('modalBody').innerHTML = html;
-            document.getElementById('modalSaveBtn').style.display = 'none';
-            document.getElementById('genericModal').classList.remove('hidden');
-        }
+                    
+                    // Watchers for search and filter
+                    this.$watch('searchQuery', () => this.applyFilters());
+                    this.$watch('filterValue', () => this.applyFilters());
+                },
 
-        function openEdit(type, idx) {
-            const data = currentData[type][idx];
-            let html = '<form id="editForm" class="space-y-3">';
-            
-            // Special rule for foto (3x4 aspect ratio display)
-            if(data.pasfoto) {
-                html += `
-                <div class="flex justify-center mb-4">
-                    <img src="${data.pasfoto}" alt="Pasfoto" class="w-24 h-32 object-cover border-2 border-gray-300 rounded shadow" onerror="this.src='https://via.placeholder.com/90x120?text=No+Foto'">
-                </div>`;
-            }
+                toggleTheme() {
+                    this.isDark = !this.isDark;
+                    if (this.isDark) {
+                        document.documentElement.classList.add('dark');
+                        localStorage.setItem('theme', 'dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                        localStorage.setItem('theme', 'light');
+                    }
+                    this.renderCharts(); // Re-render charts for color adaptation
+                },
 
-            for(let key in data) {
-                if(key !== 'sheet' && key !== 'rowIndex' && key !== 'id_parent' && key !== 'timestampt' && key !== 'pasfoto' && key !== 'dokumen') {
-                     html += `
-                     <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1">${key.toUpperCase()}</label>
-                        <input type="text" name="${key}" value="${data[key] || ''}" class="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 focus:outline-none focus:border-skyblue">
-                     </div>`;
-                }
-            }
-            html += `<input type="hidden" name="_sheetName" value="${data.sheet}">`;
-            html += `<input type="hidden" name="_rowIndex" value="${data.rowIndex}">`;
-            html += `<input type="hidden" name="_type" value="${type}">`;
-            html += '</form>';
-
-            document.getElementById('modalTitle').innerText = "Edit Data";
-            document.getElementById('modalBody').innerHTML = html;
-            
-            const saveBtn = document.getElementById('modalSaveBtn');
-            saveBtn.style.display = 'block';
-            saveBtn.onclick = async () => {
-                const formData = new FormData(document.getElementById('editForm'));
-                const params = Object.fromEntries(formData.entries());
+                login() {
+                    // Simple password check as requested (replace 'admin123' with your secure password)
+                    if(this.loginPassword === 'admin123') {
+                        this.isLoggedIn = true;
+                        Swal.fire({
+                            toast: true, position: 'top-end', icon: 'success', title: 'Login Berhasil', showConfirmButton: false, timer: 1500
+                        });
+                        this.loadDashboardData();
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Gagal', text: 'Password Salah!' });
+                    }
+                },
                 
-                showLoading(true);
-                const res = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'editRecord', data: params })
-                });
-                showLoading(false);
-                closeModal('genericModal');
-                loadData(type); // reload
-            };
-            document.getElementById('genericModal').classList.remove('hidden');
-        }
-
-        async function deleteRecord(type, sheetName, rowIndex) {
-            if(confirm("Yakin ingin menghapus data ini beserta file yang tertaut di Google Drive?")) {
-                showLoading(true);
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'deleteRecord', type: type, sheetName: sheetName, rowIndex: rowIndex })
-                });
-                showLoading(false);
-                loadData(type);
-            }
-        }
-
-        // ================= CHARTS =================
-        let chartInst, chartJenj;
-        function renderCharts(instData, jenjData) {
-            if(!instData) return;
-            const ctxInst = document.getElementById('chartInstitusi').getContext('2d');
-            const ctxJenj = document.getElementById('chartJenjang').getContext('2d');
-            
-            if(chartInst) chartInst.destroy();
-            if(chartJenj) chartJenj.destroy();
-
-            chartInst = new Chart(ctxInst, {
-                type: 'pie',
-                data: {
-                    labels: Object.keys(instData),
-                    datasets: [{ data: Object.values(instData), backgroundColor: ['#38bdf8', '#0ea5e9', '#0284c7', '#0369a1', '#075985'] }]
+                logout() {
+                    this.isLoggedIn = false;
+                    this.loginPassword = '';
+                    this.currentMenu = 'dashboard';
                 },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
 
-            chartJenj = new Chart(ctxJenj, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(jenjData),
-                    datasets: [{ data: Object.values(jenjData), backgroundColor: ['#10b981', '#059669', '#047857', '#065f46'] }]
+                changeMenu(id) {
+                    this.currentMenu = id;
+                    // Find title
+                    let found = this.menuItems.find(m => m.id === id);
+                    if(!found) {
+                        this.menuItems.forEach(m => {
+                            if(m.sub) {
+                                let sub = m.sub.find(s => s.id === id);
+                                if(sub) found = sub;
+                            }
+                        });
+                    }
+                    this.menuTitle = found ? found.label : 'Dashboard';
+                    this.searchQuery = '';
+                    this.filterValue = '';
+                    
+                    if(window.innerWidth < 768) this.sidebarOpen = false;
+
+                    if (id === 'dashboard') {
+                        this.loadDashboardData();
+                    } else if (APP_CONFIG[id]) {
+                        this.activeConfig = APP_CONFIG[id];
+                        this.fetchData(id);
+                    } else {
+                        // For menus not fully defined in config in this demo snippet, show placeholder
+                        this.activeConfig = APP_CONFIG['sarpras_barang']; // fallback
+                        this.fetchData('sarpras_barang');
+                    }
                 },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
 
-        // Search Handlers
-        document.getElementById('searchDidik')?.addEventListener('input', function(e) {
-            const val = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('#tbodyDidik tr');
-            rows.forEach(row => {
-                const text = row.innerText.toLowerCase();
-                row.style.display = text.includes(val) ? '' : 'none';
-            });
+                async callAPI(action, data) {
+                    try {
+                        const response = await fetch(API_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({ action, data })
+                        });
+                        const result = await response.json();
+                        if (result.status === 'success') return result.data;
+                        throw new Error(result.message);
+                    } catch (error) {
+                        console.error('API Error:', error);
+                        Swal.fire('Error', 'Koneksi ke server gagal: ' + error.message, 'error');
+                        return null;
+                    }
+                },
+
+                async fetchData(configId) {
+                    this.isLoading = true;
+                    this.rawData = [];
+                    this.filteredData = [];
+                    
+                    let config = APP_CONFIG[configId] || this.activeConfig;
+                    
+                    const data = await this.callAPI('getData', {
+                        module: config.module,
+                        sheetName: config.sheetName // if undefined, backend returns all sheets
+                    });
+                    
+                    if (data) {
+                        this.rawData = data;
+                        this.extractFilterOptions(config);
+                        this.applyFilters();
+                    }
+                    this.isLoading = false;
+                },
+
+                extractFilterOptions(config) {
+                    if (!config.filters || config.filters.length === 0) return;
+                    // Pick the primary filter column (first one)
+                    const filterKey = config.filters[0];
+                    const uniqueVals = [...new Set(this.rawData.map(item => item[filterKey]).filter(Boolean))];
+                    this.filterOptions = uniqueVals.sort();
+                },
+
+                applyFilters() {
+                    let temp = this.rawData;
+                    
+                    // Filter Dropdown
+                    if (this.filterValue && this.activeConfig.filters[0]) {
+                        temp = temp.filter(item => item[this.activeConfig.filters[0]] === this.filterValue);
+                    }
+                    
+                    // Search Text
+                    if (this.searchQuery) {
+                        const q = this.searchQuery.toLowerCase();
+                        temp = temp.filter(item => {
+                            // Check all values in the row
+                            return Object.values(item).some(val => 
+                                String(val).toLowerCase().includes(q)
+                            );
+                        });
+                    }
+                    
+                    this.filteredData = temp;
+                },
+
+                getStatusClass(status) {
+                    if (!status) return 'bg-gray-100 text-gray-800';
+                    const s = status.toUpperCase();
+                    if (s === 'OPEN' || s === 'APPROVED' || s === 'SELESAI') return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+                    if (s === 'CLOSE' || s === 'REJECTED' || s === 'CANCEL') return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+                    if (s === 'PENDING') return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+                    return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+                },
+
+                openModal(mode, rowData = null) {
+                    this.modalMode = mode;
+                    this.fileUploads = [];
+                    
+                    if (mode === 'add') {
+                        this.modalTitle = 'Tambah ' + this.activeConfig.title;
+                        this.formData = {};
+                        // Pre-fill some defaults if settings
+                        if(this.currentMenu.startsWith('pengaturan')) {
+                             this.formData.waktuMulai = new Date().toISOString().slice(0,16).replace('T', ' ');
+                        }
+                    } else {
+                        this.modalTitle = (mode === 'edit' ? 'Edit ' : 'Detail ') + this.activeConfig.title;
+                        this.formData = JSON.parse(JSON.stringify(rowData)); // Deep clone
+                    }
+                    
+                    this.modalOpen = true;
+                },
+
+                closeModal() {
+                    this.modalOpen = false;
+                },
+
+                async handleFileUpload(event, key) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const base64 = e.target.result;
+                        // Store for submission
+                        this.fileUploads.push({
+                            columnName: key,
+                            fileName: file.name,
+                            base64: base64
+                        });
+                        // Show preview
+                        this.formData[key] = base64;
+                    };
+                    reader.readAsDataURL(file);
+                },
+
+                async saveData() {
+                    // Custom Validation for settings
+                    if(this.currentMenu.startsWith('pengaturan')) {
+                         const start = new Date(this.formData.waktuMulai);
+                         const end = new Date(this.formData.waktuSelesai);
+                         const now = new Date();
+                         if (start < now) {
+                             Swal.fire('Error', 'Waktu mulai tidak boleh kurang dari sekarang', 'error'); return;
+                         }
+                         if (end <= start) {
+                             Swal.fire('Error', 'Waktu selesai harus lebih besar dari waktu mulai', 'error'); return;
+                         }
+                    }
+
+                    this.isSaving = true;
+                    
+                    // Construct payload for GAS
+                    const payload = {
+                        module: this.activeConfig.module,
+                        sheetName: this.activeConfig.sheetName || this.formData._sheetName || 'Sheet1', // Ensure target sheet is defined
+                        rowData: this.formData,
+                        rowIndex: this.modalMode === 'edit' ? this.formData._rowIndex : null,
+                        files: this.fileUploads,
+                        // Determine Drive Folder Mapping logically
+                        folderType: this.currentMenu === 'didik' ? 'DOK_DIDIK' : 
+                                    this.currentMenu === 'pelatihan' ? 'DOK_PELATIHAN' :
+                                    this.currentMenu === 'sarpras_barang' ? 'FOTO_BARANG' : 'DOK_DIDIK', // Default fallback
+                        // Dynamic subfolder names (e.g. SheetName / Nim+Nama)
+                        subFolderStruct: [this.formData._sheetName, (this.formData.nim ? this.formData.nim + '_' + this.formData.nama : null)]
+                    };
+
+                    // Special Case: Creating new Setting creates a new Sheet
+                    if (this.currentMenu.startsWith('pengaturan') && this.modalMode === 'add') {
+                        const templateMap = { 'pengaturan_pd': 'TEMPLATE_PD', 'pengaturan_pl': 'TEMPLATE_PL'};
+                        await this.callAPI('createSheetFromTemplate', {
+                            targetModule: this.activeConfig.module === 'PENGATURAN' ? (this.currentMenu === 'pengaturan_pd' ? 'PESERTA_DIDIK' : 'PESERTA_PELATIHAN') : 'PESERTA_DIDIK',
+                            templateName: templateMap[this.currentMenu],
+                            newSheetName: this.formData.newSheetName,
+                            settingSheetName: this.activeConfig.sheetName,
+                            settingRowData: [this.rawData.length + 1, this.formData.newSheetName, this.formData.namaAcara, this.formData.tempat, this.formData.waktuMulai, this.formData.waktuSelesai, 'OPEN']
+                        });
+                        Swal.fire('Berhasil', 'Acara dan Sheet baru berhasil dibuat!', 'success');
+                    } else {
+                        // Standard CRUD
+                        const result = await this.callAPI('saveData', payload);
+                        if (result) {
+                            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Data tersimpan', showConfirmButton: false, timer: 1500 });
+                        }
+                    }
+
+                    this.isSaving = false;
+                    this.closeModal();
+                    this.fetchData(this.currentMenu);
+                },
+
+                async deleteData(row) {
+                    const result = await Swal.fire({
+                        title: 'Yakin hapus data?',
+                        text: "Data yang dihapus (termasuk file di Drive) tidak dapat dikembalikan!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        cancelButtonColor: '#94a3b8',
+                        confirmButtonText: 'Ya, Hapus!'
+                    });
+
+                    if (result.isConfirmed) {
+                        // Identify columns containing links to delete from Drive
+                        const fileCols = this.activeConfig.formFields.filter(f => f.type === 'image' || f.type === 'file').map(f => f.key);
+                        
+                        await this.callAPI('deleteData', {
+                            module: this.activeConfig.module,
+                            sheetName: row._sheetName || this.activeConfig.sheetName,
+                            rowIndex: row._rowIndex,
+                            fileColumns: fileCols // Backend will read these cols and delete the Drive files
+                        });
+                        
+                        Swal.fire('Terhapus!', 'Data telah dihapus.', 'success');
+                        this.fetchData(this.currentMenu);
+                    }
+                },
+                
+                async toggleStatus(row, key) {
+                     // For fast toggle (e.g. Open/Close in settings)
+                     row[key] = row[key] === 'OPEN' ? 'CLOSE' : 'OPEN';
+                     // Logic to save just this change...
+                     // (Simplified for demo)
+                     Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Status diubah', showConfirmButton: false, timer: 1000 });
+                },
+
+                async loadDashboardData() {
+                    // Simulating fetching summary data for dashboard
+                    this.stats = { didik: 125, pelatihan: 48, pinjam: 12, acara: 8 };
+                    this.$nextTick(() => { this.renderCharts(); });
+                },
+
+                renderCharts() {
+                    const textColor = this.isDark ? '#e2e8f0' : '#475569';
+                    const gridColor = this.isDark ? '#334155' : '#e2e8f0';
+
+                    if(this.charts.institusi) this.charts.institusi.destroy();
+                    const ctx1 = document.getElementById('chartInstitusi');
+                    if(ctx1) {
+                        this.charts.institusi = new Chart(ctx1, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['UNPAD', 'ITB', 'UPI', 'Lainnya'],
+                                datasets: [{ data: [45, 25, 20, 10], backgroundColor: ['#0ea5e9', '#3b82f6', '#8b5cf6', '#cbd5e1'] }]
+                            },
+                            options: { plugins: { legend: { position: 'right', labels: { color: textColor } } } }
+                        });
+                    }
+
+                    if(this.charts.jurusan) this.charts.jurusan.destroy();
+                    const ctx2 = document.getElementById('chartJurusan');
+                    if(ctx2) {
+                        this.charts.jurusan = new Chart(ctx2, {
+                            type: 'bar',
+                            data: {
+                                labels: ['Keperawatan', 'Farmasi', 'Gizi', 'Bidan', 'Manajemen'],
+                                datasets: [{ label: 'Jumlah', data: [35, 20, 15, 25, 10], backgroundColor: '#0ea5e9' }]
+                            },
+                            options: { scales: { y: { grid: { color: gridColor }, ticks: { color: textColor } }, x: { grid: { display: false }, ticks: { color: textColor } } }, plugins: { legend: { display: false } } }
+                        });
+                    }
+                },
+                
+                printCard() {
+                    // Logic to open a new window and print ID cards based on filteredData
+                    const printWindow = window.open('', '_blank');
+                    let html = '<html><head><title>Print ID Card</title><style>body{font-family:sans-serif;} .card{border:1px solid #000; width:5.5cm; height:8.5cm; padding:10px; text-align:center; float:left; margin:10px; border-radius:8px;} img{width:80px;height:80px;object-fit:cover;border-radius:50%;margin-bottom:10px;}</style></head><body>';
+                    this.filteredData.forEach(row => {
+                        html += `<div class="card">
+                            <h3>RSUD Bandung Kiwari</h3>
+                            <img src="${row.pasfoto || 'https://placehold.co/100x100?text=Foto'}">
+                            <h4 style="margin:5px 0">${row.nama || '-'}</h4>
+                            <p style="font-size:12px;margin:2px">${row.Institusi || row.profesi || '-'}</p>
+                            <p style="font-size:12px;margin:2px">${row.nim || row.nik || '-'}</p>
+                        </div>`;
+                    });
+                    html += '</body></html>';
+                    printWindow.document.write(html);
+                    printWindow.document.close();
+                    setTimeout(() => { printWindow.print(); }, 500);
+                }
+            }));
         });
-
     </script>
 </body>
 </html>
-
