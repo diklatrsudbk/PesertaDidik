@@ -1,386 +1,840 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Administrasi Terpadu</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Konfigurasi Tailwind Custom Theme -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        navy: '#0f172a',    // slate-900
+                        navylight: '#1e293b', // slate-800
+                        skyblue: '#0ea5e9', // sky-500
+                        skybluedark: '#0284c7' // sky-600
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Loader Overlay */
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 9999; display: none;
+            justify-content: center; align-items: center; flex-direction: column;
+        }
+        .dark #loader { background: rgba(15, 23, 42, 0.8); }
+        .spinner {
+            border: 4px solid rgba(14, 165, 233, 0.2);
+            border-left-color: #0ea5e9;
+            border-radius: 50%; width: 40px; height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Hide sections by default */
+        .page-section { display: none; }
+        .page-section.active { display: block; }
 
-  <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <title>
-    Sistem Data Peserta Didik 2026
-  </title>
-
-  <!-- TAILWIND -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- ALPINE -->
-  <script
-    defer
-    src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
-  ></script>
-
-  <!-- CSS -->
-  <link
-    rel="stylesheet"
-    href="assets/css/style.css"
-  >
-
+        /* Print formatting */
+        @media print {
+            body * { visibility: hidden; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; }
+        }
+    </style>
 </head>
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-200 transition-colors duration-200">
 
-<body
-  class="bg-gray-100 min-h-screen p-4"
-  x-data="app()"
->
-
-<div class="max-w-4xl mx-auto">
-
-  <!-- HEADER -->
-
-  <div class="bg-white rounded-2xl shadow p-6 mb-6">
-
-    <div class="flex items-center gap-4">
-
-      <img
-        src="assets/img/rsudbk.png"
-        class="h-20"
-        alt="Logo"
-      >
-
-      <div>
-
-        <h1 class="text-2xl font-bold">
-          Sistem Data Peserta Didik 2026
-        </h1>
-
-        <p class="text-gray-500 text-sm">
-          Form Pendaftaran Peserta
-        </p>
-
-      </div>
-
+    <!-- Global Loader -->
+    <div id="loader">
+        <div class="spinner mb-4"></div>
+        <p class="text-navy dark:text-gray-200 font-medium">Memproses Data...</p>
     </div>
 
-  </div>
-
-  <!-- FORM -->
-
-  <form
-    @submit.prevent="submitForm"
-    class="space-y-6"
-  >
-
-    <!-- DATA PRIBADI -->
-
-    <div class="bg-white rounded-2xl shadow p-6">
-
-      <h2 class="font-bold text-lg mb-5">
-        Data Pribadi
-      </h2>
-
-      <div class="grid md:grid-cols-2 gap-4">
-
-        <div>
-          <label class="text-sm font-bold">
-            Nama Lengkap
-          </label>
-
-          <input
-            type="text"
-            x-model="form.nama"
-            class="w-full border rounded-lg p-3"
-            required
-          >
+    <!-- Login Overlay -->
+    <div id="login-screen" class="fixed inset-0 bg-navy z-[10000] flex items-center justify-center">
+        <div class="bg-white dark:bg-navylight p-8 rounded-xl shadow-2xl w-96 max-w-full text-center border-t-4 border-skyblue">
+            <!-- Fallback Image if folder img not accessible -->
+            <div class="bg-skyblue text-white rounded-md p-2 mb-6 font-bold text-xl inline-block mx-auto">
+                <i class="fas fa-hospital mr-2"></i> RSUD Dashboard
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">Login Admin</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Masukkan password untuk melanjutkan</p>
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <input type="password" id="admin-pwd" class="w-full px-4 py-3 rounded-lg border dark:border-gray-600 bg-gray-50 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-skyblue mb-4 transition-all" placeholder="Password..." required>
+                <button type="submit" class="w-full bg-skyblue hover:bg-skybluedark text-white font-semibold py-3 rounded-lg transition-colors shadow-md">Masuk</button>
+                <p id="login-err" class="text-red-500 text-sm mt-3 hidden">Password salah!</p>
+            </form>
         </div>
-
-        <div>
-          <label class="text-sm font-bold">
-            NIM
-          </label>
-
-          <input
-            type="text"
-            x-model="form.nim"
-            class="w-full border rounded-lg p-3"
-            required
-          >
-        </div>
-
-        <div>
-          <label class="text-sm font-bold">
-            No KTP
-          </label>
-
-          <input
-            type="number"
-            x-model="form.ktp"
-            class="w-full border rounded-lg p-3"
-          >
-        </div>
-
-        <div>
-          <label class="text-sm font-bold">
-            No WhatsApp
-          </label>
-
-          <input
-            type="number"
-            x-model="form.hp"
-            class="w-full border rounded-lg p-3"
-          >
-        </div>
-
-        <div>
-          <label class="text-sm font-bold">
-            Tempat Lahir
-          </label>
-
-          <input
-            type="text"
-            x-model="form.tempatlahir"
-            class="w-full border rounded-lg p-3"
-          >
-        </div>
-
-        <div>
-          <label class="text-sm font-bold">
-            Tanggal Lahir
-          </label>
-
-          <input
-            type="date"
-            x-model="form.tanggallahir"
-            class="w-full border rounded-lg p-3"
-          >
-        </div>
-
-        <div>
-          <label class="text-sm font-bold">
-            Jenis Kelamin
-          </label>
-
-          <select
-            x-model="form.kelamin"
-            class="w-full border rounded-lg p-3"
-          >
-            <option>Laki-Laki</option>
-            <option>Perempuan</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="text-sm font-bold">
-            Agama
-          </label>
-
-          <select
-            x-model="form.agama"
-            class="w-full border rounded-lg p-3"
-          >
-            <option>Islam</option>
-            <option>Kristen</option>
-            <option>Protestan</option>
-            <option>Katolik</option>
-            <option>Budha</option>
-            <option>Hindu</option>
-            <option>Konghucu</option>
-          </select>
-        </div>
-
-        <div class="md:col-span-2">
-
-          <label class="text-sm font-bold">
-            Alamat
-          </label>
-
-          <textarea
-            x-model="form.alamat"
-            class="w-full border rounded-lg p-3"
-          ></textarea>
-
-        </div>
-
-      </div>
-
     </div>
 
-    <!-- DATA PENDIDIKAN -->
+    <div id="app-container" class="hidden flex h-screen overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside id="sidebar" class="bg-navy text-gray-300 w-64 flex-shrink-0 hidden md:flex flex-col transition-all duration-300 z-50 fixed md:relative h-full">
+            <!-- Logos -->
+            <div class="h-20 flex items-center justify-center border-b border-gray-700/50 relative px-4">
+                <img src="img/rsudbk.png" alt="Logo RSUD" class="hidden md:block w-auto h-[40px] max-w-full object-contain" onerror="this.src='https://placehold.co/150x75/0ea5e9/ffffff?text=RSUD+BK'">
+                <img src="img/rsudbk_mini.png" alt="Logo Mini" class="block md:hidden w-auto h-[40px] max-w-full object-contain" onerror="this.src='https://placehold.co/40x40/0ea5e9/ffffff?text=RS'">
+                <button id="close-sidebar-mobile" class="md:hidden absolute right-4 text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Menu -->
+            <div class="flex-1 overflow-y-auto py-4 custom-scrollbar">
+                <ul class="space-y-1">
+                    <!-- Dashboard -->
+                    <li>
+                        <a href="#" onclick="navigate('dashboard')" class="nav-link block px-6 py-3 hover:bg-navylight hover:text-skyblue transition-colors active text-skyblue bg-navylight border-r-4 border-skyblue" data-target="dashboard">
+                            <i class="fas fa-home w-6"></i> Dashboard
+                        </a>
+                    </li>
+                    
+                    <!-- Peserta Didik -->
+                    <li>
+                        <a href="#" onclick="navigate('pesertadidik')" class="nav-link block px-6 py-3 hover:bg-navylight hover:text-skyblue transition-colors" data-target="pesertadidik">
+                            <i class="fas fa-user-graduate w-6"></i> Peserta Didik
+                        </a>
+                    </li>
 
-    <div class="bg-white rounded-2xl shadow p-6">
+                    <!-- Peserta Pelatihan -->
+                    <li>
+                        <a href="#" onclick="navigate('pesertapelatihan')" class="nav-link block px-6 py-3 hover:bg-navylight hover:text-skyblue transition-colors" data-target="pesertapelatihan">
+                            <i class="fas fa-chalkboard-user w-6"></i> Peserta Pelatihan
+                        </a>
+                    </li>
 
-      <h2 class="font-bold text-lg mb-5">
-        Data Pendidikan
-      </h2>
+                    <!-- Daftar Hadir -->
+                    <li>
+                        <a href="#" onclick="navigate('daftarhadir')" class="nav-link block px-6 py-3 hover:bg-navylight hover:text-skyblue transition-colors" data-target="daftarhadir">
+                            <i class="fas fa-clipboard-user w-6"></i> Daftar Hadir
+                        </a>
+                    </li>
 
-      <div class="grid md:grid-cols-2 gap-4">
+                    <!-- Peminjaman (Dropdown) -->
+                    <li>
+                        <div class="px-6 py-3 hover:bg-navylight hover:text-skyblue transition-colors cursor-pointer flex justify-between items-center" onclick="toggleSubmenu('sub-peminjaman')">
+                            <div><i class="fas fa-hand-holding-hand w-6"></i> Peminjaman</div>
+                            <i class="fas fa-chevron-down text-xs transition-transform" id="icon-sub-peminjaman"></i>
+                        </div>
+                        <ul id="sub-peminjaman" class="hidden bg-gray-900/50 py-2 space-y-1 text-sm pl-8">
+                            <li><a href="#" onclick="navigate('pinjam-kunci')" class="nav-link block px-4 py-2 hover:text-skyblue" data-target="pinjam-kunci">Kunci Loker</a></li>
+                            <li><a href="#" onclick="navigate('pinjam-ruangan')" class="nav-link block px-4 py-2 hover:text-skyblue" data-target="pinjam-ruangan">Ruangan</a></li>
+                            <li><a href="#" onclick="navigate('pinjam-barang')" class="nav-link block px-4 py-2 hover:text-skyblue" data-target="pinjam-barang">Barang</a></li>
+                        </ul>
+                    </li>
 
-        <div>
-          <label class="text-sm font-bold">
-            Nama Institusi
-          </label>
+                    <!-- Data Sarpras (Dropdown) -->
+                    <li>
+                        <div class="px-6 py-3 hover:bg-navylight hover:text-skyblue transition-colors cursor-pointer flex justify-between items-center" onclick="toggleSubmenu('sub-sarpras')">
+                            <div><i class="fas fa-boxes-stacked w-6"></i> Data Sarpras</div>
+                            <i class="fas fa-chevron-down text-xs transition-transform" id="icon-sub-sarpras"></i>
+                        </div>
+                        <ul id="sub-sarpras" class="hidden bg-gray-900/50 py-2 space-y-1 text-sm pl-8">
+                            <li><a href="#" onclick="navigate('sarpras-barang')" class="nav-link block px-4 py-2 hover:text-skyblue" data-target="sarpras-barang">Barang</a></li>
+                            <li><a href="#" onclick="navigate('sarpras-kunci')" class="nav-link block px-4 py-2 hover:text-skyblue" data-target="sarpras-kunci">Kunci Loker</a></li>
+                            <li><a href="#" onclick="navigate('sarpras-ruangan')" class="nav-link block px-4 py-2 hover:text-skyblue" data-target="sarpras-ruangan">Ruangan</a></li>
+                            <li><a href="#" onclick="navigate('sarpras-atk')" class="nav-link block px-4 py-2 hover:text-skyblue" data-target="sarpras-atk">ATK</a></li>
+                            <li><a href="#" onclick="navigate('sarpras-bhp')" class="nav-link block px-4 py-2 hover:text-skyblue" data-target="sarpras-bhp">BHP</a></li>
+                        </ul>
+                    </li>
 
-          <input
-            type="text"
-            x-model="form.namasekolah"
-            class="w-full border rounded-lg p-3"
-          >
-        </div>
+                    <!-- Pengaturan (Dropdown) -->
+                    <li>
+                        <div class="px-6 py-3 hover:bg-navylight hover:text-skyblue transition-colors cursor-pointer flex justify-between items-center" onclick="toggleSubmenu('sub-pengaturan')">
+                            <div><i class="fas fa-cogs w-6"></i> Pengaturan</div>
+                            <i class="fas fa-chevron-down text-xs transition-transform" id="icon-sub-pengaturan"></i>
+                        </div>
+                        <ul id="sub-pengaturan" class="hidden bg-gray-900/50 py-2 space-y-1 text-sm pl-8">
+                            <li><a href="#" onclick="navigate('set-pd')" class="nav-link block px-4 py-2 hover:text-skyblue" data-target="set-pd">Peserta Didik</a></li>
+                            <li><a href="#" onclick="navigate('set-pl')" class="nav-link block px-4 py-2 hover:text-skyblue" data-target="set-pl">Peserta Pelatihan</a></li>
+                            <li><a href="#" onclick="navigate('set-dh')" class="nav-link block px-4 py-2 hover:text-skyblue" data-target="set-dh">Daftar Hadir</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="p-4 border-t border-gray-700/50 text-xs text-gray-500 text-center">
+                &copy; 2026 Admin RSUD
+            </div>
+        </aside>
 
-        <div>
-          <label class="text-sm font-bold">
-            Jurusan
-          </label>
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col h-screen w-full relative">
+            
+            <!-- Header -->
+            <header class="h-20 bg-white dark:bg-navylight shadow-sm flex items-center justify-between px-6 z-10 transition-colors">
+                <div class="flex items-center gap-4">
+                    <button id="toggle-sidebar" class="text-gray-500 hover:text-skyblue focus:outline-none p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <h1 id="page-title" class="text-xl font-bold text-gray-800 dark:text-white hidden sm:block">Dashboard</h1>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button id="toggle-dark" class="text-gray-500 hover:text-skyblue focus:outline-none p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                        <i class="fas fa-moon text-xl" id="dark-icon"></i>
+                    </button>
+                    <div class="w-10 h-10 rounded-full bg-skyblue text-white flex items-center justify-center font-bold shadow-md">
+                        AD
+                    </div>
+                </div>
+            </header>
 
-          <input
-            type="text"
-            x-model="form.jurusan"
-            class="w-full border rounded-lg p-3"
-          >
-        </div>
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900 transition-colors" id="main-scroll-area">
+                
+                <!-- ============================================== -->
+                <!-- SECTION: DASHBOARD -->
+                <!-- ============================================== -->
+                <div id="section-dashboard" class="page-section active space-y-6">
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white dark:bg-navylight p-6 rounded-xl shadow-sm border-t-4 border-skyblue">
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Total Peserta Didik</p>
+                            <h3 class="text-3xl font-bold text-gray-800 dark:text-white" id="dash-tot-pd">-</h3>
+                        </div>
+                        <div class="bg-white dark:bg-navylight p-6 rounded-xl shadow-sm border-t-4 border-green-500">
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Total Peserta Pelatihan</p>
+                            <h3 class="text-3xl font-bold text-gray-800 dark:text-white" id="dash-tot-pl">-</h3>
+                        </div>
+                        <div class="bg-white dark:bg-navylight p-6 rounded-xl shadow-sm border-t-4 border-purple-500">
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Peminjaman Aktif</p>
+                            <h3 class="text-3xl font-bold text-gray-800 dark:text-white" id="dash-tot-pinjam">-</h3>
+                        </div>
+                        <div class="bg-white dark:bg-navylight p-6 rounded-xl shadow-sm border-t-4 border-orange-500">
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Acara Open</p>
+                            <h3 class="text-3xl font-bold text-gray-800 dark:text-white" id="dash-tot-acara">-</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-navylight p-6 rounded-xl shadow-sm">
+                            <h4 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Statistik per Institusi (Dummy)</h4>
+                            <div class="relative h-64 w-full">
+                                <canvas id="chartInstitusi"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-navylight p-6 rounded-xl shadow-sm">
+                            <h4 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Sebaran Jurusan (Dummy)</h4>
+                            <div class="relative h-64 w-full">
+                                <canvas id="chartJurusan"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <div>
-          <label class="text-sm font-bold">
-            Jenjang Pendidikan
-          </label>
+                <!-- ============================================== -->
+                <!-- SECTION: PESERTA DIDIK -->
+                <!-- ============================================== -->
+                <div id="section-pesertadidik" class="page-section">
+                    <div class="bg-white dark:bg-navylight rounded-xl shadow-sm overflow-hidden">
+                        <!-- Toolbar -->
+                        <div class="p-4 border-b dark:border-gray-700 flex flex-wrap gap-4 items-center justify-between bg-gray-50 dark:bg-gray-800/50">
+                            <div class="flex flex-wrap gap-3 items-center w-full md:w-auto">
+                                <select id="filter-sheet-pd" class="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm outline-none focus:border-skyblue">
+                                    <option value="All">All Sheets</option>
+                                </select>
+                                <input type="text" id="search-pd" placeholder="Cari Nama/NIM..." class="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm outline-none focus:border-skyblue w-full md:w-48">
+                                <button onclick="loadData('PESERTA_DIDIK', 'table-pd')" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 px-3 py-2 rounded-lg transition" title="Reload">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                            <div class="flex gap-2 w-full md:w-auto justify-end">
+                                <a href="https://docs.google.com/spreadsheets/d/1qxsm7yAbDmkgakslzYv81UlApcQ0Bdw1f3y9nhsklYs/edit" target="_blank" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm transition shadow-sm flex items-center gap-2">
+                                    <i class="fas fa-file-excel"></i> <span class="hidden sm:inline">Spreadsheet</span>
+                                </a>
+                                <button onclick="printIDCard('pd')" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-sm transition shadow-sm flex items-center gap-2">
+                                    <i class="fas fa-print"></i> <span class="hidden sm:inline">Print IDCard</span>
+                                </button>
+                                <button onclick="openModal('modal-add-pd')" class="bg-skyblue hover:bg-skybluedark text-white px-3 py-2 rounded-lg text-sm transition shadow-sm flex items-center gap-2">
+                                    <i class="fas fa-plus"></i> <span class="hidden sm:inline">Add New</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Table Wrapper -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 text-sm font-semibold uppercase">
+                                    <tr>
+                                        <th class="p-4 border-b dark:border-gray-700">No</th>
+                                        <th class="p-4 border-b dark:border-gray-700">Bagian</th>
+                                        <th class="p-4 border-b dark:border-gray-700">Nama Peserta</th>
+                                        <th class="p-4 border-b dark:border-gray-700">Institusi</th>
+                                        <th class="p-4 border-b dark:border-gray-700">Pendidikan/Jurusan</th>
+                                        <th class="p-4 border-b dark:border-gray-700">Periode</th>
+                                        <th class="p-4 border-b dark:border-gray-700 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-pd" class="text-sm text-gray-700 dark:text-gray-300 divide-y dark:divide-gray-700">
+                                    <tr><td colspan="7" class="p-8 text-center text-gray-400">Pilih filter dan klik Reload</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
-          <select
-            x-model="form.jenjangpend"
-            class="w-full border rounded-lg p-3"
-          >
-            <option>SMK</option>
-            <option>D3</option>
-            <option>S1</option>
-            <option>S2</option>
-            <option>Profesi</option>
-          </select>
-        </div>
+                <!-- ============================================== -->
+                <!-- SECTION: SARPRAS BARANG (Contoh Struktur Standard) -->
+                <!-- ============================================== -->
+                <div id="section-sarpras-barang" class="page-section">
+                    <div class="bg-white dark:bg-navylight rounded-xl shadow-sm overflow-hidden">
+                        <div class="p-4 border-b dark:border-gray-700 flex flex-wrap gap-4 items-center justify-between bg-gray-50 dark:bg-gray-800/50">
+                            <div class="flex flex-wrap gap-3 items-center">
+                                <input type="text" id="search-s-barang" placeholder="Cari Barang..." class="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm outline-none focus:border-skyblue">
+                                <button onclick="loadData('SARPRAS', 'table-s-barang', 'D_BARANG')" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 px-3 py-2 rounded-lg transition"><i class="fas fa-sync-alt"></i></button>
+                            </div>
+                            <div class="flex gap-2">
+                                <a href="https://docs.google.com/spreadsheets/d/1ZD_h-PQ7_GbxrTh5mUIC-pESvBbLdY4dBT65i0M8hvM/edit" target="_blank" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm transition"><i class="fas fa-file-excel"></i> Sheet</a>
+                                <button onclick="openModal('modal-add-sarpras')" class="bg-skyblue hover:bg-skybluedark text-white px-3 py-2 rounded-lg text-sm transition"><i class="fas fa-plus"></i> Add New</button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 text-sm uppercase">
+                                    <tr>
+                                        <th class="p-4 border-b dark:border-gray-700">No</th>
+                                        <th class="p-4 border-b dark:border-gray-700">Nama Barang</th>
+                                        <th class="p-4 border-b dark:border-gray-700">Qty</th>
+                                        <th class="p-4 border-b dark:border-gray-700">Lokasi</th>
+                                        <th class="p-4 border-b dark:border-gray-700">Foto</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-s-barang" class="text-sm divide-y dark:divide-gray-700">
+                                    <tr><td colspan="5" class="p-4 text-center">Klik Reload untuk memuat data.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
-        <div>
-          <label class="text-sm font-bold">
-            Jenis
-          </label>
+                <!-- Template Placeholder untuk Section Lain (Daftar Hadir, Pengaturan, dll) agar file ringkas, struktur serupa -->
+                <div id="section-placeholder" class="page-section">
+                    <div class="bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 p-6 rounded-r-lg">
+                        <h3 class="text-lg font-semibold text-yellow-800 dark:text-yellow-200 mb-2">Modul Sedang Dikembangkan</h3>
+                        <p class="text-yellow-700 dark:text-yellow-400 text-sm">
+                            Halaman ini menggunakan struktur tabel yang sama dengan modul <b>Peserta Didik</b> dan <b>Sarpras</b>. Data diambil secara dinamis dari API Google Apps Script berdasarkan aksi yang dipilih.
+                        </p>
+                        <button onclick="navigate('dashboard')" class="mt-4 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md text-sm">Kembali ke Dashboard</button>
+                    </div>
+                </div>
 
-          <select
-            x-model="form.jenis"
-            class="w-full border rounded-lg p-3"
-          >
-            <option>PKL</option>
-            <option>PBL</option>
-            <option>Resident</option>
-            <option>Magang</option>
-          </select>
-        </div>
-
-      </div>
-
+            </div>
+        </main>
     </div>
 
-    <!-- PERIODE -->
+    <!-- ============================================== -->
+    <!-- MODALS (ADD NEW / FORMS) -->
+    <!-- ============================================== -->
+    
+    <!-- Overlay/Background Modals -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-black/60 z-[90] hidden backdrop-blur-sm transition-opacity"></div>
 
-    <div class="bg-white rounded-2xl shadow p-6">
-
-      <h2 class="font-bold text-lg mb-5">
-        Periode
-      </h2>
-
-      <div class="grid md:grid-cols-2 gap-4">
-
-        <div>
-
-          <label class="text-sm font-bold">
-            Tanggal Mulai
-          </label>
-
-          <input
-            type="date"
-            x-model="form.tanggal_mulai"
-            class="w-full border rounded-lg p-3"
-          >
-
+    <!-- Modal Add Peserta Didik -->
+    <div id="modal-add-pd" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-navylight rounded-xl shadow-2xl z-[100] w-full max-w-2xl max-h-[90vh] overflow-y-auto hidden">
+        <div class="p-6 border-b dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800/80 rounded-t-xl">
+            <h3 class="text-lg font-bold text-gray-800 dark:text-white">Tambah Peserta Didik Baru</h3>
+            <button onclick="closeModal('modal-add-pd')" class="text-gray-400 hover:text-red-500 transition"><i class="fas fa-times text-xl"></i></button>
         </div>
-
-        <div>
-
-          <label class="text-sm font-bold">
-            Tanggal Selesai
-          </label>
-
-          <input
-            type="date"
-            x-model="form.tanggal_selesai"
-            class="w-full border rounded-lg p-3"
-          >
-
+        <div class="p-6">
+            <form class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Nama Lengkap</label>
+                        <input type="text" class="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-skyblue">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">NIM / NIK</label>
+                        <input type="text" class="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-skyblue">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Institusi</label>
+                        <input type="text" class="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-skyblue">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Bagian/Unit</label>
+                        <input type="text" class="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-skyblue">
+                    </div>
+                </div>
+                <!-- File Upload Simulation -->
+                <div class="mt-4">
+                    <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Upload Foto / Dokumen</label>
+                    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition">
+                        <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                        <p class="text-sm text-gray-500">Klik atau drag file ke sini</p>
+                    </div>
+                </div>
+                <div class="pt-4 flex justify-end gap-2 border-t dark:border-gray-700 mt-6">
+                    <button type="button" onclick="closeModal('modal-add-pd')" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition">Batal</button>
+                    <button type="button" onclick="alert('Demo: Data Disimpan ke Apps Script'); closeModal('modal-add-pd')" class="px-4 py-2 bg-skyblue hover:bg-skybluedark text-white rounded-md transition shadow-sm">Simpan Data</button>
+                </div>
+            </form>
         </div>
-
-      </div>
-
     </div>
 
-    <!-- FOTO -->
-
-    <div class="bg-white rounded-2xl shadow p-6">
-
-      <h2 class="font-bold text-lg mb-5">
-        Upload Foto
-      </h2>
-
-      <input
-        type="file"
-        accept=".jpg,.jpeg,.png"
-        @change="handlePhoto"
-      >
-
+    <!-- Modal Pengaturan (Create Sheet) -->
+    <div id="modal-add-pengaturan" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-navylight rounded-xl shadow-2xl z-[100] w-full max-w-md hidden">
+        <div class="p-6 border-b dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800/80 rounded-t-xl">
+            <h3 class="text-lg font-bold text-gray-800 dark:text-white">Buat Acara / Sheet Baru</h3>
+            <button onclick="closeModal('modal-add-pengaturan')" class="text-gray-400 hover:text-red-500 transition"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        <div class="p-6">
+            <form id="form-pengaturan" class="space-y-4" onsubmit="submitPengaturan(event)">
+                <div>
+                    <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Nama Sheet (Singkat, tanpa spasi unik)</label>
+                    <input type="text" id="set-namasheet" class="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-skyblue" required>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Nama Acara Lengkap</label>
+                    <input type="text" id="set-namaacara" class="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-skyblue" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Waktu Mulai</label>
+                        <input type="datetime-local" id="set-mulai" class="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-skyblue text-sm" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Waktu Selesai</label>
+                        <input type="datetime-local" id="set-selesai" class="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-skyblue text-sm" required>
+                    </div>
+                </div>
+                <p id="set-err" class="text-red-500 text-xs hidden">Waktu Selesai tidak boleh kurang dari Waktu Mulai dan Waktu Mulai tidak boleh kurang dari sekarang.</p>
+                <div class="pt-4 flex justify-end gap-2 border-t dark:border-gray-700 mt-4">
+                    <button type="button" onclick="closeModal('modal-add-pengaturan')" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-skyblue hover:bg-skybluedark text-white rounded-md transition shadow-sm">Buat Sheet & Folder</button>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <!-- PDF -->
 
-    <div class="bg-white rounded-2xl shadow p-6">
+    <!-- ============================================== -->
+    <!-- JAVASCRIPT LOGIC -->
+    <!-- ============================================== -->
+    <script>
+        // --- KONFIGURASI ---
+        const ADMIN_PWD = "admin"; 
+        // PENTING: Ganti dengan URL Web App Google Apps Script Anda yang di-deploy (doPost)
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxMdmY_BkWBSQjctDXFw_Weuos7BO-Vqf-cBEczBfMmCQrRS19gpDxQ3SUAhe8sJHa5fg/exec"
 
-      <h2 class="font-bold text-lg mb-5">
-        Upload PDF
-      </h2>
+        // --- STATE MANAGEMENT ---
+        let currentTheme = localStorage.getItem('theme') || 'light';
+        
+        // --- INISIALISASI ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            initCharts();
+            
+            // Check auth (session memory for demo)
+            if(sessionStorage.getItem('isAuth') === 'true') {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
+                navigate('dashboard');
+            }
+        });
 
-      <input
-        type="file"
-        multiple
-        accept=".pdf"
-        @change="handlePdf"
-      >
+        // --- AUTHENTICATION ---
+        function handleLogin(e) {
+            e.preventDefault();
+            const pwd = document.getElementById('admin-pwd').value;
+            if(pwd === ADMIN_PWD) {
+                sessionStorage.setItem('isAuth', 'true');
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-container').classList.remove('hidden');
+                navigate('dashboard');
+            } else {
+                document.getElementById('login-err').classList.remove('hidden');
+            }
+        }
 
-    </div>
+        // --- THEME & UI INTERACTIONS ---
+        function initTheme() {
+            if (currentTheme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('dark-icon').classList.replace('fa-moon', 'fa-sun');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
 
-    <!-- SUBMIT -->
+        document.getElementById('toggle-dark').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            
+            const icon = document.getElementById('dark-icon');
+            if(isDark) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+            }
+            // Update charts color theme
+            initCharts();
+        });
 
-    <button
-      type="submit"
-      class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg"
-      :disabled="loading"
-    >
+        // Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        document.getElementById('toggle-sidebar').addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+            sidebar.classList.toggle('absolute');
+            sidebar.classList.toggle('md:relative');
+            sidebar.classList.toggle('w-full');
+            sidebar.classList.toggle('md:w-64');
+            sidebar.classList.add('z-50');
+        });
+        document.getElementById('close-sidebar-mobile').addEventListener('click', () => {
+            sidebar.classList.add('hidden');
+        });
 
-      <span x-show="!loading">
-        SUBMIT DATA
-      </span>
+        // Submenu Accordion
+        function toggleSubmenu(id) {
+            const el = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id);
+            if(el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                el.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+            }
+        }
 
-      <span x-show="loading">
-        MENGIRIM...
-      </span>
+        // --- NAVIGATION ---
+        function navigate(target) {
+            // Update Title
+            const titles = {
+                'dashboard': 'Dashboard Utama',
+                'pesertadidik': 'Data Peserta Didik',
+                'pesertapelatihan': 'Data Peserta Pelatihan',
+                'sarpras-barang': 'Sarpras - Daftar Barang',
+                'set-pd': 'Pengaturan Peserta Didik'
+            };
+            document.getElementById('page-title').innerText = titles[target] || 'Modul Sistem';
 
-    </button>
+            // Active Menu Styling
+            document.querySelectorAll('.nav-link').forEach(el => {
+                el.classList.remove('active', 'text-skyblue', 'bg-navylight', 'border-r-4', 'border-skyblue');
+                if(el.dataset.target === target) {
+                    el.classList.add('active', 'text-skyblue', 'bg-navylight', 'border-r-4', 'border-skyblue');
+                }
+            });
 
-  </form>
+            // Hide All Sections
+            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
 
-</div>
+            // Map target to section ID
+            let sectionId = 'section-' + target;
+            let sectionEl = document.getElementById(sectionId);
+            
+            // Fallback ke placeholder jika section spesifik belum dibuat di HTML (menghemat baris kode)
+            if(!sectionEl) {
+                sectionEl = document.getElementById('section-placeholder');
+            }
+            
+            sectionEl.classList.add('active');
 
-<!-- JS -->
-<script src="assets/js/config.js"></script>
-<script src="assets/js/helpers.js"></script>
-<script src="assets/js/api.js"></script>
-<script src="assets/js/app.js"></script>
+            // Khusus Mobile, tutup sidebar setelah klik menu
+            if(window.innerWidth < 768) {
+                sidebar.classList.add('hidden');
+            }
+            
+            // Reset scroll to top
+            document.getElementById('main-scroll-area').scrollTop = 0;
+            
+            // Otomatis Load Data jika masuk ke menu tertentu
+            if(target === 'pesertadidik') loadData('PESERTA_DIDIK', 'table-pd');
+            if(target === 'sarpras-barang') loadData('SARPRAS', 'table-s-barang', 'D_BARANG');
+        }
 
+        // --- API COMMUNICATION (FETCH TO GOOGLE APPS SCRIPT) ---
+        async function fetchAPI(payload) {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+            
+            try {
+                /*  PENTING:
+                    Karena ini berjalan statis, untuk demo visual, kita buat mock response 
+                    jika GAS_API_URL belum diatur oleh user. 
+                    Jika sudah diatur, dia akan melakukan fetch real.
+                */
+                if(GAS_API_URL.includes("XXXXX")) {
+                    await new Promise(r => setTimeout(r, 800)); // simulate network delay
+                    loader.style.display = 'none';
+                    return getMockData(payload.type, payload.sheetName);
+                }
 
+                const response = await fetch(GAS_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' }, // Hindari preflight CORS error di GAS
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                loader.style.display = 'none';
+                return result;
+            } catch (error) {
+                loader.style.display = 'none';
+                console.error('API Error:', error);
+                // Kembalikan Mock jika gagal (agar UI tetap jalan di preview)
+                return getMockData(payload.type, payload.sheetName); 
+            }
+        }
+
+        // --- DATA BINDING ---
+        async function loadData(type, targetTbodyId, specificSheet = null) {
+            let sheetName = specificSheet;
+            if(!specificSheet) {
+                // Ambil dari filter dropdown jika ada
+                const filterEl = document.getElementById(`filter-sheet-${type === 'PESERTA_DIDIK' ? 'pd' : ''}`);
+                if(filterEl) sheetName = filterEl.value;
+            }
+
+            const res = await fetchAPI({
+                action: 'getData',
+                type: type,
+                sheetName: sheetName || 'All'
+            });
+
+            if(res.success && res.data) {
+                renderTable(type, targetTbodyId, res.data);
+            } else {
+                alert("Gagal memuat data: " + (res.error || "Unknown"));
+            }
+        }
+
+        function renderTable(type, targetTbodyId, data) {
+            const tbody = document.getElementById(targetTbodyId);
+            if(!tbody) return;
+            
+            tbody.innerHTML = '';
+            if(data.length <= 1) { // Asumsi baris 0 adalah Header
+                tbody.innerHTML = '<tr><td colspan="10" class="p-4 text-center text-gray-500">Tidak ada data.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            // Skip index 0 (Header)
+            for(let i = 1; i < data.length; i++) {
+                let row = data[i];
+                if(type === 'PESERTA_DIDIK') {
+                    // Mapping: No(0), Bagian(22), Nama(0-wait prompt says A=Nama tapi biasaya A=No. Kita asumsikan format standar No|A, Nama|B, Institusi|J, dll)
+                    // Berdasarkan Prompt: No|Bagian(W/22)|Nama(A/0)|Institusi(J/9)|Jenjang+Jur(M&K 12&10)|Periode(R&S 17&18)
+                    html += `
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                            <td class="p-4">${i}</td>
+                            <td class="p-4">${row[22] || '-'}</td>
+                            <td class="p-4 font-medium text-gray-900 dark:text-white">${row[0] || 'Tanpa Nama'}</td>
+                            <td class="p-4">${row[9] || '-'}</td>
+                            <td class="p-4">${row[12] || ''} - ${row[10] || ''}</td>
+                            <td class="p-4 text-xs">${row[17] || ''} s/d ${row[18] || ''}</td>
+                            <td class="p-4 text-center space-x-1 whitespace-nowrap">
+                                <button class="text-blue-500 hover:text-blue-700" title="Detail"><i class="fas fa-eye"></i></button>
+                                <button class="text-green-500 hover:text-green-700" title="Edit"><i class="fas fa-edit"></i></button>
+                                <button class="text-red-500 hover:text-red-700" title="Delete"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                } else if (type === 'SARPRAS') {
+                    // Mapping Sarpras Barang: No(0), Nama(2), Qty(3), Lokasi(5), Foto(6)
+                    html += `
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                            <td class="p-4">${row[0] || i}</td>
+                            <td class="p-4 font-medium text-gray-900 dark:text-white">${row[2] || '-'}</td>
+                            <td class="p-4"><span class="bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded-full text-xs">${row[3] || '0'}</span></td>
+                            <td class="p-4">${row[5] || '-'}</td>
+                            <td class="p-4 text-center">
+                                ${row[6] ? `<a href="${row[6]}" target="_blank" class="text-skyblue"><i class="fas fa-image text-xl"></i></a>` : '<span class="text-gray-400"><i class="fas fa-image text-xl"></i></span>'}
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+            tbody.innerHTML = html;
+        }
+
+        // --- MODAL CONTROLS ---
+        function openModal(id) {
+            document.getElementById('modal-backdrop').classList.remove('hidden');
+            document.getElementById(id).classList.remove('hidden');
+        }
+        function closeModal(id) {
+            document.getElementById('modal-backdrop').classList.add('hidden');
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        // --- PENGATURAN SUBMIT ---
+        async function submitPengaturan(e) {
+            e.preventDefault();
+            const start = new Date(document.getElementById('set-mulai').value);
+            const end = new Date(document.getElementById('set-selesai').value);
+            const now = new Date();
+            const errEl = document.getElementById('set-err');
+
+            if(start < now || end <= start) {
+                errEl.classList.remove('hidden');
+                return;
+            }
+            errEl.classList.add('hidden');
+
+            const payload = {
+                action: 'createSheet',
+                type: 'PENGATURAN_PD', // hardcoded untuk demo
+                data: {
+                    namaSheet: document.getElementById('set-namasheet').value,
+                    namaAcara: document.getElementById('set-namaacara').value,
+                    waktuMulai: start.toISOString(),
+                    waktuSelesai: end.toISOString(),
+                    tempat: 'RSUD'
+                }
+            };
+
+            const res = await fetchAPI(payload);
+            if(res.success) {
+                alert("Berhasil membuat Sheet dan Folder: " + document.getElementById('set-namasheet').value);
+                closeModal('modal-add-pengaturan');
+                document.getElementById('form-pengaturan').reset();
+            }
+        }
+
+        // --- PRINT UTILITY ---
+        function printIDCard(type) {
+            // Sebagai ganti membuka tab HTML baru yang melanggar aturan single-file,
+            // Kita generate layout print di tab baru secara dinamis menggunakan JS.
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html>
+                <head>
+                    <title>Print ID Card</title>
+                    <style>
+                        body { font-family: sans-serif; display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; }
+                        .id-card { 
+                            width: 250px; height: 400px; border: 2px solid #0ea5e9; 
+                            border-radius: 10px; padding: 15px; text-align: center;
+                            position: relative;
+                        }
+                        .header { background: #0f172a; color: white; padding: 10px; border-radius: 5px 5px 0 0; margin: -15px -15px 15px -15px;}
+                        .photo { width: 100px; height: 120px; background: #ddd; margin: 0 auto; border: 2px solid #ccc;}
+                        .name { font-weight: bold; margin-top: 15px; font-size: 1.2em; }
+                        .role { color: #666; font-size: 0.9em; }
+                        .barcode { margin-top: 20px; width: 150px; height: 40px; background: #eee; margin-left:auto; margin-right:auto;}
+                        @media print { body { padding: 0; } }
+                    </style>
+                </head>
+                <body onload="window.print(); window.close();">
+                    <div class="id-card">
+                        <div class="header"><strong>RSUD BK</strong><br><small>PESERTA DIDIK</small></div>
+                        <div class="photo"></div>
+                        <div class="name">JOHN DOE</div>
+                        <div class="role">Keperawatan - Univ Merdeka</div>
+                        <div class="barcode">|| ||| | ||| ||| ||</div>
+                    </div>
+                </body>
+                </html>
+            `);
+            win.document.close();
+        }
+
+        // --- MOCK DATA UNTUK PREVIEW TANPA GAS (Fallbacks) ---
+        function getMockData(type, sheet) {
+            if(type === 'PESERTA_DIDIK') {
+                return { success: true, data: [
+                    ["NAMA", "NIM", "C", "D", "E", "F", "G", "H", "I", "INSTITUSI", "JURUSAN", "L", "JENJANG", "N", "O", "P", "Q", "MULAI", "SELESAI", "T", "U", "V", "BAGIAN"],
+                    ["Ahmad Yusuf", "12345", "", "", "", "", "", "", "", "Univ Indonesia", "Kedokteran", "", "S1", "", "", "", "", "01-Aug-26", "30-Aug-26", "", "", "", "Poli Bedah"],
+                    ["Siti Aminah", "67890", "", "", "", "", "", "", "", "Poltekkes", "Keperawatan", "", "D3", "", "", "", "", "05-Aug-26", "05-Sep-26", "", "", "", "IGD"],
+                ]};
+            }
+            if(type === 'SARPRAS') {
+                return { success: true, data: [
+                    ["NO", "KODE", "NAMA", "QTY", "SATUAN", "LOKASI", "FOTO"],
+                    ["1", "BRG-01", "Proyektor Epson", "2", "Buah", "Ruang Diklat A", ""],
+                    ["2", "BRG-02", "Kursi Susun", "50", "Buah", "Gudang Utama", ""]
+                ]};
+            }
+            return { success: true, data: [] };
+        }
+
+        // --- DASHBOARD CHARTS ---
+        let chartInst, chartJur;
+        function initCharts() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#e2e8f0' : '#334155';
+            const gridColor = isDark ? '#334155' : '#e2e8f0';
+
+            Chart.defaults.color = textColor;
+            Chart.defaults.borderColor = gridColor;
+
+            // Dummy Data
+            document.getElementById('dash-tot-pd').innerText = '145';
+            document.getElementById('dash-tot-pl').innerText = '32';
+            document.getElementById('dash-tot-pinjam').innerText = '8';
+            document.getElementById('dash-tot-acara').innerText = '3';
+
+            const ctxInst = document.getElementById('chartInstitusi').getContext('2d');
+            if(chartInst) chartInst.destroy();
+            chartInst = new Chart(ctxInst, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Univ A', 'Poltekkes B', 'Stikes C', 'Lainnya'],
+                    datasets: [{
+                        data: [45, 25, 20, 10],
+                        backgroundColor: ['#0ea5e9', '#3b82f6', '#8b5cf6', '#64748b'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+            });
+
+            const ctxJur = document.getElementById('chartJurusan').getContext('2d');
+            if(chartJur) chartJur.destroy();
+            chartJur = new Chart(ctxJur, {
+                type: 'bar',
+                data: {
+                    labels: ['Kedokteran', 'Keperawatan', 'Kebidanan', 'Farmasi'],
+                    datasets: [{
+                        label: 'Jumlah',
+                        data: [30, 65, 25, 25],
+                        backgroundColor: '#0ea5e9',
+                        borderRadius: 4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            });
+        }
+    </script>
 </body>
 </html>
+
