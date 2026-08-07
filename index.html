@@ -214,6 +214,30 @@
                                 </div>
                                 <div class="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-500 text-xl">
                                     <i class="fas fa-calendar-check"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CHARTS SECTION -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Chart Institusi -->
+                        <div class="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                            <h3 class="text-lg font-semibold text-navy dark:text-white mb-4">Statistik Asal Institusi</h3>
+                            <div class="relative h-64 w-full flex justify-center">
+                                <canvas id="chartInstitusi"></canvas>
+                            </div>
+                        </div>
+                        <!-- Chart Jurusan -->
+                        <div class="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                            <h3 class="text-lg font-semibold text-navy dark:text-white mb-4">Statistik Program Studi</h3>
+                            <div class="relative h-64 w-full">
+                                <canvas id="chartJurusan"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- GENERIC DATA VIEW -->
                 <div x-show="currentMenu !== 'dashboard'" x-transition.opacity.duration.300ms>
                     <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col h-[calc(100vh-140px)]">
@@ -366,7 +390,7 @@
                 <form id="dynamicForm" @submit.prevent="saveData">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <template x-for="field in activeConfig?.formFields || []" :key="field.key">
-                            <div :class="{'md:col-span-2': field.fullWidth}">
+                            <div x-show="!field.showIf || formData[field.showIf.key] === field.showIf.value" :class="{'md:col-span-2': field.fullWidth}">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" x-text="field.label"></label>
                                 
                                 <template x-if="field.type === 'text' || field.type === 'number' || field.type === 'date' || field.type === 'time'">
@@ -587,7 +611,7 @@
                 sheetName: 'D_BARANG',
                 sheetLink: 'https://docs.google.com/spreadsheets/d/1ZD_h-PQ7_GbxrTh5mUIC-pESvBbLdY4dBT65i0M8hvM/edit',
                 searchPlaceholder: 'Cari Nama Barang...',
-                filters: [{ key: 'LOKASI', label: 'Lokasi' }],
+                filters: [{ key: 'PENEMPATAN', label: 'Lokasi' }],
                 columns: [
                     { label: 'Nama Barang', key: 'NAMA_BARANG' },
                     { label: 'Qty', key: 'QTY' },
@@ -603,6 +627,68 @@
                     { label: 'Foto Barang', key: 'FOTO', type: 'image', required: true, fullWidth: true }
                 ],
                 actions: ['detail', 'edit', 'delete']
+            },
+            'sarpras_kunci': {
+                title: 'Data Kunci Loker', module: 'SARPRAS', sheetName: 'D_KUNCI',
+                sheetLink: 'https://docs.google.com/spreadsheets/d/1ZD_h-PQ7_GbxrTh5mUIC-pESvBbLdY4dBT65i0M8hvM/edit',
+                searchPlaceholder: 'Cari Kode / Nomor...', filters: [{ key: 'JENIS', label: 'Jenis' }],
+                columns: [
+                    { label: 'Kode', key: 'CODE' }, { label: 'Nomor Kunci', key: 'NOMOR' },
+                    { label: 'Jenis', key: 'JENIS' }, { label: 'Status', key: 'STATUS', type: 'status' }
+                ],
+                formFields: [
+                    { label: 'Kode Kunci', key: 'CODE', type: 'text', required: true },
+                    { label: 'Nomor Kunci', key: 'NOMOR', type: 'text', required: true },
+                    { label: 'Jenis', key: 'JENIS', type: 'text', required: true }
+                ], actions: ['detail', 'edit', 'delete']
+            },
+            'sarpras_ruang': {
+                title: 'Data Ruangan', module: 'SARPRAS', sheetName: 'D_RUANGAN',
+                sheetLink: 'https://docs.google.com/spreadsheets/d/1ZD_h-PQ7_GbxrTh5mUIC-pESvBbLdY4dBT65i0M8hvM/edit',
+                searchPlaceholder: 'Cari Ruangan...', filters: [{ key: 'LOKASI', label: 'Lokasi' }],
+                columns: [
+                    { label: 'Nama Ruangan', key: 'NAMA_RUANGAN' }, { label: 'Lokasi', key: 'LOKASI' },
+                    { label: 'Status', key: 'STATUS', type: 'status' }
+                ],
+                formFields: [
+                    { label: 'Kode Ruangan', key: 'KODE_RUANGAN', type: 'text', required: true },
+                    { label: 'Nama Ruangan', key: 'NAMA_RUANGAN', type: 'text', required: true },
+                    { label: 'Lokasi', key: 'LOKASI', type: 'text', required: true }
+                ], actions: ['detail', 'edit', 'delete']
+            },
+            'sarpras_atk': {
+                title: 'Data ATK', module: 'SARPRAS', sheetName: 'D_ATK',
+                sheetLink: 'https://docs.google.com/spreadsheets/d/1ZD_h-PQ7_GbxrTh5mUIC-pESvBbLdY4dBT65i0M8hvM/edit',
+                searchPlaceholder: 'Cari Item ATK...', filters: [{ key: 'PENEMPATAN', label: 'Lokasi' }],
+                columns: [
+                    { label: 'Nama Item', key: 'NAMA_ITEM' }, { label: 'Qty', key: 'QTY' },
+                    { label: 'Lokasi', key: 'PENEMPATAN' }, { label: 'Foto', key: 'FOTO', type: 'image' }
+                ],
+                formFields: [
+                    { label: 'Kode ATK', key: 'CODE', type: 'text', required: true },
+                    { label: 'Nama Item', key: 'NAMA_ITEM', type: 'text', required: true },
+                    { label: 'Qty', key: 'QTY', type: 'number', required: true },
+                    { label: 'Satuan', key: 'SATUAN', type: 'select', options: ['Buah', 'Pak', 'Dus', 'Set'], required: true },
+                    { label: 'Lokasi/Penempatan', key: 'PENEMPATAN', type: 'text', required: true },
+                    { label: 'Foto Item', key: 'FOTO', type: 'image', required: true, fullWidth: true }
+                ], actions: ['detail', 'edit', 'delete']
+            },
+            'sarpras_bhp': {
+                title: 'Data BHP', module: 'SARPRAS', sheetName: 'D_BHP',
+                sheetLink: 'https://docs.google.com/spreadsheets/d/1ZD_h-PQ7_GbxrTh5mUIC-pESvBbLdY4dBT65i0M8hvM/edit',
+                searchPlaceholder: 'Cari BHP...', filters: [{ key: 'PENEMPATAN', label: 'Lokasi' }],
+                columns: [
+                    { label: 'Nama BHP', key: 'NAMA_BHP' }, { label: 'Qty', key: 'QTY' },
+                    { label: 'Lokasi', key: 'PENEMPATAN' }, { label: 'Foto', key: 'FOTO', type: 'image' }
+                ],
+                formFields: [
+                    { label: 'Kode BHP', key: 'CODE', type: 'text', required: true },
+                    { label: 'Nama BHP', key: 'NAMA_BHP', type: 'text', required: true },
+                    { label: 'Qty', key: 'QTY', type: 'number', required: true },
+                    { label: 'Satuan', key: 'SATUAN', type: 'select', options: ['Buah', 'Pak', 'Dus', 'Set'], required: true },
+                    { label: 'Lokasi/Penempatan', key: 'PENEMPATAN', type: 'text', required: true },
+                    { label: 'Foto BHP', key: 'FOTO', type: 'image', required: true, fullWidth: true }
+                ], actions: ['detail', 'edit', 'delete']
             },
             'pengaturan_pd': {
                 title: 'Pengaturan Acara Peserta Didik',
@@ -624,6 +710,45 @@
                     { label: 'Tanggal & Jam Selesai', key: 'waktuSelesai', type: 'text', placeholder: 'YYYY-MM-DD HH:MM', required: true }
                 ],
                 actions: ['delete']
+            },
+            'pengaturan_pl': {
+                title: 'Pengaturan Acara Pelatihan', module: 'PENGATURAN', sheetName: 'SETTING_PL',
+                searchPlaceholder: 'Cari Acara...', filters: [],
+                columns: [
+                    { label: 'Nama Acara', key: 'Nama Acara' },
+                    { label: 'Tempat', key: 'Tempat' },
+                    { label: 'Status', key: 'Status', type: 'toggle' }
+                ],
+                formFields: [
+                    { label: 'Nama (Pembuat)', key: 'nama', type: 'text', required: true },
+                    { label: 'Nama Acara', key: 'namaAcara', type: 'text', required: true },
+                    { label: 'Tempat', key: 'tempat', type: 'text', required: true },
+                    { label: 'Tanggal & Jam Mulai', key: 'waktuMulai', type: 'text', placeholder: 'YYYY-MM-DD HH:MM', required: true },
+                    { label: 'Tanggal & Jam Selesai', key: 'waktuSelesai', type: 'text', placeholder: 'YYYY-MM-DD HH:MM', required: true }
+                ], actions: ['delete']
+            },
+            'pengaturan_dh': {
+                title: 'Pengaturan Daftar Hadir', module: 'PENGATURAN', sheetName: 'SETTING_DH',
+                searchPlaceholder: 'Cari Acara...', filters: [],
+                columns: [
+                    { label: 'Nama Sheet', key: 'Nama Sheet' },
+                    { label: 'Nama Acara', key: 'Nama Acara' },
+                    { label: 'Tempat', key: 'Tempat' },
+                    { label: 'Nama Pimpinan', key: 'Nama Pimpinan' },
+                    { label: 'Status', key: 'Status', type: 'toggle' }
+                ],
+                formFields: [
+                    { label: 'Pilih Template', key: 'template', type: 'select', options: ['PESERTA DIDIK', 'PELATIHAN', 'KARYAWAN'], required: true },
+                    { label: 'Nama Sheet', key: 'newSheetName', type: 'text', required: true },
+                    { label: 'Nama Acara', key: 'namaAcara', type: 'text', required: true },
+                    { label: 'Tempat', key: 'tempat', type: 'text', required: true },
+                    { label: 'Tanggal & Jam Mulai', key: 'waktuMulai', type: 'text', placeholder: 'YYYY-MM-DD HH:MM', required: true },
+                    { label: 'Tanggal & Jam Selesai', key: 'waktuSelesai', type: 'text', placeholder: 'YYYY-MM-DD HH:MM', required: true },
+                    { label: 'Pakai Tanda Tangan Pimpinan?', key: 'pakaiTtd', type: 'select', options: ['Tidak', 'Ya'], required: true },
+                    { label: 'Nama Pimpinan', key: 'Nama Pimpinan', type: 'text', showIf: { key: 'pakaiTtd', value: 'Ya' } },
+                    { label: 'Jabatan', key: 'Jabatan', type: 'text', showIf: { key: 'pakaiTtd', value: 'Ya' } },
+                    { label: 'NIP', key: 'NIP', type: 'text', showIf: { key: 'pakaiTtd', value: 'Ya' } }
+                ], actions: ['delete']
             }
         };
 
@@ -664,6 +789,8 @@
                 
                 // Data State
                 stats: { didik: '...', pelatihan: '...', pinjam: '...', acara: '...' },
+                chartDataInstitusi: { labels: ['Memuat...'], data: [1] },
+                chartDataJurusan: { labels: ['Memuat...'], data: [1] },
                 charts: {},
                 rawData: [],
                 filteredData: [],
@@ -967,9 +1094,68 @@
                 },
 
                 async loadDashboardData() {
-                    // Simulating fetching summary data for dashboard
-                    this.stats = { didik: 125, pelatihan: 48, pinjam: 12, acara: 8 };
+                    this.isLoading = true;
+                    try {
+                        // Tarik data asli dari backend secara paralel
+                        const [didik, pelatihan, pinjam, acara] = await Promise.all([
+                            this.callAPI('getData', { module: 'PESERTA_DIDIK' }),
+                            this.callAPI('getData', { module: 'PESERTA_PELATIHAN' }),
+                            this.callAPI('getData', { module: 'PEMINJAMAN' }),
+                            this.callAPI('getData', { module: 'PENGATURAN' })
+                        ]);
+
+                        this.stats.didik = didik ? didik.length : 0;
+                        this.stats.pelatihan = pelatihan ? pelatihan.length : 0;
+                        
+                        // Hitung pinjaman yang statusnya OPEN atau PENDING
+                        this.stats.pinjam = pinjam ? pinjam.filter(x => {
+                            const s = (x.Status || '').toUpperCase();
+                            return s === 'OPEN' || s === 'PENDING';
+                        }).length : 0;
+                        
+                        this.stats.acara = acara ? acara.length : 0;
+
+                        // Ekstrak data nyata untuk Grafik (Dashboard)
+                        this.processChartData(didik);
+
+                    } catch(e) {
+                        console.error('Gagal mengambil data dashboard:', e);
+                        this.stats = { didik: 0, pelatihan: 0, pinjam: 0, acara: 0 };
+                        this.chartDataInstitusi = { labels: ['Tidak ada data'], data: [1] };
+                        this.chartDataJurusan = { labels: ['Tidak ada data'], data: [1] };
+                    }
+                    this.isLoading = false;
                     this.$nextTick(() => { this.renderCharts(); });
+                },
+
+                processChartData(didikData) {
+                    if (!didikData || didikData.length === 0) {
+                        this.chartDataInstitusi = { labels: ['Tidak ada data'], data: [1] };
+                        this.chartDataJurusan = { labels: ['Tidak ada data'], data: [1] };
+                        return;
+                    }
+
+                    const instCount = {};
+                    const jurCount = {};
+
+                    didikData.forEach(item => {
+                        const inst = item.namasekolah || 'Lainnya';
+                        const jur = item.jurusan || 'Lainnya';
+                        instCount[inst] = (instCount[inst] || 0) + 1;
+                        jurCount[jur] = (jurCount[jur] || 0) + 1;
+                    });
+
+                    const sortedInst = Object.entries(instCount).sort((a,b) => b[1]-a[1]).slice(0, 5);
+                    this.chartDataInstitusi = {
+                        labels: sortedInst.map(i => i[0]),
+                        data: sortedInst.map(i => i[1])
+                    };
+
+                    const sortedJur = Object.entries(jurCount).sort((a,b) => b[1]-a[1]).slice(0, 5);
+                    this.chartDataJurusan = {
+                        labels: sortedJur.map(i => i[0]),
+                        data: sortedJur.map(i => i[1])
+                    };
                 },
 
                 renderCharts() {
@@ -982,8 +1168,11 @@
                         this.charts.institusi = new Chart(ctx1, {
                             type: 'doughnut',
                             data: {
-                                labels: ['UNPAD', 'ITB', 'UPI', 'Lainnya'],
-                                datasets: [{ data: [45, 25, 20, 10], backgroundColor: ['#0ea5e9', '#3b82f6', '#8b5cf6', '#cbd5e1'] }]
+                                labels: this.chartDataInstitusi.labels,
+                                datasets: [{ 
+                                    data: this.chartDataInstitusi.data, 
+                                    backgroundColor: ['#0ea5e9', '#3b82f6', '#8b5cf6', '#cbd5e1', '#f59e0b'] 
+                                }]
                             },
                             options: { plugins: { legend: { position: 'right', labels: { color: textColor } } } }
                         });
@@ -995,10 +1184,10 @@
                         this.charts.jurusan = new Chart(ctx2, {
                             type: 'bar',
                             data: {
-                                labels: ['Keperawatan', 'Farmasi', 'Gizi', 'Bidan', 'Manajemen'],
-                                datasets: [{ label: 'Jumlah', data: [35, 20, 15, 25, 10], backgroundColor: '#0ea5e9' }]
+                                labels: this.chartDataJurusan.labels,
+                                datasets: [{ label: 'Jumlah Peserta', data: this.chartDataJurusan.data, backgroundColor: '#0ea5e9' }]
                             },
-                            options: { scales: { y: { grid: { color: gridColor }, ticks: { color: textColor } }, x: { grid: { display: false }, ticks: { color: textColor } } }, plugins: { legend: { display: false } } }
+                            options: { scales: { y: { grid: { color: gridColor }, ticks: { color: textColor, stepSize: 1 } }, x: { grid: { display: false }, ticks: { color: textColor } } }, plugins: { legend: { display: false } } }
                         });
                     }
                 },
