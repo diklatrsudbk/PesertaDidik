@@ -51,6 +51,9 @@
         .glass-table th { @apply bg-gray-50 dark:bg-darkbg text-gray-700 dark:text-gray-200 font-semibold text-sm py-3 px-4 text-left border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10; }
         .glass-table td { @apply py-3 px-4 border-b border-gray-100 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-300; }
         .glass-table tr:hover { @apply bg-gray-50 dark:bg-gray-800 transition-colors; }
+
+        /* Smooth Sidebar Transition */
+        .sidebar-transition { transition: width 0.3s ease, transform 0.3s ease; }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-navy text-gray-800 dark:text-gray-100 transition-colors duration-300 overflow-hidden" x-data="appData()">
@@ -59,8 +62,8 @@
     <div x-show="!isLoggedIn" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 backdrop-blur-sm">
         <div class="bg-white dark:bg-darkcard p-8 rounded-2xl shadow-2xl w-full max-w-md transform transition-all">
             <div class="text-center mb-8">
-                <!-- Using placeholder for logo as requested, assuming img/rsudbk.png exists in local deployment -->
-                <img src="https://placehold.co/400x200/0ea5e9/ffffff?text=RSUD+Bandung+Kiwari" alt="Logo" class="h-16 mx-auto mb-4 rounded-lg">
+                <!-- Logo dari folder lokal dengan ukuran spesifik 4cm x 2cm -->
+                <img src="img/rsudbk.png" alt="Logo RSUD Bandung Kiwari" class="mx-auto mb-4 rounded-lg object-contain" style="width: 4cm; height: 2cm;" onerror="this.src='https://placehold.co/150x75/0ea5e9/ffffff?text=RSUD+Bandung+Kiwari'">
                 <h2 class="text-2xl font-bold text-navy dark:text-white">DIKLAT Dashboard</h2>
                 <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Silakan masuk untuk melanjutkan</p>
             </div>
@@ -83,10 +86,11 @@
     <div x-show="isLoggedIn" x-cloak class="flex h-screen w-full">
         
         <!-- SIDEBAR -->
-        <aside :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}" class="fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-darkcard shadow-xl transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col">
-            <div class="p-5 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
+        <aside :class="sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full md:w-0 md:-translate-x-full'" class="fixed inset-y-0 left-0 z-40 bg-white dark:bg-darkcard shadow-xl sidebar-transition flex flex-col overflow-hidden md:relative">
+            <div class="p-5 flex items-center justify-between border-b border-gray-100 dark:border-gray-700 w-64 min-w-[16rem]">
                 <div class="flex items-center gap-3">
-                    <img src="https://placehold.co/200x200/0ea5e9/ffffff?text=Logo" alt="Mini Logo" class="h-8 w-8 rounded">
+                    <!-- Logo Mini dari folder lokal (2x2 cm) -->
+                    <img src="img/rsudbk_mini.png" alt="Mini Logo" class="rounded object-contain" style="width: 2cm; height: 2cm;" onerror="this.src='https://placehold.co/75x75/0ea5e9/ffffff?text=Logo'">
                     <span class="font-bold text-lg tracking-wide text-navy dark:text-white">DIKLAT</span>
                 </div>
                 <button @click="sidebarOpen = false" class="md:hidden text-gray-500 hover:text-red-500">
@@ -94,8 +98,7 @@
                 </button>
             </div>
             
-            <div class="overflow-y-auto flex-1 py-4 px-3 space-y-1">
-                <!-- Navigation Items -->
+            <div class="overflow-y-auto flex-1 py-4 px-3 space-y-1 w-64 min-w-[16rem]">
                 <template x-for="item in menuItems" :key="item.id">
                     <div>
                         <!-- Single Link -->
@@ -130,7 +133,7 @@
             </div>
             
             <!-- Bottom Sidebar -->
-            <div class="p-4 border-t border-gray-100 dark:border-gray-700">
+            <div class="p-4 border-t border-gray-100 dark:border-gray-700 w-64 min-w-[16rem]">
                 <button @click="logout()" class="flex items-center gap-3 w-full px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                     <i class="fas fa-sign-out-alt w-5 text-center"></i>
                     <span class="font-medium text-sm">Logout</span>
@@ -139,11 +142,12 @@
         </aside>
 
         <!-- CONTENT AREA -->
-        <main class="flex-1 flex flex-col min-w-0 bg-gray-50 dark:bg-navy">
+        <main class="flex-1 flex flex-col min-w-0 bg-gray-50 dark:bg-navy transition-all">
             <!-- TOPBAR -->
             <header class="bg-white dark:bg-darkcard shadow-sm h-16 flex items-center justify-between px-4 lg:px-8 z-30">
                 <div class="flex items-center gap-4">
-                    <button @click="sidebarOpen = true" class="md:hidden text-gray-500 hover:text-skyblue">
+                    <!-- Tombol Trigger Sidebar Show/Hidden (Desktop & Mobile) -->
+                    <button @click="sidebarOpen = !sidebarOpen" class="text-gray-500 hover:text-skyblue transition-colors">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                     <h1 class="text-xl font-semibold text-gray-800 dark:text-white truncate" x-text="menuTitle"></h1>
@@ -210,52 +214,52 @@
                                 </div>
                                 <div class="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-500 text-xl">
                                     <i class="fas fa-calendar-check"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                            <h3 class="font-semibold mb-4 dark:text-white">Peserta per Institusi</h3>
-                            <canvas id="chartInstitusi" height="250"></canvas>
-                        </div>
-                        <div class="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                            <h3 class="font-semibold mb-4 dark:text-white">Statistik per Jurusan</h3>
-                            <canvas id="chartJurusan" height="250"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- GENERIC DATA VIEW (Used for all CRUD Tables to save space & ensure consistency) -->
+                <!-- GENERIC DATA VIEW -->
                 <div x-show="currentMenu !== 'dashboard'" x-transition.opacity.duration.300ms>
                     <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col h-[calc(100vh-140px)]">
                         
                         <!-- Toolbar -->
                         <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex flex-wrap gap-4 justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
-                            <div class="flex flex-wrap gap-2 items-center w-full md:w-auto">
+                            <!-- Bagian Kiri: Search & Filters Dinamis -->
+                            <div class="flex flex-wrap gap-2 items-center w-full lg:w-auto flex-1">
                                 <div class="relative w-full md:w-64">
                                     <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-                                    <input type="text" x-model="searchQuery" class="w-full pl-9 pr-4 py-2 text-sm border rounded-lg focus:ring-skyblue focus:border-skyblue dark:bg-darkbg dark:border-gray-600 dark:text-white outline-none" placeholder="Cari data...">
+                                    <input type="text" x-model="searchQuery" class="w-full pl-9 pr-4 py-2 text-sm border rounded-lg focus:ring-skyblue focus:border-skyblue dark:bg-darkbg dark:border-gray-600 dark:text-white outline-none" :placeholder="activeConfig?.searchPlaceholder || 'Cari data...'">
                                 </div>
-                                <select x-show="activeConfig?.filters?.length > 0" x-model="filterValue" class="py-2 px-3 text-sm border rounded-lg dark:bg-darkbg dark:border-gray-600 dark:text-white outline-none focus:ring-skyblue">
-                                    <option value="">Semua Data</option>
-                                    <template x-for="opt in filterOptions" :key="opt">
-                                        <option :value="opt" x-text="opt"></option>
-                                    </template>
-                                </select>
+                                
+                                <!-- Multiple Filters Loop -->
+                                <template x-for="filter in (activeConfig?.filters || [])" :key="filter.key">
+                                    <select x-model="filterValues[filter.key]" class="py-2 px-3 text-sm border rounded-lg dark:bg-darkbg dark:border-gray-600 dark:text-white outline-none focus:ring-skyblue w-full sm:w-auto max-w-[150px] truncate">
+                                        <option value="">Semua <span x-text="filter.label"></span></option>
+                                        <template x-for="opt in getFilterOptions(filter.key)" :key="opt">
+                                            <option :value="opt" x-text="opt"></option>
+                                        </template>
+                                    </select>
+                                </template>
                             </div>
-                            <div class="flex gap-2">
+
+                            <!-- Bagian Kanan: Aksi Toolbar -->
+                            <div class="flex flex-wrap gap-2 items-center justify-end">
                                 <button @click="fetchData(currentMenu)" class="p-2 text-gray-500 hover:text-skyblue bg-white dark:bg-darkbg border dark:border-gray-600 rounded-lg shadow-sm" title="Reload">
                                     <i class="fas fa-sync-alt" :class="{'animate-spin': isLoading}"></i>
                                 </button>
-                                <a x-show="activeConfig.sheetLink" :href="activeConfig.sheetLink" target="_blank" class="px-3 py-2 text-sm text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2 transition-colors">
+                                
+                                <a x-show="activeConfig?.sheetLink" :href="activeConfig?.sheetLink" target="_blank" class="px-3 py-2 text-sm text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2 transition-colors whitespace-nowrap">
                                     <i class="fas fa-file-excel"></i> Sheet
                                 </a>
-                                <button x-show="activeConfig.printCard" @click="printCard()" class="px-3 py-2 text-sm text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg flex items-center gap-2">
-                                    <i class="fas fa-id-badge"></i> Print ID
-                                </button>
-                                <button @click="openModal('add')" class="px-4 py-2 text-sm text-white bg-skyblue hover:bg-blue-600 rounded-lg shadow-md flex items-center gap-2 transition-colors">
+                                
+                                <!-- Tombol Print (Link HTML Eksternal) -->
+                                <a x-show="activeConfig?.printLink" :href="activeConfig?.printLink" target="_blank" class="px-3 py-2 text-sm text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg flex items-center gap-2 whitespace-nowrap">
+                                    <i class="fas fa-print"></i> Print
+                                </a>
+
+                                <!-- Tombol Tambah (Berupa Link Eksternal HTML) -->
+                                <a x-show="activeConfig?.addLink" :href="activeConfig?.addLink" target="_blank" class="px-4 py-2 text-sm text-white bg-skyblue hover:bg-blue-600 rounded-lg shadow-md flex items-center gap-2 transition-colors whitespace-nowrap">
+                                    <i class="fas fa-plus"></i> Tambah Data
+                                </a>
+
+                                <!-- Tombol Tambah (Dialog Internal - Untuk Sarpras & Pengaturan) -->
+                                <button x-show="!activeConfig?.addLink && activeConfig?.formFields?.length > 0" @click="openModal('add')" class="px-4 py-2 text-sm text-white bg-skyblue hover:bg-blue-600 rounded-lg shadow-md flex items-center gap-2 transition-colors whitespace-nowrap">
                                     <i class="fas fa-plus"></i> Tambah Data
                                 </button>
                             </div>
@@ -306,14 +310,31 @@
                                                     </template>
                                                 </td>
                                             </template>
+                                            
+                                            <!-- MENU AKSI TITIK 3 (Dropdown) -->
                                             <td class="text-right sticky right-0 bg-white dark:bg-darkcard shadow-[-10px_0_15px_-5px_rgba(0,0,0,0.05)] px-4">
-                                                <div class="flex justify-end gap-2">
-                                                    <template x-if="activeConfig?.actions?.includes('approve') && row.Status === 'PENDING'">
-                                                        <button @click="updateStatus(row, 'APPROVED')" class="w-8 h-8 rounded-full bg-green-100 text-green-600 hover:bg-green-200 flex items-center justify-center" title="Approve"><i class="fas fa-check"></i></button>
-                                                    </template>
-                                                    <button @click="openModal('detail', row)" class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 flex items-center justify-center" title="Detail"><i class="fas fa-eye"></i></button>
-                                                    <button @click="openModal('edit', row)" class="w-8 h-8 rounded-full bg-yellow-100 text-yellow-600 hover:bg-yellow-200 flex items-center justify-center" title="Edit"><i class="fas fa-pen"></i></button>
-                                                    <button @click="deleteData(row)" class="w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 flex items-center justify-center" title="Hapus"><i class="fas fa-trash"></i></button>
+                                                <div x-data="{ menuOpen: false }" @click.away="menuOpen = false" class="relative inline-block text-left z-20">
+                                                    <button @click="menuOpen = !menuOpen" class="w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center text-gray-500 transition-colors">
+                                                        <i class="fas fa-ellipsis-v"></i>
+                                                    </button>
+                                                    <div x-show="menuOpen" x-transition class="absolute right-8 top-0 w-40 bg-white dark:bg-darkbg rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden text-left" style="display: none;">
+                                                        
+                                                        <template x-if="activeConfig?.actions?.includes('detail')">
+                                                            <a @click="openModal('detail', row); menuOpen=false" class="block px-4 py-2.5 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer border-b dark:border-gray-700 border-gray-50"><i class="fas fa-eye w-5"></i> Detail</a>
+                                                        </template>
+                                                        
+                                                        <template x-if="activeConfig?.actions?.includes('edit')">
+                                                            <a @click="openModal('edit', row); menuOpen=false" class="block px-4 py-2.5 text-sm text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 cursor-pointer border-b dark:border-gray-700 border-gray-50"><i class="fas fa-pen w-5"></i> Edit</a>
+                                                        </template>
+                                                        
+                                                        <template x-if="activeConfig?.actions?.includes('approve') && row.Status === 'PENDING'">
+                                                            <a @click="updateStatus(row, 'APPROVED'); menuOpen=false" class="block px-4 py-2.5 text-sm text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 cursor-pointer border-b dark:border-gray-700 border-gray-50"><i class="fas fa-check w-5"></i> Approve</a>
+                                                        </template>
+                                                        
+                                                        <template x-if="activeConfig?.actions?.includes('delete')">
+                                                            <a @click="deleteData(row); menuOpen=false" class="block px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer"><i class="fas fa-trash w-5"></i> Hapus</a>
+                                                        </template>
+                                                    </div>
                                                 </div>
                                             </td>
                                         </tr>
@@ -364,10 +385,10 @@
                                 <template x-if="field.type === 'file' || field.type === 'image'">
                                     <div>
                                         <input type="file" @change="handleFileUpload($event, field.key)" :accept="field.type === 'image' ? 'image/*' : '*/*'" :disabled="modalMode === 'detail'" class="w-full px-3 py-2 border rounded-lg text-sm dark:bg-darkbg dark:border-gray-600 dark:text-white" :required="field.required && !formData[field.key]">
-                                        <!-- Image Preview for edits -->
+                                        <!-- Image Preview for edits (Rasio 3x4 untuk foto) -->
                                         <div x-show="formData[field.key] && typeof formData[field.key] === 'string'" class="mt-2 relative inline-block">
-                                            <img x-show="field.type === 'image'" :src="formData[field.key]" class="h-24 w-24 object-cover rounded border">
-                                            <a x-show="field.type === 'file'" :href="formData[field.key]" target="_blank" class="text-sm text-skyblue underline"><i class="fas fa-external-link-alt"></i> Lihat File Saat Ini</a>
+                                            <img x-show="field.type === 'image'" :src="formData[field.key]" class="w-32 aspect-[3/4] object-cover rounded-lg border shadow-sm dark:border-gray-600">
+                                            <a x-show="field.type === 'file'" :href="formData[field.key]" target="_blank" class="text-sm text-skyblue underline block mt-2"><i class="fas fa-external-link-alt"></i> Lihat Dokumen Saat Ini</a>
                                         </div>
                                     </div>
                                 </template>
@@ -390,35 +411,57 @@
 
     <script>
         // --- API ENDPOINT ---
-        // REPLACE WITH YOUR ACTUAL DEPLOYED WEB APP URL
         const API_URL = 'https://script.google.com/macros/s/AKfycbxMdmY_BkWBSQjctDXFw_Weuos7BO-Vqf-cBEczBfMmCQrRS19gpDxQ3SUAhe8sJHa5fg/exec';
 
-        // --- MODULE CONFIGURATIONS ---
-        // This object defines how each section looks and behaves, minimizing HTML repetition.
+        // --- MODULE CONFIGURATIONS (Sesuai Catatan Mendalam) ---
         const APP_CONFIG = {
             'didik': {
                 title: 'Peserta Didik',
                 module: 'PESERTA_DIDIK',
                 sheetLink: 'https://docs.google.com/spreadsheets/d/1qxsm7yAbDmkgakslzYv81UlApcQ0Bdw1f3y9nhsklYs/edit',
-                filters: ['Institusi', 'Jurusan', '_sheetName'],
-                printCard: true,
+                addLink: 'input_pesertadidik.html',
+                printLink: 'print_IDCard.html',
+                searchPlaceholder: 'Cari Nama / NIM...',
+                filters: [
+                    { key: '_sheetName', label: 'Bagian/Sheet' },
+                    { key: 'namasekolah', label: 'Institusi' },
+                    { key: 'jurusan', label: 'Program Studi' }
+                ],
+                fileColumns: ['pasfoto', 'dokumen'], // Untuk mapping hapus data di drive
                 columns: [
-                    { label: 'Bagian/Sheet', key: '_sheetName' },
-                    { label: 'NIM', key: 'nim' },
+                    { label: 'Bagian', key: '_sheetName' },
                     { label: 'Nama Peserta', key: 'nama' },
-                    { label: 'Institusi', key: 'Institusi' },
+                    { label: 'Institusi', key: 'namasekolah' },
                     { label: 'Jenjang & Jurusan', key: 'jurusan' },
-                    { label: 'Periode', key: 'tanggal_mulai' }
+                    { label: 'Mulai', key: 'tanggal_mulai' },
+                    { label: 'Selesai', key: 'tanggal_selesai' }
                 ],
                 formFields: [
-                    { label: 'Nama Lengkap', key: 'nama', type: 'text', required: true },
-                    { label: 'NIM / NIS', key: 'nim', type: 'text', required: true },
-                    { label: 'Institusi / Sekolah', key: 'namasekolah', type: 'text', required: true },
-                    { label: 'Jurusan', key: 'jurusan', type: 'text', required: true },
-                    { label: 'Tanggal Mulai', key: 'tanggal_mulai', type: 'date', required: true },
-                    { label: 'Tanggal Selesai', key: 'tanggal_selesai', type: 'date', required: true },
-                    { label: 'Pas Foto', key: 'pasfoto', type: 'image', required: false },
-                    { label: 'Dokumen', key: 'dokumen', type: 'file', required: false }
+                    // Sesuai catatan: 24 Kolom Detail & Edit
+                    { key: 'nama', label: 'Nama', type: 'text' },
+                    { key: 'nim', label: 'NIM', type: 'text' },
+                    { key: 'ktp', label: 'No KTP', type: 'text' },
+                    { key: 'alamat', label: 'Alamat', type: 'text' },
+                    { key: 'kelurahan', label: 'Kelurahan', type: 'text' },
+                    { key: 'tempatlahir', label: 'Tempat Lahir', type: 'text' },
+                    { key: 'tanggallahir', label: 'Tanggal Lahir', type: 'date' },
+                    { key: 'kelamin', label: 'Jenis Kelamin', type: 'select', options: ['Laki-laki', 'Perempuan'] },
+                    { key: 'agama', label: 'Agama', type: 'select', options: ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'] },
+                    { key: 'namasekolah', label: 'Nama Institusi', type: 'text' },
+                    { key: 'jurusan', label: 'Jurusan', type: 'text' },
+                    { key: 'alamatsekolah', label: 'Alamat Sekolah', type: 'text' },
+                    { key: 'jenjangpend', label: 'Jenjang Pendidikan', type: 'text' },
+                    { key: 'telpsekolah', label: 'Telp Sekolah', type: 'text' },
+                    { key: 'jenis', label: 'Jenis', type: 'text' },
+                    { key: 'umur', label: 'Umur', type: 'number' },
+                    { key: 'hp', label: 'No HP', type: 'text' },
+                    { key: 'tanggal_mulai', label: 'Tanggal Mulai', type: 'date' },
+                    { key: 'tanggal_selesai', label: 'Tanggal Selesai', type: 'date' },
+                    { key: 'status_mahasiswa', label: 'Status', type: 'text' },
+                    { key: 'pasfoto', label: 'Pas Foto (3x4)', type: 'image' },
+                    { key: 'dokumen', label: 'Dokumen', type: 'file' },
+                    { key: 'bagian', label: 'Bagian', type: 'text' },
+                    { key: 'id_parent', label: 'ID Parent', type: 'text' }
                 ],
                 actions: ['detail', 'edit', 'delete']
             },
@@ -426,20 +469,46 @@
                 title: 'Peserta Pelatihan',
                 module: 'PESERTA_PELATIHAN',
                 sheetLink: 'https://docs.google.com/spreadsheets/d/1rnQDdCTbR288Kv1YF_4f8r-WN_49mShzQZJ1UR-kfLk/edit',
-                filters: ['Profesi', 'akun_satusehat', '_sheetName'],
-                printCard: true,
+                addLink: 'input_pesertapelatihan.html',
+                printLink: 'print_IDCard.html',
+                searchPlaceholder: 'Cari Nama / NIK...',
+                filters: [
+                    { key: '_sheetName', label: 'Bagian/Sheet' },
+                    { key: 'profesi', label: 'Profesi' },
+                    { key: 'akun_satusehat', label: 'SatuSehat' }
+                ],
+                fileColumns: ['pasfoto', 'str'], // Kolom B dan W dihapus di drive
                 columns: [
                     { label: 'Nama Peserta', key: 'nama' },
-                    { label: 'NIK', key: 'nik' },
                     { label: 'Profesi', key: 'profesi' },
                     { label: 'Akun SatuSehat', key: 'akun_satusehat' }
                 ],
                 formFields: [
-                    { label: 'Nama Lengkap', key: 'nama', type: 'text', required: true },
-                    { label: 'NIK', key: 'nik', type: 'text', required: true },
-                    { label: 'Profesi', key: 'profesi', type: 'text', required: true },
-                    { label: 'Instansi Bekerja', key: 'instansi_bekerja', type: 'text' },
-                    { label: 'Akun SatuSehat', key: 'akun_satusehat', type: 'text' }
+                    // Sesuai catatan: 24 Kolom Detail & Edit
+                    { key: 'email', label: 'Email', type: 'text' },
+                    { key: 'pasfoto', label: 'Pas Foto (3x4)', type: 'image' },
+                    { key: 'nama', label: 'Nama Lengkap', type: 'text' },
+                    { key: 'nik', label: 'NIK', type: 'text' },
+                    { key: 'kelamin', label: 'Jenis Kelamin', type: 'select', options: ['Laki-laki', 'Perempuan'] },
+                    { key: 'agama', label: 'Agama', type: 'text' },
+                    { key: 'tempat_lahir', label: 'Tempat Lahir', type: 'text' },
+                    { key: 'tanggal_lahir', label: 'Tanggal Lahir', type: 'date' },
+                    { key: 'hp', label: 'No HP', type: 'text' },
+                    { key: 'alamat_peserta', label: 'Alamat Peserta', type: 'text' },
+                    { key: 'kota_peserta', label: 'Kota Peserta', type: 'text' },
+                    { key: 'provinsi_peserta', label: 'Provinsi Peserta', type: 'text' },
+                    { key: 'pendidikan_terakhir', label: 'Pendidikan Terakhir', type: 'text' },
+                    { key: 'gelar_akademik', label: 'Gelar Akademik', type: 'text' },
+                    { key: 'profesi', label: 'Profesi', type: 'text' },
+                    { key: 'instansi_bekerja', label: 'Instansi Bekerja', type: 'text' },
+                    { key: 'nip', label: 'NIP', type: 'text' },
+                    { key: 'status', label: 'Status', type: 'text' },
+                    { key: 'pangkat_golongan', label: 'Pangkat Golongan', type: 'text' },
+                    { key: 'alamat_instansi', label: 'Alamat Instansi', type: 'text' },
+                    { key: 'kota_instansi', label: 'Kota Instansi', type: 'text' },
+                    { key: 'provinsi_instansi', label: 'Provinsi Instansi', type: 'text' },
+                    { key: 'str', label: 'STR', type: 'file' },
+                    { key: 'akun_satusehat', label: 'Akun SatuSehat', type: 'text' }
                 ],
                 actions: ['detail', 'edit', 'delete']
             },
@@ -447,24 +516,79 @@
                 title: 'Daftar Hadir',
                 module: 'DAFTAR_HADIR',
                 sheetLink: 'https://docs.google.com/spreadsheets/d/1_Kiogcx0mMiU47UjnowCC3F_qd7IIUvkmKnLyMhG61s/edit',
-                filters: ['_sheetName'],
+                addLink: 'input_pesertapelatihan.html',
+                printLink: 'print_daftarhadir.html',
+                searchPlaceholder: 'Cari Nama...',
+                filters: [{ key: '_sheetName', label: 'Acara/Sheet' }],
                 columns: [
-                    { label: 'Acara/Sheet', key: '_sheetName' },
                     { label: 'Nama', key: 'Nama' },
-                    { label: 'Bagian/Instansi', key: 'Bagian' },
-                    { label: 'Tanda Tangan', key: 'Tanda Tangan', type: 'image' }
+                    { label: 'Bagian', key: 'Bagian' },
+                    { label: 'Tanda Tangan', key: 'Tanda Tangan', type: 'link' }
                 ],
-                formFields: [], // Readonly view based on logic
-                actions: ['detail']
+                formFields: [
+                    { label: 'Nama', key: 'Nama', type: 'text' },
+                    { label: 'Bagian', key: 'Bagian', type: 'text' }
+                ],
+                actions: ['detail', 'delete']
+            },
+            'pinjam_kunci': {
+                title: 'Peminjaman Kunci Loker',
+                module: 'PEMINJAMAN',
+                sheetName: 'P_KUNCI',
+                sheetLink: 'https://docs.google.com/spreadsheets/d/1I9dKIfzxZy5mNIHPOMONZIdNFwAsr0-Xz1Njeg5TtpY/edit',
+                addLink: 'peminjaman_kunci.html',
+                searchPlaceholder: 'Cari Nama / Nomor Kunci...',
+                filters: [{ key: 'Status', label: 'Status' }],
+                columns: [
+                    { label: 'Tanggal', key: 'Tanggal' },
+                    { label: 'Nama Peminjam', key: 'Nama Peminjam' },
+                    { label: 'No Kunci', key: 'Nomor Kunci' },
+                    { label: 'Status', key: 'Status', type: 'status' }
+                ],
+                formFields: [], actions: ['detail', 'edit', 'delete', 'approve']
+            },
+            'pinjam_ruang': {
+                title: 'Peminjaman Ruangan',
+                module: 'PEMINJAMAN',
+                sheetName: 'P_RUANGAN',
+                sheetLink: 'https://docs.google.com/spreadsheets/d/1I9dKIfzxZy5mNIHPOMONZIdNFwAsr0-Xz1Njeg5TtpY/edit',
+                addLink: 'peminjaman_ruangani.html',
+                searchPlaceholder: 'Cari Nama Peminjam...',
+                filters: [{ key: 'Status', label: 'Status' }, { key: 'Unit Peminjam', label: 'Unit' }],
+                columns: [
+                    { label: 'Tanggal', key: 'Tanggal' },
+                    { label: 'Nama Ruangan', key: 'Nama Ruangan' },
+                    { label: 'Nama Peminjam', key: 'Nama Peminjam' },
+                    { label: 'Unit Peminjam', key: 'Unit Peminjam' },
+                    { label: 'Status', key: 'Status', type: 'status' }
+                ],
+                formFields: [], actions: ['detail', 'edit', 'delete', 'approve']
+            },
+            'pinjam_barang': {
+                title: 'Peminjaman Barang',
+                module: 'PEMINJAMAN',
+                sheetName: 'P_BARANG',
+                sheetLink: 'https://docs.google.com/spreadsheets/d/1I9dKIfzxZy5mNIHPOMONZIdNFwAsr0-Xz1Njeg5TtpY/edit',
+                addLink: 'peminjaman_barang.html',
+                searchPlaceholder: 'Cari Nama Peminjam...',
+                filters: [{ key: 'Status', label: 'Status' }],
+                columns: [
+                    { label: 'Tanggal', key: 'Tanggal' },
+                    { label: 'Nama Barang', key: 'Nama Barang' },
+                    { label: 'Qty', key: 'Qty' },
+                    { label: 'Nama Peminjam', key: 'Nama Peminjam' },
+                    { label: 'Status', key: 'Status', type: 'status' }
+                ],
+                formFields: [], actions: ['detail', 'edit', 'delete', 'approve']
             },
             'sarpras_barang': {
                 title: 'Data Barang Sarpras',
                 module: 'SARPRAS',
                 sheetName: 'D_BARANG',
                 sheetLink: 'https://docs.google.com/spreadsheets/d/1ZD_h-PQ7_GbxrTh5mUIC-pESvBbLdY4dBT65i0M8hvM/edit',
-                filters: ['LOKASI'],
+                searchPlaceholder: 'Cari Nama Barang...',
+                filters: [{ key: 'LOKASI', label: 'Lokasi' }],
                 columns: [
-                    { label: 'Kode', key: 'CODE' },
                     { label: 'Nama Barang', key: 'NAMA_BARANG' },
                     { label: 'Qty', key: 'QTY' },
                     { label: 'Lokasi', key: 'PENEMPATAN' },
@@ -484,13 +608,12 @@
                 title: 'Pengaturan Acara Peserta Didik',
                 module: 'PENGATURAN',
                 sheetName: 'SETTING_PD',
+                searchPlaceholder: 'Cari Acara...',
                 filters: [],
                 columns: [
                     { label: 'Nama Sheet', key: 'Nama Sheet' },
                     { label: 'Nama Acara', key: 'Nama Acara' },
                     { label: 'Tempat', key: 'Tempat' },
-                    { label: 'Mulai', key: 'Waktu Mulai' },
-                    { label: 'Selesai', key: 'Waktu Selesai' },
                     { label: 'Status', key: 'Status', type: 'toggle' }
                 ],
                 formFields: [
@@ -502,7 +625,6 @@
                 ],
                 actions: ['delete']
             }
-            // Additional configs (Peminjaman, ATK, Kunci, dll) follow the exact same pattern.
         };
 
         document.addEventListener('alpine:init', () => {
@@ -510,7 +632,7 @@
                 isDark: false,
                 isLoggedIn: false,
                 loginPassword: '',
-                sidebarOpen: false,
+                sidebarOpen: true, // Default open, toggleable
                 
                 // Navigation Structure
                 menuItems: [
@@ -541,6 +663,8 @@
                 menuTitle: 'Dashboard Utama',
                 
                 // Data State
+                stats: { didik: '...', pelatihan: '...', pinjam: '...', acara: '...' },
+                charts: {},
                 rawData: [],
                 filteredData: [],
                 activeConfig: { filters: [], columns: [], actions: [], formFields: [] }, // Initialize with empty arrays to prevent undefined errors
@@ -548,8 +672,7 @@
                 
                 // Table Controls
                 searchQuery: '',
-                filterValue: '',
-                filterOptions: [],
+                filterValues: {}, // Objek untuk multiple filter
                 
                 // Modal State
                 modalOpen: false,
@@ -559,10 +682,6 @@
                 fileUploads: [],
                 isSaving: false,
                 
-                // Dashboard Stats
-                stats: { didik: 0, pelatihan: 0, pinjam: 0, acara: 0 },
-                charts: {},
-
                 init() {
                     // Check dark mode pref
                     if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -570,9 +689,12 @@
                         document.documentElement.classList.add('dark');
                     }
                     
-                    // Watchers for search and filter
+                    // Listen to filter and search changes dynamically
                     this.$watch('searchQuery', () => this.applyFilters());
-                    this.$watch('filterValue', () => this.applyFilters());
+                    this.$watch('filterValues', () => this.applyFilters(), { deep: true });
+                    
+                    // Auto-hide sidebar on mobile
+                    if(window.innerWidth < 768) this.sidebarOpen = false;
                 },
 
                 toggleTheme() {
@@ -620,9 +742,9 @@
                     }
                     this.menuTitle = found ? found.label : 'Dashboard';
                     this.searchQuery = '';
-                    this.filterValue = '';
+                    this.filterValues = {}; // Reset filters
                     
-                    if(window.innerWidth < 768) this.sidebarOpen = false;
+                    if (window.innerWidth < 768) this.sidebarOpen = false; // Auto close on mobile click
 
                     if (id === 'dashboard') {
                         this.loadDashboardData();
@@ -630,8 +752,8 @@
                         this.activeConfig = APP_CONFIG[id];
                         this.fetchData(id);
                     } else {
-                        // For menus not fully defined in config in this demo snippet, show placeholder
-                        this.activeConfig = APP_CONFIG['sarpras_barang']; // fallback
+                        // For unmapped dummy/fallback config in code snippet
+                        this.activeConfig = APP_CONFIG['sarpras_barang']; 
                         this.fetchData('sarpras_barang');
                     }
                 },
@@ -661,38 +783,39 @@
                     
                     const data = await this.callAPI('getData', {
                         module: config.module,
-                        sheetName: config.sheetName // if undefined, backend returns all sheets
+                        sheetName: config.sheetName
                     });
                     
                     if (data) {
                         this.rawData = data;
-                        this.extractFilterOptions(config);
-                        this.applyFilters();
+                        this.applyFilters(); // Setup data awal
                     }
                     this.isLoading = false;
                 },
 
-                extractFilterOptions(config) {
-                    if (!config.filters || config.filters.length === 0) return;
-                    // Pick the primary filter column (first one)
-                    const filterKey = config.filters[0];
-                    const uniqueVals = [...new Set(this.rawData.map(item => item[filterKey]).filter(Boolean))];
-                    this.filterOptions = uniqueVals.sort();
+                // Fungsi baru mengambil daftar unik options untuk dropdown filter tertentu
+                getFilterOptions(key) {
+                    if (!this.rawData || this.rawData.length === 0) return [];
+                    return [...new Set(this.rawData.map(item => item[key]).filter(Boolean))].sort();
                 },
 
                 applyFilters() {
                     let temp = this.rawData;
                     
-                    // Filter Dropdown
-                    if (this.filterValue && this.activeConfig.filters[0]) {
-                        temp = temp.filter(item => item[this.activeConfig.filters[0]] === this.filterValue);
+                    // Proses Multiple Filter Dinamis
+                    if (this.activeConfig?.filters) {
+                        this.activeConfig.filters.forEach(filter => {
+                            const val = this.filterValues[filter.key];
+                            if (val) {
+                                temp = temp.filter(item => item[filter.key] === val);
+                            }
+                        });
                     }
                     
-                    // Search Text
+                    // Search Text Global
                     if (this.searchQuery) {
                         const q = this.searchQuery.toLowerCase();
                         temp = temp.filter(item => {
-                            // Check all values in the row
                             return Object.values(item).some(val => 
                                 String(val).toLowerCase().includes(q)
                             );
@@ -820,14 +943,14 @@
                     });
 
                     if (result.isConfirmed) {
-                        // Identify columns containing links to delete from Drive
-                        const fileCols = this.activeConfig.formFields.filter(f => f.type === 'image' || f.type === 'file').map(f => f.key);
+                        // Menggunakan custom fileColumns mapping (seperti yang diminta di Catatan: Kolom B dan W dihapus)
+                        const fileCols = this.activeConfig.fileColumns || this.activeConfig.formFields.filter(f => f.type === 'image' || f.type === 'file').map(f => f.key);
                         
                         await this.callAPI('deleteData', {
                             module: this.activeConfig.module,
                             sheetName: row._sheetName || this.activeConfig.sheetName,
                             rowIndex: row._rowIndex,
-                            fileColumns: fileCols // Backend will read these cols and delete the Drive files
+                            fileColumns: fileCols 
                         });
                         
                         Swal.fire('Terhapus!', 'Data telah dihapus.', 'success');
