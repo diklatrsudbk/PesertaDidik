@@ -1,1216 +1,794 @@
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard DIKLAT - RSUD Bandung Kiwari</title>
-    
-    <!-- Tailwind CSS -->
+    <title>Dashboard Admin Diklat - RSUD Bandung Kiwari</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js for lightweight state management -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- Chart.js -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        navy: '#0f172a',
-                        skyblue: '#0ea5e9',
-                        darkbg: '#1e293b',
-                        darkcard: '#334155'
-                    }
+                    colors: { primary: '#0ea5e9', secondary: '#10b981', darkbg: '#111827', darkcard: '#1f2937' },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
                 }
             }
         }
     </script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        /* Custom Scrollbar */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .dark ::-webkit-scrollbar-thumb { background: #475569; }
-        
-        .nav-item.active { background-color: rgba(14, 165, 233, 0.1); border-right: 4px solid #0ea5e9; color: #0ea5e9;}
+        .nav-item.active { background-color: rgba(14, 165, 233, 0.1); color: #0ea5e9; border-right: 3px solid #0ea5e9; font-weight: 600; }
         .dark .nav-item.active { background-color: rgba(14, 165, 233, 0.2); }
-        
-        [x-cloak] { display: none !important; }
-        
-        /* Table Styles */
-        .glass-table th { @apply bg-gray-50 dark:bg-darkbg text-gray-700 dark:text-gray-200 font-semibold text-sm py-3 px-4 text-left border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10; }
-        .glass-table td { @apply py-3 px-4 border-b border-gray-100 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-300; }
-        .glass-table tr:hover { @apply bg-gray-50 dark:bg-gray-800 transition-colors; }
-
-        /* Smooth Sidebar Transition */
-        .sidebar-transition { transition: width 0.3s ease, transform 0.3s ease; }
+        .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .loader-spinner { border-top-color: #0ea5e9; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Transisi sidebar untuk Desktop & Mobile */
+        #sidebar { transition: all 0.3s ease-in-out; }
+        .sidebar-collapsed { margin-left: -16rem; } /* 16rem = w-64 */
+        #mainContent { transition: all 0.3s ease-in-out; }
+        .content-expanded { margin-left: 0 !important; }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-navy text-gray-800 dark:text-gray-100 transition-colors duration-300 overflow-hidden" x-data="appData()">
+<body class="bg-gray-50 text-gray-800 dark:bg-darkbg dark:text-gray-100 transition-colors duration-300">
 
-    <!-- LOGIN SCREEN -->
-    <div x-show="!isLoggedIn" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 backdrop-blur-sm">
-        <div class="bg-white dark:bg-darkcard p-8 rounded-2xl shadow-2xl w-full max-w-md transform transition-all">
+    <div id="loginScreen" class="fixed inset-0 z-[100] bg-gray-50 dark:bg-darkbg flex flex-col items-center justify-center p-4">
+        <div class="bg-white dark:bg-darkcard p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100 dark:border-gray-800">
             <div class="text-center mb-8">
-                <!-- Logo dari folder lokal dengan ukuran spesifik 4cm x 2cm -->
-                <img src="img/rsudbk.png" alt="Logo RSUD Bandung Kiwari" class="mx-auto mb-4 rounded-lg object-contain" style="width: 4cm; height: 2cm;" onerror="this.src='https://placehold.co/150x75/0ea5e9/ffffff?text=RSUD+Bandung+Kiwari'">
-                <h2 class="text-2xl font-bold text-navy dark:text-white">DIKLAT Dashboard</h2>
-                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Silakan masuk untuk melanjutkan</p>
+                <img src="img/rsudbk.png" alt="Logo RSUD BK" class="h-16 mx-auto mb-4 object-contain" onerror="this.src='https://placehold.co/200x80/ffffff/0ea5e9?text=RSUD+BK'">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Admin Diklat</h2>
+                <p class="text-sm text-gray-500 mt-1">Silakan masuk ke akun Anda</p>
             </div>
-            <form @submit.prevent="login">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password Admin</label>
+            <form onsubmit="handleLogin(event)" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
                     <div class="relative">
-                        <i class="fas fa-lock absolute left-3 top-3 text-gray-400"></i>
-                        <input type="password" x-model="loginPassword" class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-skyblue focus:border-skyblue dark:bg-darkbg dark:border-gray-600 dark:text-white outline-none transition-all" placeholder="Masukkan Password" required>
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-user text-gray-400"></i></div>
+                        <input type="text" id="username" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Masukkan username" required>
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-skyblue hover:bg-blue-600 text-white font-semibold py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
-                    <i class="fas fa-sign-in-alt"></i> Masuk
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-lock text-gray-400"></i></div>
+                        <input type="password" id="password" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <button type="submit" id="btnLogin" class="w-full bg-primary hover:bg-blue-600 text-white font-medium py-2.5 rounded-lg transition-colors flex justify-center items-center">
+                    <span>Masuk Dashboard</span>
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- MAIN APPLICATION -->
-    <div x-show="isLoggedIn" x-cloak class="flex h-screen w-full">
+    <!-- Sidebar Overlay Mobile -->
+    <div id="mobileOverlay" class="fixed inset-0 bg-gray-900/50 z-20 hidden backdrop-blur-sm" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-darkcard shadow-xl flex flex-col transform -translate-x-full lg:translate-x-0">
+        <div class="flex items-center justify-between h-16 border-b dark:border-gray-700 px-4">
+            <img src="img/rsudbk.png" alt="Logo" class="h-10 w-auto object-contain" onerror="this.src='https://placehold.co/120x40/ffffff/0ea5e9?text=RSUD+BK'">
+            <!-- Tombol Close (hanya Mobile) -->
+            <button onclick="toggleSidebar()" class="lg:hidden text-gray-500 hover:text-primary"><i class="fas fa-times text-xl"></i></button>
+        </div>
         
-        <!-- SIDEBAR -->
-        <aside :class="sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full md:w-0 md:-translate-x-full'" class="fixed inset-y-0 left-0 z-40 bg-white dark:bg-darkcard shadow-xl sidebar-transition flex flex-col overflow-hidden md:relative">
-            <div class="p-5 flex items-center justify-between border-b border-gray-100 dark:border-gray-700 w-64 min-w-[16rem]">
-                <div class="flex items-center gap-3">
-                    <!-- Logo Mini dari folder lokal (2x2 cm) -->
-                    <img src="img/rsudbk_mini.png" alt="Mini Logo" class="rounded object-contain" style="width: 2cm; height: 2cm;" onerror="this.src='https://placehold.co/75x75/0ea5e9/ffffff?text=Logo'">
-                    <span class="font-bold text-lg tracking-wide text-navy dark:text-white">DIKLAT</span>
-                </div>
-                <button @click="sidebarOpen = false" class="md:hidden text-gray-500 hover:text-red-500">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
+        <div class="overflow-y-auto flex-1 py-4 px-3 space-y-1">
+            <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-2">Menu Utama</p>
+            <a href="#" onclick="loadContent('dashboard', this)" class="nav-item active flex items-center px-4 py-2.5 rounded-lg transition-colors text-sm hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fas fa-home w-6 text-center"></i> <span>Dashboard</span></a>
             
-            <div class="overflow-y-auto flex-1 py-4 px-3 space-y-1 w-64 min-w-[16rem]">
-                <template x-for="item in menuItems" :key="item.id">
-                    <div>
-                        <!-- Single Link -->
-                        <a x-show="!item.sub" @click="changeMenu(item.id)" href="#" 
-                           :class="{'active': currentMenu === item.id}"
-                           class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                            <i :class="item.icon + ' w-5 text-center'"></i>
-                            <span class="font-medium text-sm" x-text="item.label"></span>
-                        </a>
-                        
-                        <!-- Dropdown -->
-                        <div x-show="item.sub" class="mb-1">
-                            <button @click="item.open = !item.open" class="nav-item w-full flex items-center justify-between px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                                <div class="flex items-center gap-3">
-                                    <i :class="item.icon + ' w-5 text-center'"></i>
-                                    <span class="font-medium text-sm" x-text="item.label"></span>
-                                </div>
-                                <i class="fas fa-chevron-down text-xs transition-transform" :class="{'rotate-180': item.open}"></i>
-                            </button>
-                            <div x-show="item.open" x-collapse class="pl-11 pr-2 py-1 space-y-1">
-                                <template x-for="subItem in item.sub" :key="subItem.id">
-                                    <a @click="changeMenu(subItem.id)" href="#" 
-                                       :class="{'text-skyblue font-semibold': currentMenu === subItem.id, 'text-gray-500 dark:text-gray-400': currentMenu !== subItem.id}"
-                                       class="block py-2 text-sm hover:text-skyblue transition-colors">
-                                        <i class="fas fa-minus text-[10px] mr-2 opacity-50"></i> <span x-text="subItem.label"></span>
-                                    </a>
-                                </template>
-                            </div>
-                        </div>
-                    </div>
-                </template>
-            </div>
-            
-            <!-- Bottom Sidebar -->
-            <div class="p-4 border-t border-gray-100 dark:border-gray-700 w-64 min-w-[16rem]">
-                <button @click="logout()" class="flex items-center gap-3 w-full px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
-                    <i class="fas fa-sign-out-alt w-5 text-center"></i>
-                    <span class="font-medium text-sm">Logout</span>
+            <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6">Data Utama</p>
+            <a href="#" onclick="loadContent('pd', this)" class="nav-item flex items-center px-4 py-2.5 rounded-lg transition-colors text-sm hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fas fa-user-graduate w-6 text-center"></i> <span>Peserta Didik</span></a>
+            <a href="#" onclick="loadContent('pl', this)" class="nav-item flex items-center px-4 py-2.5 rounded-lg transition-colors text-sm hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fas fa-users-cog w-6 text-center"></i> <span>Peserta Pelatihan</span></a>
+            <a href="#" onclick="loadContent('dh', this)" class="nav-item flex items-center px-4 py-2.5 rounded-lg transition-colors text-sm hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fas fa-clipboard-list w-6 text-center"></i> <span>Daftar Hadir</span></a>
+
+            <div class="space-y-1">
+                <button onclick="toggleSubmenu('survey-sub')" class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <div class="flex items-center"><i class="fas fa-star w-6 text-center"></i> <span>Data Survey</span></div><i class="fas fa-chevron-down text-xs"></i>
                 </button>
+                <div id="survey-sub" class="hidden pl-8 space-y-1">
+                    <a href="#" onclick="loadContent('survey_pd', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Kepuasan ke PD</a>
+                    <a href="#" onclick="loadContent('survey_residen', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Kepuasan ke Residen</a>
+                </div>
             </div>
-        </aside>
 
-        <!-- CONTENT AREA -->
-        <main class="flex-1 flex flex-col min-w-0 bg-gray-50 dark:bg-navy transition-all">
-            <!-- TOPBAR -->
-            <header class="bg-white dark:bg-darkcard shadow-sm h-16 flex items-center justify-between px-4 lg:px-8 z-30">
-                <div class="flex items-center gap-4">
-                    <!-- Tombol Trigger Sidebar Show/Hidden (Desktop & Mobile) -->
-                    <button @click="sidebarOpen = !sidebarOpen" class="text-gray-500 hover:text-skyblue transition-colors">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
-                    <h1 class="text-xl font-semibold text-gray-800 dark:text-white truncate" x-text="menuTitle"></h1>
+            <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6">Fasilitas</p>
+            <div class="space-y-1">
+                <button onclick="toggleSubmenu('pinjam-sub')" class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <div class="flex items-center"><i class="fas fa-handshake w-6 text-center"></i> <span>Data Peminjaman</span></div><i class="fas fa-chevron-down text-xs"></i>
+                </button>
+                <div id="pinjam-sub" class="hidden pl-8 space-y-1">
+                    <a href="#" onclick="loadContent('pinjam_kunci', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Peminjaman Kunci</a>
+                    <a href="#" onclick="loadContent('pinjam_barang', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Peminjaman Barang</a>
+                    <a href="#" onclick="loadContent('pinjam_ruangan', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Peminjaman Ruangan</a>
                 </div>
-                <div class="flex items-center gap-4">
-                    <button @click="toggleTheme()" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-yellow-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                        <i class="fas" :class="isDark ? 'fa-sun' : 'fa-moon'"></i>
-                    </button>
-                    <div class="hidden sm:flex items-center gap-3 border-l pl-4 dark:border-gray-700">
-                        <div class="w-8 h-8 rounded-full bg-skyblue text-white flex items-center justify-center font-bold">A</div>
-                        <div class="text-sm">
-                            <p class="font-medium leading-none dark:text-white">Admin Utama</p>
-                            <p class="text-xs text-gray-500 mt-1">RSUD Bandung Kiwari</p>
-                        </div>
-                    </div>
+            </div>
+
+            <div class="space-y-1">
+                <button onclick="toggleSubmenu('sarpras-sub')" class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <div class="flex items-center"><i class="fas fa-boxes w-6 text-center"></i> <span>Data Sarpras</span></div><i class="fas fa-chevron-down text-xs"></i>
+                </button>
+                <div id="sarpras-sub" class="hidden pl-8 space-y-1">
+                    <a href="#" onclick="loadContent('sarpras_kunci', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Kunci Loker</a>
+                    <a href="#" onclick="loadContent('sarpras_barang', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Barang</a>
+                    <a href="#" onclick="loadContent('sarpras_ruangan', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Ruangan</a>
+                    <a href="#" onclick="loadContent('sarpras_atk', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Data ATK</a>
+                    <a href="#" onclick="loadContent('sarpras_bhp', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Data BHP</a>
                 </div>
-            </header>
+            </div>
 
-            <!-- DYNAMIC VIEWS -->
-            <div class="flex-1 overflow-y-auto p-4 lg:p-8 scroll-smooth">
-                
-                <!-- DASHBOARD -->
-                <div x-show="currentMenu === 'dashboard'" x-transition.opacity.duration.300ms>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <!-- Stats Cards -->
-                        <div class="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 border-l-4 border-l-skyblue">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Peserta Didik</p>
-                                    <h3 class="text-3xl font-bold mt-2 dark:text-white" x-text="stats.didik">Loading...</h3>
-                                </div>
-                                <div class="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-skyblue text-xl">
-                                    <i class="fas fa-user-graduate"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 border-l-4 border-l-green-500">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Peserta Pelatihan</p>
-                                    <h3 class="text-3xl font-bold mt-2 dark:text-white" x-text="stats.pelatihan">Loading...</h3>
-                                </div>
-                                <div class="w-12 h-12 rounded-full bg-green-50 dark:bg-green-900/30 flex items-center justify-center text-green-500 text-xl">
-                                    <i class="fas fa-users-cog"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 border-l-4 border-l-yellow-500">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Peminjaman Aktif</p>
-                                    <h3 class="text-3xl font-bold mt-2 dark:text-white" x-text="stats.pinjam">Loading...</h3>
-                                </div>
-                                <div class="w-12 h-12 rounded-full bg-yellow-50 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-500 text-xl">
-                                    <i class="fas fa-handshake"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 border-l-4 border-l-purple-500">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Acara/Sheet</p>
-                                    <h3 class="text-3xl font-bold mt-2 dark:text-white" x-text="stats.acara">Loading...</h3>
-                                </div>
-                                <div class="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-500 text-xl">
-                                    <i class="fas fa-calendar-check"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- CHARTS SECTION -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Chart Institusi -->
-                        <div class="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                            <h3 class="text-lg font-semibold text-navy dark:text-white mb-4">Statistik Asal Institusi</h3>
-                            <div class="relative h-64 w-full flex justify-center">
-                                <canvas id="chartInstitusi"></canvas>
-                            </div>
-                        </div>
-                        <!-- Chart Jurusan -->
-                        <div class="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                            <h3 class="text-lg font-semibold text-navy dark:text-white mb-4">Statistik Program Studi</h3>
-                            <div class="relative h-64 w-full">
-                                <canvas id="chartJurusan"></canvas>
-                            </div>
-                        </div>
-                    </div>
+            <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6">Sistem</p>
+            <div class="space-y-1 mb-8">
+                <button onclick="toggleSubmenu('setting-sub')" class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <div class="flex items-center"><i class="fas fa-cogs w-6 text-center"></i> <span>Pengaturan</span></div><i class="fas fa-chevron-down text-xs"></i>
+                </button>
+                <div id="setting-sub" class="hidden pl-8 space-y-1">
+                    <a href="#" onclick="loadContent('set_pd', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Peserta Didik</a>
+                    <a href="#" onclick="loadContent('set_pl', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Peserta Pelatihan</a>
+                    <a href="#" onclick="loadContent('set_dh', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Daftar Hadir</a>
                 </div>
+            </div>
+        </div>
+        <div class="p-4 border-t dark:border-gray-700 text-center text-xs text-gray-500">&copy; 2026 Diklat RSUD BK</div>
+    </aside>
 
-                <!-- GENERIC DATA VIEW -->
-                <div x-show="currentMenu !== 'dashboard'" x-transition.opacity.duration.300ms>
-                    <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col h-[calc(100vh-140px)]">
-                        
-                        <!-- Toolbar -->
-                        <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex flex-wrap gap-4 justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
-                            <!-- Bagian Kiri: Search & Filters Dinamis -->
-                            <div class="flex flex-wrap gap-2 items-center w-full lg:w-auto flex-1">
-                                <div class="relative w-full md:w-64">
-                                    <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-                                    <input type="text" x-model="searchQuery" class="w-full pl-9 pr-4 py-2 text-sm border rounded-lg focus:ring-skyblue focus:border-skyblue dark:bg-darkbg dark:border-gray-600 dark:text-white outline-none" :placeholder="activeConfig?.searchPlaceholder || 'Cari data...'">
-                                </div>
-                                
-                                <!-- Multiple Filters Loop -->
-                                <template x-for="filter in (activeConfig?.filters || [])" :key="filter.key">
-                                    <select x-model="filterValues[filter.key]" class="py-2 px-3 text-sm border rounded-lg dark:bg-darkbg dark:border-gray-600 dark:text-white outline-none focus:ring-skyblue w-full sm:w-auto max-w-[150px] truncate">
-                                        <option value="">Semua <span x-text="filter.label"></span></option>
-                                        <template x-for="opt in getFilterOptions(filter.key)" :key="opt">
-                                            <option :value="opt" x-text="opt"></option>
-                                        </template>
-                                    </select>
-                                </template>
-                            </div>
-
-                            <!-- Bagian Kanan: Aksi Toolbar -->
-                            <div class="flex flex-wrap gap-2 items-center justify-end">
-                                <button @click="fetchData(currentMenu)" class="p-2 text-gray-500 hover:text-skyblue bg-white dark:bg-darkbg border dark:border-gray-600 rounded-lg shadow-sm" title="Reload">
-                                    <i class="fas fa-sync-alt" :class="{'animate-spin': isLoading}"></i>
-                                </button>
-                                
-                                <a x-show="activeConfig?.sheetLink" :href="activeConfig?.sheetLink" target="_blank" class="px-3 py-2 text-sm text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2 transition-colors whitespace-nowrap">
-                                    <i class="fas fa-file-excel"></i> Sheet
-                                </a>
-                                
-                                <!-- Tombol Print (Link HTML Eksternal) -->
-                                <a x-show="activeConfig?.printLink" :href="activeConfig?.printLink" target="_blank" class="px-3 py-2 text-sm text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg flex items-center gap-2 whitespace-nowrap">
-                                    <i class="fas fa-print"></i> Print
-                                </a>
-
-                                <!-- Tombol Tambah (Berupa Link Eksternal HTML) -->
-                                <a x-show="activeConfig?.addLink" :href="activeConfig?.addLink" target="_blank" class="px-4 py-2 text-sm text-white bg-skyblue hover:bg-blue-600 rounded-lg shadow-md flex items-center gap-2 transition-colors whitespace-nowrap">
-                                    <i class="fas fa-plus"></i> Tambah Data
-                                </a>
-
-                                <!-- Tombol Tambah (Dialog Internal - Untuk Sarpras & Pengaturan) -->
-                                <button x-show="!activeConfig?.addLink && activeConfig?.formFields?.length > 0" @click="openModal('add')" class="px-4 py-2 text-sm text-white bg-skyblue hover:bg-blue-600 rounded-lg shadow-md flex items-center gap-2 transition-colors whitespace-nowrap">
-                                    <i class="fas fa-plus"></i> Tambah Data
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Table -->
-                        <div class="flex-1 overflow-auto relative">
-                            <div x-show="isLoading" class="absolute inset-0 bg-white/50 dark:bg-navy/50 z-20 flex items-center justify-center backdrop-blur-sm">
-                                <div class="w-10 h-10 border-4 border-skyblue border-t-transparent rounded-full animate-spin"></div>
-                            </div>
-                            
-                            <table class="w-full glass-table text-left border-collapse whitespace-nowrap">
-                                <thead>
-                                    <tr>
-                                        <th class="w-12 text-center">No</th>
-                                        <template x-for="col in activeConfig?.columns || []" :key="col.key">
-                                            <th x-text="col.label"></th>
-                                        </template>
-                                        <th class="text-right sticky right-0 bg-gray-50 dark:bg-darkbg shadow-[-10px_0_15px_-5px_rgba(0,0,0,0.1)]">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <template x-for="(row, index) in filteredData" :key="index">
-                                        <tr>
-                                            <td class="text-center" x-text="index + 1"></td>
-                                            <template x-for="col in activeConfig?.columns || []" :key="col.key">
-                                                <td>
-                                                    <!-- Special rendering based on type -->
-                                                    <template x-if="col.type === 'image'">
-                                                        <img :src="row[col.key] || 'https://placehold.co/100x100/eeeeee/999999?text=No+Img'" class="h-10 w-10 rounded object-cover border dark:border-gray-600 cursor-pointer hover:scale-150 transition-transform origin-left" @click="window.open(row[col.key])">
-                                                    </template>
-                                                    <template x-if="col.type === 'link'">
-                                                        <a :href="row[col.key]" target="_blank" class="text-skyblue hover:underline" x-show="row[col.key]">Lihat File</a>
-                                                    </template>
-                                                    <template x-if="col.type === 'status'">
-                                                        <span class="px-2 py-1 text-xs rounded-full" 
-                                                              :class="getStatusClass(row[col.key])" 
-                                                              x-text="row[col.key]"></span>
-                                                    </template>
-                                                    <template x-if="col.type === 'toggle'">
-                                                        <label class="relative inline-flex items-center cursor-pointer">
-                                                          <input type="checkbox" class="sr-only peer" :checked="row[col.key] === 'OPEN'" @change="toggleStatus(row, col.key)">
-                                                          <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-skyblue"></div>
-                                                        </label>
-                                                    </template>
-                                                    <template x-if="!col.type || col.type === 'text'">
-                                                        <span x-text="row[col.key]"></span>
-                                                    </template>
-                                                </td>
-                                            </template>
-                                            
-                                            <!-- MENU AKSI TITIK 3 (Dropdown) -->
-                                            <td class="text-right sticky right-0 bg-white dark:bg-darkcard shadow-[-10px_0_15px_-5px_rgba(0,0,0,0.05)] px-4">
-                                                <div x-data="{ menuOpen: false }" @click.away="menuOpen = false" class="relative inline-block text-left z-20">
-                                                    <button @click="menuOpen = !menuOpen" class="w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center text-gray-500 transition-colors">
-                                                        <i class="fas fa-ellipsis-v"></i>
-                                                    </button>
-                                                    <div x-show="menuOpen" x-transition class="absolute right-8 top-0 w-40 bg-white dark:bg-darkbg rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden text-left" style="display: none;">
-                                                        
-                                                        <template x-if="activeConfig?.actions?.includes('detail')">
-                                                            <a @click="openModal('detail', row); menuOpen=false" class="block px-4 py-2.5 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer border-b dark:border-gray-700 border-gray-50"><i class="fas fa-eye w-5"></i> Detail</a>
-                                                        </template>
-                                                        
-                                                        <template x-if="activeConfig?.actions?.includes('edit')">
-                                                            <a @click="openModal('edit', row); menuOpen=false" class="block px-4 py-2.5 text-sm text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 cursor-pointer border-b dark:border-gray-700 border-gray-50"><i class="fas fa-pen w-5"></i> Edit</a>
-                                                        </template>
-                                                        
-                                                        <template x-if="activeConfig?.actions?.includes('approve') && row.Status === 'PENDING'">
-                                                            <a @click="updateStatus(row, 'APPROVED'); menuOpen=false" class="block px-4 py-2.5 text-sm text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 cursor-pointer border-b dark:border-gray-700 border-gray-50"><i class="fas fa-check w-5"></i> Approve</a>
-                                                        </template>
-                                                        
-                                                        <template x-if="activeConfig?.actions?.includes('delete')">
-                                                            <a @click="deleteData(row); menuOpen=false" class="block px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer"><i class="fas fa-trash w-5"></i> Hapus</a>
-                                                        </template>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </template>
-                                    <tr x-show="filteredData.length === 0 && !isLoading">
-                                        <td :colspan="(activeConfig?.columns?.length || 0) + 2" class="text-center py-8 text-gray-500">Tidak ada data ditemukan</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+    <!-- Main Content Area -->
+    <div id="mainContent" class="lg:ml-64 min-h-screen flex flex-col bg-gray-50 dark:bg-darkbg">
+        <!-- Top Navbar -->
+        <header class="h-16 bg-white dark:bg-darkcard shadow-sm flex items-center justify-between px-4 lg:px-8 z-10 sticky top-0">
+            <div class="flex items-center">
+                <!-- Toggle Sidebar Desktop & Mobile -->
+                <button onclick="toggleSidebar()" class="text-gray-500 hover:text-primary focus:outline-none mr-4 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white capitalize truncate" id="headerTitle">Dashboard</h2>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button onclick="toggleTheme()" class="text-gray-500 hover:text-primary transition-colors p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <i class="fas fa-moon text-lg" id="themeIcon"></i>
+                </button>
+                <div class="flex items-center space-x-2 cursor-pointer border-l pl-3 dark:border-gray-700" onclick="logout()">
+                    <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm"><i class="fas fa-power-off"></i></div>
+                    <span class="text-sm font-medium hidden md:block text-red-500 hover:text-red-700">Logout</span>
                 </div>
+            </div>
+        </header>
 
+        <!-- Main Workspace -->
+        <main class="flex-1 p-4 lg:p-8 relative">
+            <div id="loader" class="hidden absolute inset-0 bg-white/60 dark:bg-darkbg/60 z-20 flex flex-col items-center pt-20 backdrop-blur-sm">
+                <div class="w-10 h-10 border-4 border-gray-200 rounded-full loader-spinner mb-3"></div>
+                <p class="text-primary text-sm font-medium">Memuat Data...</p>
+            </div>
+            <div id="contentContainer" class="w-full mx-auto space-y-6">
+                <!-- Konten dinamis -->
             </div>
         </main>
     </div>
 
-    <!-- DYNAMIC FORM MODAL -->
-    <div x-show="modalOpen" x-cloak class="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900 bg-opacity-50 backdrop-blur-sm overflow-y-auto pt-10 pb-10">
-        <div class="bg-white dark:bg-darkcard rounded-2xl shadow-2xl w-full max-w-3xl transform transition-all mx-4 my-auto relative flex flex-col max-h-[90vh]">
-            <div class="p-5 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center sticky top-0 bg-white dark:bg-darkcard z-10 rounded-t-2xl">
-                <h3 class="text-lg font-bold text-navy dark:text-white" x-text="modalTitle"></h3>
-                <button @click="closeModal()" class="text-gray-400 hover:text-red-500 w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center transition-colors">
-                    <i class="fas fa-times"></i>
-                </button>
+    <!-- Custom Dialog/Modal System -->
+    <div id="customModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white dark:bg-darkcard w-11/12 max-w-lg rounded-xl shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
+            <div class="px-6 py-4 border-b dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 rounded-t-xl">
+                <h3 id="modalTitle" class="text-lg font-bold text-gray-800 dark:text-white">Form</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fas fa-times text-xl"></i></button>
             </div>
-            
-            <div class="p-6 overflow-y-auto flex-1">
-                <form id="dynamicForm" @submit.prevent="saveData">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <template x-for="field in activeConfig?.formFields || []" :key="field.key">
-                            <div x-show="!field.showIf || formData[field.showIf.key] === field.showIf.value" :class="{'md:col-span-2': field.fullWidth}">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" x-text="field.label"></label>
-                                
-                                <template x-if="field.type === 'text' || field.type === 'number' || field.type === 'date' || field.type === 'time'">
-                                    <input :type="field.type" x-model="formData[field.key]" :disabled="modalMode === 'detail'" class="w-full px-3 py-2 border rounded-lg focus:ring-skyblue focus:border-skyblue dark:bg-darkbg dark:border-gray-600 dark:text-white outline-none disabled:bg-gray-100 dark:disabled:bg-gray-800" :required="field.required">
-                                </template>
-
-                                <template x-if="field.type === 'select'">
-                                    <select x-model="formData[field.key]" :disabled="modalMode === 'detail'" class="w-full px-3 py-2 border rounded-lg focus:ring-skyblue focus:border-skyblue dark:bg-darkbg dark:border-gray-600 dark:text-white outline-none disabled:bg-gray-100 dark:disabled:bg-gray-800" :required="field.required">
-                                        <option value="">-- Pilih --</option>
-                                        <template x-for="opt in field.options" :key="opt">
-                                            <option :value="opt" x-text="opt"></option>
-                                        </template>
-                                    </select>
-                                </template>
-
-                                <template x-if="field.type === 'file' || field.type === 'image'">
-                                    <div>
-                                        <input type="file" @change="handleFileUpload($event, field.key)" :accept="field.type === 'image' ? 'image/*' : '*/*'" :disabled="modalMode === 'detail'" class="w-full px-3 py-2 border rounded-lg text-sm dark:bg-darkbg dark:border-gray-600 dark:text-white" :required="field.required && !formData[field.key]">
-                                        <!-- Image Preview for edits (Rasio 3x4 untuk foto) -->
-                                        <div x-show="formData[field.key] && typeof formData[field.key] === 'string'" class="mt-2 relative inline-block">
-                                            <img x-show="field.type === 'image'" :src="formData[field.key]" class="w-32 aspect-[3/4] object-cover rounded-lg border shadow-sm dark:border-gray-600">
-                                            <a x-show="field.type === 'file'" :href="formData[field.key]" target="_blank" class="text-sm text-skyblue underline block mt-2"><i class="fas fa-external-link-alt"></i> Lihat Dokumen Saat Ini</a>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-                        </template>
-                    </div>
-                    
-                    <div x-show="modalMode !== 'detail'" class="mt-8 flex justify-end gap-3 sticky bottom-0 bg-white dark:bg-darkcard py-2 border-t dark:border-gray-700">
-                        <button type="button" @click="closeModal()" class="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors">Batal</button>
-                        <button type="submit" class="px-6 py-2 bg-skyblue hover:bg-blue-600 text-white font-medium rounded-lg shadow flex items-center gap-2 transition-colors">
-                            <i class="fas fa-save" :class="{'hidden': isSaving}"></i>
-                            <i class="fas fa-spinner animate-spin" x-show="isSaving"></i>
-                            <span x-text="isSaving ? 'Menyimpan...' : 'Simpan'"></span>
-                        </button>
-                    </div>
-                </form>
+            <div id="modalBody" class="p-6 text-gray-600 dark:text-gray-300 overflow-y-auto">
+                <!-- Content Modal -->
             </div>
         </div>
     </div>
 
     <script>
-        // --- API ENDPOINT ---
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxMdmY_BkWBSQjctDXFw_Weuos7BO-Vqf-cBEczBfMmCQrRS19gpDxQ3SUAhe8sJHa5fg/exec';
+        const API_URL = "https://script.google.com/macros/s/AKfycbxMdmY_BkWBSQjctDXFw_Weuos7BO-Vqf-cBEczBfMmCQrRS19gpDxQ3SUAhe8sJHa5fg/exec";
+        
+        let currentMenu = 'dashboard';
+        let chartsInstance = [];
 
-        // --- MODULE CONFIGURATIONS (Sesuai Catatan Mendalam) ---
-        const APP_CONFIG = {
-            'didik': {
-                title: 'Peserta Didik',
-                module: 'PESERTA_DIDIK',
-                sheetLink: 'https://docs.google.com/spreadsheets/d/1qxsm7yAbDmkgakslzYv81UlApcQ0Bdw1f3y9nhsklYs/edit',
-                addLink: 'input_pesertadidik.html',
-                printLink: 'print_IDCard.html',
-                searchPlaceholder: 'Cari Nama / NIM...',
-                filters: [
-                    { key: '_sheetName', label: 'Bagian/Sheet' },
-                    { key: 'namasekolah', label: 'Institusi' },
-                    { key: 'jurusan', label: 'Program Studi' }
-                ],
-                fileColumns: ['pasfoto', 'dokumen'], // Untuk mapping hapus data di drive
-                columns: [
-                    { label: 'Bagian', key: '_sheetName' },
-                    { label: 'Nama Peserta', key: 'nama' },
-                    { label: 'Institusi', key: 'namasekolah' },
-                    { label: 'Jenjang & Jurusan', key: 'jurusan' },
-                    { label: 'Mulai', key: 'tanggal_mulai' },
-                    { label: 'Selesai', key: 'tanggal_selesai' }
-                ],
-                formFields: [
-                    // Sesuai catatan: 24 Kolom Detail & Edit
-                    { key: 'nama', label: 'Nama', type: 'text' },
-                    { key: 'nim', label: 'NIM', type: 'text' },
-                    { key: 'ktp', label: 'No KTP', type: 'text' },
-                    { key: 'alamat', label: 'Alamat', type: 'text' },
-                    { key: 'kelurahan', label: 'Kelurahan', type: 'text' },
-                    { key: 'tempatlahir', label: 'Tempat Lahir', type: 'text' },
-                    { key: 'tanggallahir', label: 'Tanggal Lahir', type: 'date' },
-                    { key: 'kelamin', label: 'Jenis Kelamin', type: 'select', options: ['Laki-laki', 'Perempuan'] },
-                    { key: 'agama', label: 'Agama', type: 'select', options: ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'] },
-                    { key: 'namasekolah', label: 'Nama Institusi', type: 'text' },
-                    { key: 'jurusan', label: 'Jurusan', type: 'text' },
-                    { key: 'alamatsekolah', label: 'Alamat Sekolah', type: 'text' },
-                    { key: 'jenjangpend', label: 'Jenjang Pendidikan', type: 'text' },
-                    { key: 'telpsekolah', label: 'Telp Sekolah', type: 'text' },
-                    { key: 'jenis', label: 'Jenis', type: 'text' },
-                    { key: 'umur', label: 'Umur', type: 'number' },
-                    { key: 'hp', label: 'No HP', type: 'text' },
-                    { key: 'tanggal_mulai', label: 'Tanggal Mulai', type: 'date' },
-                    { key: 'tanggal_selesai', label: 'Tanggal Selesai', type: 'date' },
-                    { key: 'status_mahasiswa', label: 'Status', type: 'text' },
-                    { key: 'pasfoto', label: 'Pas Foto (3x4)', type: 'image' },
-                    { key: 'dokumen', label: 'Dokumen', type: 'file' },
-                    { key: 'bagian', label: 'Bagian', type: 'text' },
-                    { key: 'id_parent', label: 'ID Parent', type: 'text' }
-                ],
-                actions: ['detail', 'edit', 'delete']
-            },
-            'pelatihan': {
-                title: 'Peserta Pelatihan',
-                module: 'PESERTA_PELATIHAN',
-                sheetLink: 'https://docs.google.com/spreadsheets/d/1rnQDdCTbR288Kv1YF_4f8r-WN_49mShzQZJ1UR-kfLk/edit',
-                addLink: 'input_pesertapelatihan.html',
-                printLink: 'print_IDCard.html',
-                searchPlaceholder: 'Cari Nama / NIK...',
-                filters: [
-                    { key: '_sheetName', label: 'Bagian/Sheet' },
-                    { key: 'profesi', label: 'Profesi' },
-                    { key: 'akun_satusehat', label: 'SatuSehat' }
-                ],
-                fileColumns: ['pasfoto', 'str'], // Kolom B dan W dihapus di drive
-                columns: [
-                    { label: 'Nama Peserta', key: 'nama' },
-                    { label: 'Profesi', key: 'profesi' },
-                    { label: 'Akun SatuSehat', key: 'akun_satusehat' }
-                ],
-                formFields: [
-                    // Sesuai catatan: 24 Kolom Detail & Edit
-                    { key: 'email', label: 'Email', type: 'text' },
-                    { key: 'pasfoto', label: 'Pas Foto (3x4)', type: 'image' },
-                    { key: 'nama', label: 'Nama Lengkap', type: 'text' },
-                    { key: 'nik', label: 'NIK', type: 'text' },
-                    { key: 'kelamin', label: 'Jenis Kelamin', type: 'select', options: ['Laki-laki', 'Perempuan'] },
-                    { key: 'agama', label: 'Agama', type: 'text' },
-                    { key: 'tempat_lahir', label: 'Tempat Lahir', type: 'text' },
-                    { key: 'tanggal_lahir', label: 'Tanggal Lahir', type: 'date' },
-                    { key: 'hp', label: 'No HP', type: 'text' },
-                    { key: 'alamat_peserta', label: 'Alamat Peserta', type: 'text' },
-                    { key: 'kota_peserta', label: 'Kota Peserta', type: 'text' },
-                    { key: 'provinsi_peserta', label: 'Provinsi Peserta', type: 'text' },
-                    { key: 'pendidikan_terakhir', label: 'Pendidikan Terakhir', type: 'text' },
-                    { key: 'gelar_akademik', label: 'Gelar Akademik', type: 'text' },
-                    { key: 'profesi', label: 'Profesi', type: 'text' },
-                    { key: 'instansi_bekerja', label: 'Instansi Bekerja', type: 'text' },
-                    { key: 'nip', label: 'NIP', type: 'text' },
-                    { key: 'status', label: 'Status', type: 'text' },
-                    { key: 'pangkat_golongan', label: 'Pangkat Golongan', type: 'text' },
-                    { key: 'alamat_instansi', label: 'Alamat Instansi', type: 'text' },
-                    { key: 'kota_instansi', label: 'Kota Instansi', type: 'text' },
-                    { key: 'provinsi_instansi', label: 'Provinsi Instansi', type: 'text' },
-                    { key: 'str', label: 'STR', type: 'file' },
-                    { key: 'akun_satusehat', label: 'Akun SatuSehat', type: 'text' }
-                ],
-                actions: ['detail', 'edit', 'delete']
-            },
-            'hadir': {
-                title: 'Daftar Hadir',
-                module: 'DAFTAR_HADIR',
-                sheetLink: 'https://docs.google.com/spreadsheets/d/1_Kiogcx0mMiU47UjnowCC3F_qd7IIUvkmKnLyMhG61s/edit',
-                addLink: 'input_pesertapelatihan.html',
-                printLink: 'print_daftarhadir.html',
-                searchPlaceholder: 'Cari Nama...',
-                filters: [{ key: '_sheetName', label: 'Acara/Sheet' }],
-                columns: [
-                    { label: 'Nama', key: 'Nama' },
-                    { label: 'Bagian', key: 'Bagian' },
-                    { label: 'Tanda Tangan', key: 'Tanda Tangan', type: 'link' }
-                ],
-                formFields: [
-                    { label: 'Nama', key: 'Nama', type: 'text' },
-                    { label: 'Bagian', key: 'Bagian', type: 'text' }
-                ],
-                actions: ['detail', 'delete']
-            },
-            'pinjam_kunci': {
-                title: 'Peminjaman Kunci Loker',
-                module: 'PEMINJAMAN',
-                sheetName: 'P_KUNCI',
-                sheetLink: 'https://docs.google.com/spreadsheets/d/1I9dKIfzxZy5mNIHPOMONZIdNFwAsr0-Xz1Njeg5TtpY/edit',
-                addLink: 'peminjaman_kunci.html',
-                searchPlaceholder: 'Cari Nama / Nomor Kunci...',
-                filters: [{ key: 'Status', label: 'Status' }],
-                columns: [
-                    { label: 'Tanggal', key: 'Tanggal' },
-                    { label: 'Nama Peminjam', key: 'Nama Peminjam' },
-                    { label: 'No Kunci', key: 'Nomor Kunci' },
-                    { label: 'Status', key: 'Status', type: 'status' }
-                ],
-                formFields: [], actions: ['detail', 'edit', 'delete', 'approve']
-            },
-            'pinjam_ruang': {
-                title: 'Peminjaman Ruangan',
-                module: 'PEMINJAMAN',
-                sheetName: 'P_RUANGAN',
-                sheetLink: 'https://docs.google.com/spreadsheets/d/1I9dKIfzxZy5mNIHPOMONZIdNFwAsr0-Xz1Njeg5TtpY/edit',
-                addLink: 'peminjaman_ruangani.html',
-                searchPlaceholder: 'Cari Nama Peminjam...',
-                filters: [{ key: 'Status', label: 'Status' }, { key: 'Unit Peminjam', label: 'Unit' }],
-                columns: [
-                    { label: 'Tanggal', key: 'Tanggal' },
-                    { label: 'Nama Ruangan', key: 'Nama Ruangan' },
-                    { label: 'Nama Peminjam', key: 'Nama Peminjam' },
-                    { label: 'Unit Peminjam', key: 'Unit Peminjam' },
-                    { label: 'Status', key: 'Status', type: 'status' }
-                ],
-                formFields: [], actions: ['detail', 'edit', 'delete', 'approve']
-            },
-            'pinjam_barang': {
-                title: 'Peminjaman Barang',
-                module: 'PEMINJAMAN',
-                sheetName: 'P_BARANG',
-                sheetLink: 'https://docs.google.com/spreadsheets/d/1I9dKIfzxZy5mNIHPOMONZIdNFwAsr0-Xz1Njeg5TtpY/edit',
-                addLink: 'peminjaman_barang.html',
-                searchPlaceholder: 'Cari Nama Peminjam...',
-                filters: [{ key: 'Status', label: 'Status' }],
-                columns: [
-                    { label: 'Tanggal', key: 'Tanggal' },
-                    { label: 'Nama Barang', key: 'Nama Barang' },
-                    { label: 'Qty', key: 'Qty' },
-                    { label: 'Nama Peminjam', key: 'Nama Peminjam' },
-                    { label: 'Status', key: 'Status', type: 'status' }
-                ],
-                formFields: [], actions: ['detail', 'edit', 'delete', 'approve']
-            },
-            'sarpras_barang': {
-                title: 'Data Barang Sarpras',
-                module: 'SARPRAS',
-                sheetName: 'D_BARANG',
-                sheetLink: 'https://docs.google.com/spreadsheets/d/1ZD_h-PQ7_GbxrTh5mUIC-pESvBbLdY4dBT65i0M8hvM/edit',
-                searchPlaceholder: 'Cari Nama Barang...',
-                filters: [{ key: 'PENEMPATAN', label: 'Lokasi' }],
-                columns: [
-                    { label: 'Nama Barang', key: 'NAMA_BARANG' },
-                    { label: 'Qty', key: 'QTY' },
-                    { label: 'Lokasi', key: 'PENEMPATAN' },
-                    { label: 'Foto', key: 'FOTO', type: 'image' }
-                ],
-                formFields: [
-                    { label: 'Kode Barang', key: 'CODE', type: 'text', required: true },
-                    { label: 'Nama Barang', key: 'NAMA_BARANG', type: 'text', required: true },
-                    { label: 'Qty', key: 'QTY', type: 'number', required: true },
-                    { label: 'Satuan', key: 'SATUAN', type: 'select', options: ['Buah', 'Pak', 'Dus', 'Set'], required: true },
-                    { label: 'Lokasi/Penempatan', key: 'PENEMPATAN', type: 'text', required: true },
-                    { label: 'Foto Barang', key: 'FOTO', type: 'image', required: true, fullWidth: true }
-                ],
-                actions: ['detail', 'edit', 'delete']
-            },
-            'sarpras_kunci': {
-                title: 'Data Kunci Loker', module: 'SARPRAS', sheetName: 'D_KUNCI',
-                sheetLink: 'https://docs.google.com/spreadsheets/d/1ZD_h-PQ7_GbxrTh5mUIC-pESvBbLdY4dBT65i0M8hvM/edit',
-                searchPlaceholder: 'Cari Kode / Nomor...', filters: [{ key: 'JENIS', label: 'Jenis' }],
-                columns: [
-                    { label: 'Kode', key: 'CODE' }, { label: 'Nomor Kunci', key: 'NOMOR' },
-                    { label: 'Jenis', key: 'JENIS' }, { label: 'Status', key: 'STATUS', type: 'status' }
-                ],
-                formFields: [
-                    { label: 'Kode Kunci', key: 'CODE', type: 'text', required: true },
-                    { label: 'Nomor Kunci', key: 'NOMOR', type: 'text', required: true },
-                    { label: 'Jenis', key: 'JENIS', type: 'text', required: true }
-                ], actions: ['detail', 'edit', 'delete']
-            },
-            'sarpras_ruang': {
-                title: 'Data Ruangan', module: 'SARPRAS', sheetName: 'D_RUANGAN',
-                sheetLink: 'https://docs.google.com/spreadsheets/d/1ZD_h-PQ7_GbxrTh5mUIC-pESvBbLdY4dBT65i0M8hvM/edit',
-                searchPlaceholder: 'Cari Ruangan...', filters: [{ key: 'LOKASI', label: 'Lokasi' }],
-                columns: [
-                    { label: 'Nama Ruangan', key: 'NAMA_RUANGAN' }, { label: 'Lokasi', key: 'LOKASI' },
-                    { label: 'Status', key: 'STATUS', type: 'status' }
-                ],
-                formFields: [
-                    { label: 'Kode Ruangan', key: 'KODE_RUANGAN', type: 'text', required: true },
-                    { label: 'Nama Ruangan', key: 'NAMA_RUANGAN', type: 'text', required: true },
-                    { label: 'Lokasi', key: 'LOKASI', type: 'text', required: true }
-                ], actions: ['detail', 'edit', 'delete']
-            },
-            'sarpras_atk': {
-                title: 'Data ATK', module: 'SARPRAS', sheetName: 'D_ATK',
-                sheetLink: 'https://docs.google.com/spreadsheets/d/1ZD_h-PQ7_GbxrTh5mUIC-pESvBbLdY4dBT65i0M8hvM/edit',
-                searchPlaceholder: 'Cari Item ATK...', filters: [{ key: 'PENEMPATAN', label: 'Lokasi' }],
-                columns: [
-                    { label: 'Nama Item', key: 'NAMA_ITEM' }, { label: 'Qty', key: 'QTY' },
-                    { label: 'Lokasi', key: 'PENEMPATAN' }, { label: 'Foto', key: 'FOTO', type: 'image' }
-                ],
-                formFields: [
-                    { label: 'Kode ATK', key: 'CODE', type: 'text', required: true },
-                    { label: 'Nama Item', key: 'NAMA_ITEM', type: 'text', required: true },
-                    { label: 'Qty', key: 'QTY', type: 'number', required: true },
-                    { label: 'Satuan', key: 'SATUAN', type: 'select', options: ['Buah', 'Pak', 'Dus', 'Set'], required: true },
-                    { label: 'Lokasi/Penempatan', key: 'PENEMPATAN', type: 'text', required: true },
-                    { label: 'Foto Item', key: 'FOTO', type: 'image', required: true, fullWidth: true }
-                ], actions: ['detail', 'edit', 'delete']
-            },
-            'sarpras_bhp': {
-                title: 'Data BHP', module: 'SARPRAS', sheetName: 'D_BHP',
-                sheetLink: 'https://docs.google.com/spreadsheets/d/1ZD_h-PQ7_GbxrTh5mUIC-pESvBbLdY4dBT65i0M8hvM/edit',
-                searchPlaceholder: 'Cari BHP...', filters: [{ key: 'PENEMPATAN', label: 'Lokasi' }],
-                columns: [
-                    { label: 'Nama BHP', key: 'NAMA_BHP' }, { label: 'Qty', key: 'QTY' },
-                    { label: 'Lokasi', key: 'PENEMPATAN' }, { label: 'Foto', key: 'FOTO', type: 'image' }
-                ],
-                formFields: [
-                    { label: 'Kode BHP', key: 'CODE', type: 'text', required: true },
-                    { label: 'Nama BHP', key: 'NAMA_BHP', type: 'text', required: true },
-                    { label: 'Qty', key: 'QTY', type: 'number', required: true },
-                    { label: 'Satuan', key: 'SATUAN', type: 'select', options: ['Buah', 'Pak', 'Dus', 'Set'], required: true },
-                    { label: 'Lokasi/Penempatan', key: 'PENEMPATAN', type: 'text', required: true },
-                    { label: 'Foto BHP', key: 'FOTO', type: 'image', required: true, fullWidth: true }
-                ], actions: ['detail', 'edit', 'delete']
-            },
-            'pengaturan_pd': {
-                title: 'Pengaturan Acara Peserta Didik',
-                module: 'PENGATURAN',
-                sheetName: 'SETTING_PD',
-                searchPlaceholder: 'Cari Acara...',
-                filters: [],
-                columns: [
-                    { label: 'Nama Sheet', key: 'Nama Sheet' },
-                    { label: 'Nama Acara', key: 'Nama Acara' },
-                    { label: 'Tempat', key: 'Tempat' },
-                    { label: 'Status', key: 'Status', type: 'toggle' }
-                ],
-                formFields: [
-                    { label: 'Nama Sheet Baru (Tanpa Spasi)', key: 'newSheetName', type: 'text', required: true },
-                    { label: 'Nama Acara', key: 'namaAcara', type: 'text', required: true },
-                    { label: 'Tempat', key: 'tempat', type: 'text', required: true },
-                    { label: 'Tanggal & Jam Mulai', key: 'waktuMulai', type: 'text', placeholder: 'YYYY-MM-DD HH:MM', required: true },
-                    { label: 'Tanggal & Jam Selesai', key: 'waktuSelesai', type: 'text', placeholder: 'YYYY-MM-DD HH:MM', required: true }
-                ],
-                actions: ['delete']
-            },
-            'pengaturan_pl': {
-                title: 'Pengaturan Acara Pelatihan', module: 'PENGATURAN', sheetName: 'SETTING_PL',
-                searchPlaceholder: 'Cari Acara...', filters: [],
-                columns: [
-                    { label: 'Nama Acara', key: 'Nama Acara' },
-                    { label: 'Tempat', key: 'Tempat' },
-                    { label: 'Status', key: 'Status', type: 'toggle' }
-                ],
-                formFields: [
-                    { label: 'Nama (Pembuat)', key: 'nama', type: 'text', required: true },
-                    { label: 'Nama Acara', key: 'namaAcara', type: 'text', required: true },
-                    { label: 'Tempat', key: 'tempat', type: 'text', required: true },
-                    { label: 'Tanggal & Jam Mulai', key: 'waktuMulai', type: 'text', placeholder: 'YYYY-MM-DD HH:MM', required: true },
-                    { label: 'Tanggal & Jam Selesai', key: 'waktuSelesai', type: 'text', placeholder: 'YYYY-MM-DD HH:MM', required: true }
-                ], actions: ['delete']
-            },
-            'pengaturan_dh': {
-                title: 'Pengaturan Daftar Hadir', module: 'PENGATURAN', sheetName: 'SETTING_DH',
-                searchPlaceholder: 'Cari Acara...', filters: [],
-                columns: [
-                    { label: 'Nama Sheet', key: 'Nama Sheet' },
-                    { label: 'Nama Acara', key: 'Nama Acara' },
-                    { label: 'Tempat', key: 'Tempat' },
-                    { label: 'Nama Pimpinan', key: 'Nama Pimpinan' },
-                    { label: 'Status', key: 'Status', type: 'toggle' }
-                ],
-                formFields: [
-                    { label: 'Pilih Template', key: 'template', type: 'select', options: ['PESERTA DIDIK', 'PELATIHAN', 'KARYAWAN'], required: true },
-                    { label: 'Nama Sheet', key: 'newSheetName', type: 'text', required: true },
-                    { label: 'Nama Acara', key: 'namaAcara', type: 'text', required: true },
-                    { label: 'Tempat', key: 'tempat', type: 'text', required: true },
-                    { label: 'Tanggal & Jam Mulai', key: 'waktuMulai', type: 'text', placeholder: 'YYYY-MM-DD HH:MM', required: true },
-                    { label: 'Tanggal & Jam Selesai', key: 'waktuSelesai', type: 'text', placeholder: 'YYYY-MM-DD HH:MM', required: true },
-                    { label: 'Pakai Tanda Tangan Pimpinan?', key: 'pakaiTtd', type: 'select', options: ['Tidak', 'Ya'], required: true },
-                    { label: 'Nama Pimpinan', key: 'Nama Pimpinan', type: 'text', showIf: { key: 'pakaiTtd', value: 'Ya' } },
-                    { label: 'Jabatan', key: 'Jabatan', type: 'text', showIf: { key: 'pakaiTtd', value: 'Ya' } },
-                    { label: 'NIP', key: 'NIP', type: 'text', showIf: { key: 'pakaiTtd', value: 'Ya' } }
-                ], actions: ['delete']
+        // FUNGSI FETCH UTAMA KE APPS SCRIPT
+        async function fetchAPI(action, params = {}) {
+            let url = `${API_URL}?action=${action}`;
+            for (const key in params) {
+                if(params[key]) url += `&${key}=${encodeURIComponent(params[key])}`;
             }
-        };
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Koneksi jaringan bermasalah");
+                return await response.json();
+            } catch (error) {
+                console.error("Fetch API Error:", error);
+                return { error: true, message: error.message };
+            }
+        }
 
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('appData', () => ({
-                isDark: false,
-                isLoggedIn: false,
-                loginPassword: '',
-                sidebarOpen: true, // Default open, toggleable
-                
-                // Navigation Structure
-                menuItems: [
-                    { id: 'dashboard', label: 'Dashboard', icon: 'fas fa-chart-pie' },
-                    { id: 'didik', label: 'Peserta Didik', icon: 'fas fa-user-graduate' },
-                    { id: 'pelatihan', label: 'Peserta Pelatihan', icon: 'fas fa-users-cog' },
-                    { id: 'hadir', label: 'Daftar Hadir', icon: 'fas fa-clipboard-list' },
-                    { id: 'peminjaman', label: 'Peminjaman', icon: 'fas fa-handshake', open: false, sub: [
-                        { id: 'pinjam_kunci', label: 'Kunci Loker' },
-                        { id: 'pinjam_ruang', label: 'Ruangan' },
-                        { id: 'pinjam_barang', label: 'Barang' }
-                    ]},
-                    { id: 'sarpras', label: 'Data Sarpras', icon: 'fas fa-boxes', open: false, sub: [
-                        { id: 'sarpras_barang', label: 'Data Barang' },
-                        { id: 'sarpras_kunci', label: 'Kunci Loker' },
-                        { id: 'sarpras_ruang', label: 'Ruangan' },
-                        { id: 'sarpras_atk', label: 'Data ATK' },
-                        { id: 'sarpras_bhp', label: 'Data BHP' }
-                    ]},
-                    { id: 'pengaturan', label: 'Pengaturan', icon: 'fas fa-cogs', open: false, sub: [
-                        { id: 'pengaturan_pd', label: 'Acara Peserta Didik' },
-                        { id: 'pengaturan_pl', label: 'Acara Pelatihan' },
-                        { id: 'pengaturan_dh', label: 'Format Daftar Hadir' }
-                    ]}
-                ],
-                
-                currentMenu: 'dashboard',
-                menuTitle: 'Dashboard Utama',
-                
-                // Data State
-                stats: { didik: '...', pelatihan: '...', pinjam: '...', acara: '...' },
-                chartDataInstitusi: { labels: ['Memuat...'], data: [1] },
-                chartDataJurusan: { labels: ['Memuat...'], data: [1] },
-                charts: {},
-                rawData: [],
-                filteredData: [],
-                activeConfig: { filters: [], columns: [], actions: [], formFields: [] }, // Initialize with empty arrays to prevent undefined errors
-                isLoading: false,
-                
-                // Table Controls
-                searchQuery: '',
-                filterValues: {}, // Objek untuk multiple filter
-                
-                // Modal State
-                modalOpen: false,
-                modalMode: 'add', // add, edit, detail
-                modalTitle: '',
-                formData: {},
-                fileUploads: [],
-                isSaving: false,
-                
-                init() {
-                    // Check dark mode pref
-                    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                        this.isDark = true;
-                        document.documentElement.classList.add('dark');
-                    }
-                    
-                    // Listen to filter and search changes dynamically
-                    this.$watch('searchQuery', () => this.applyFilters());
-                    this.$watch('filterValues', () => this.applyFilters(), { deep: true });
-                    
-                    // Auto-hide sidebar on mobile
-                    if(window.innerWidth < 768) this.sidebarOpen = false;
-                },
+        // SISTEM LOGIN CUSTOM
+        function checkAuth() {
+            if (localStorage.getItem('isLoggedIn') === 'true') {
+                document.getElementById('loginScreen').classList.add('hidden');
+                loadContent('dashboard');
+            } else {
+                document.getElementById('loginScreen').classList.remove('hidden');
+            }
+        }
 
-                toggleTheme() {
-                    this.isDark = !this.isDark;
-                    if (this.isDark) {
-                        document.documentElement.classList.add('dark');
-                        localStorage.setItem('theme', 'dark');
-                    } else {
-                        document.documentElement.classList.remove('dark');
-                        localStorage.setItem('theme', 'light');
-                    }
-                    this.renderCharts(); // Re-render charts for color adaptation
-                },
-
-                login() {
-                    // Simple password check as requested (replace 'admin123' with your secure password)
-                    if(this.loginPassword === 'admin123') {
-                        this.isLoggedIn = true;
-                        Swal.fire({
-                            toast: true, position: 'top-end', icon: 'success', title: 'Login Berhasil', showConfirmButton: false, timer: 1500
-                        });
-                        this.loadDashboardData();
-                    } else {
-                        Swal.fire({ icon: 'error', title: 'Gagal', text: 'Password Salah!' });
-                    }
-                },
-                
-                logout() {
-                    this.isLoggedIn = false;
-                    this.loginPassword = '';
-                    this.currentMenu = 'dashboard';
-                },
-
-                changeMenu(id) {
-                    this.currentMenu = id;
-                    // Find title
-                    let found = this.menuItems.find(m => m.id === id);
-                    if(!found) {
-                        this.menuItems.forEach(m => {
-                            if(m.sub) {
-                                let sub = m.sub.find(s => s.id === id);
-                                if(sub) found = sub;
-                            }
-                        });
-                    }
-                    this.menuTitle = found ? found.label : 'Dashboard';
-                    this.searchQuery = '';
-                    this.filterValues = {}; // Reset filters
-                    
-                    if (window.innerWidth < 768) this.sidebarOpen = false; // Auto close on mobile click
-
-                    if (id === 'dashboard') {
-                        this.loadDashboardData();
-                    } else if (APP_CONFIG[id]) {
-                        this.activeConfig = APP_CONFIG[id];
-                        this.fetchData(id);
-                    } else {
-                        // For unmapped dummy/fallback config in code snippet
-                        this.activeConfig = APP_CONFIG['sarpras_barang']; 
-                        this.fetchData('sarpras_barang');
-                    }
-                },
-
-                async callAPI(action, data) {
-                    try {
-                        const response = await fetch(API_URL, {
-                            method: 'POST',
-                            body: JSON.stringify({ action, data })
-                        });
-                        const result = await response.json();
-                        if (result.status === 'success') return result.data;
-                        throw new Error(result.message);
-                    } catch (error) {
-                        console.error('API Error:', error);
-                        Swal.fire('Error', 'Koneksi ke server gagal: ' + error.message, 'error');
-                        return null;
-                    }
-                },
-
-                async fetchData(configId) {
-                    this.isLoading = true;
-                    this.rawData = [];
-                    this.filteredData = [];
-                    
-                    let config = APP_CONFIG[configId] || this.activeConfig;
-                    
-                    const data = await this.callAPI('getData', {
-                        module: config.module,
-                        sheetName: config.sheetName
-                    });
-                    
-                    if (data) {
-                        this.rawData = data;
-                        this.applyFilters(); // Setup data awal
-                    }
-                    this.isLoading = false;
-                },
-
-                // Fungsi baru mengambil daftar unik options untuk dropdown filter tertentu
-                getFilterOptions(key) {
-                    if (!this.rawData || this.rawData.length === 0) return [];
-                    return [...new Set(this.rawData.map(item => item[key]).filter(Boolean))].sort();
-                },
-
-                applyFilters() {
-                    let temp = this.rawData;
-                    
-                    // Proses Multiple Filter Dinamis
-                    if (this.activeConfig?.filters) {
-                        this.activeConfig.filters.forEach(filter => {
-                            const val = this.filterValues[filter.key];
-                            if (val) {
-                                temp = temp.filter(item => item[filter.key] === val);
-                            }
-                        });
-                    }
-                    
-                    // Search Text Global
-                    if (this.searchQuery) {
-                        const q = this.searchQuery.toLowerCase();
-                        temp = temp.filter(item => {
-                            return Object.values(item).some(val => 
-                                String(val).toLowerCase().includes(q)
-                            );
-                        });
-                    }
-                    
-                    this.filteredData = temp;
-                },
-
-                getStatusClass(status) {
-                    if (!status) return 'bg-gray-100 text-gray-800';
-                    const s = status.toUpperCase();
-                    if (s === 'OPEN' || s === 'APPROVED' || s === 'SELESAI') return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-                    if (s === 'CLOSE' || s === 'REJECTED' || s === 'CANCEL') return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-                    if (s === 'PENDING') return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
-                    return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
-                },
-
-                openModal(mode, rowData = null) {
-                    this.modalMode = mode;
-                    this.fileUploads = [];
-                    
-                    if (mode === 'add') {
-                        this.modalTitle = 'Tambah ' + this.activeConfig.title;
-                        this.formData = {};
-                        // Pre-fill some defaults if settings
-                        if(this.currentMenu.startsWith('pengaturan')) {
-                             this.formData.waktuMulai = new Date().toISOString().slice(0,16).replace('T', ' ');
-                        }
-                    } else {
-                        this.modalTitle = (mode === 'edit' ? 'Edit ' : 'Detail ') + this.activeConfig.title;
-                        this.formData = JSON.parse(JSON.stringify(rowData)); // Deep clone
-                    }
-                    
-                    this.modalOpen = true;
-                },
-
-                closeModal() {
-                    this.modalOpen = false;
-                },
-
-                async handleFileUpload(event, key) {
-                    const file = event.target.files[0];
-                    if (!file) return;
-                    
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const base64 = e.target.result;
-                        // Store for submission
-                        this.fileUploads.push({
-                            columnName: key,
-                            fileName: file.name,
-                            base64: base64
-                        });
-                        // Show preview
-                        this.formData[key] = base64;
-                    };
-                    reader.readAsDataURL(file);
-                },
-
-                async saveData() {
-                    // Custom Validation for settings
-                    if(this.currentMenu.startsWith('pengaturan')) {
-                         const start = new Date(this.formData.waktuMulai);
-                         const end = new Date(this.formData.waktuSelesai);
-                         const now = new Date();
-                         if (start < now) {
-                             Swal.fire('Error', 'Waktu mulai tidak boleh kurang dari sekarang', 'error'); return;
-                         }
-                         if (end <= start) {
-                             Swal.fire('Error', 'Waktu selesai harus lebih besar dari waktu mulai', 'error'); return;
-                         }
-                    }
-
-                    this.isSaving = true;
-                    
-                    // Construct payload for GAS
-                    const payload = {
-                        module: this.activeConfig.module,
-                        sheetName: this.activeConfig.sheetName || this.formData._sheetName || 'Sheet1', // Ensure target sheet is defined
-                        rowData: this.formData,
-                        rowIndex: this.modalMode === 'edit' ? this.formData._rowIndex : null,
-                        files: this.fileUploads,
-                        // Determine Drive Folder Mapping logically
-                        folderType: this.currentMenu === 'didik' ? 'DOK_DIDIK' : 
-                                    this.currentMenu === 'pelatihan' ? 'DOK_PELATIHAN' :
-                                    this.currentMenu === 'sarpras_barang' ? 'FOTO_BARANG' : 'DOK_DIDIK', // Default fallback
-                        // Dynamic subfolder names (e.g. SheetName / Nim+Nama)
-                        subFolderStruct: [this.formData._sheetName, (this.formData.nim ? this.formData.nim + '_' + this.formData.nama : null)]
-                    };
-
-                    // Special Case: Creating new Setting creates a new Sheet
-                    if (this.currentMenu.startsWith('pengaturan') && this.modalMode === 'add') {
-                        const templateMap = { 'pengaturan_pd': 'TEMPLATE_PD', 'pengaturan_pl': 'TEMPLATE_PL'};
-                        await this.callAPI('createSheetFromTemplate', {
-                            targetModule: this.activeConfig.module === 'PENGATURAN' ? (this.currentMenu === 'pengaturan_pd' ? 'PESERTA_DIDIK' : 'PESERTA_PELATIHAN') : 'PESERTA_DIDIK',
-                            templateName: templateMap[this.currentMenu],
-                            newSheetName: this.formData.newSheetName,
-                            settingSheetName: this.activeConfig.sheetName,
-                            settingRowData: [this.rawData.length + 1, this.formData.newSheetName, this.formData.namaAcara, this.formData.tempat, this.formData.waktuMulai, this.formData.waktuSelesai, 'OPEN']
-                        });
-                        Swal.fire('Berhasil', 'Acara dan Sheet baru berhasil dibuat!', 'success');
-                    } else {
-                        // Standard CRUD
-                        const result = await this.callAPI('saveData', payload);
-                        if (result) {
-                            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Data tersimpan', showConfirmButton: false, timer: 1500 });
-                        }
-                    }
-
-                    this.isSaving = false;
-                    this.closeModal();
-                    this.fetchData(this.currentMenu);
-                },
-
-                async deleteData(row) {
-                    const result = await Swal.fire({
-                        title: 'Yakin hapus data?',
-                        text: "Data yang dihapus (termasuk file di Drive) tidak dapat dikembalikan!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#ef4444',
-                        cancelButtonColor: '#94a3b8',
-                        confirmButtonText: 'Ya, Hapus!'
-                    });
-
-                    if (result.isConfirmed) {
-                        // Menggunakan custom fileColumns mapping (seperti yang diminta di Catatan: Kolom B dan W dihapus)
-                        const fileCols = this.activeConfig.fileColumns || this.activeConfig.formFields.filter(f => f.type === 'image' || f.type === 'file').map(f => f.key);
-                        
-                        await this.callAPI('deleteData', {
-                            module: this.activeConfig.module,
-                            sheetName: row._sheetName || this.activeConfig.sheetName,
-                            rowIndex: row._rowIndex,
-                            fileColumns: fileCols 
-                        });
-                        
-                        Swal.fire('Terhapus!', 'Data telah dihapus.', 'success');
-                        this.fetchData(this.currentMenu);
-                    }
-                },
-                
-                async toggleStatus(row, key) {
-                     // For fast toggle (e.g. Open/Close in settings)
-                     row[key] = row[key] === 'OPEN' ? 'CLOSE' : 'OPEN';
-                     // Logic to save just this change...
-                     // (Simplified for demo)
-                     Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Status diubah', showConfirmButton: false, timer: 1000 });
-                },
-
-                async loadDashboardData() {
-                    this.isLoading = true;
-                    try {
-                        // Tarik data asli dari backend secara paralel
-                        const [didik, pelatihan, pinjam, acara] = await Promise.all([
-                            this.callAPI('getData', { module: 'PESERTA_DIDIK' }),
-                            this.callAPI('getData', { module: 'PESERTA_PELATIHAN' }),
-                            this.callAPI('getData', { module: 'PEMINJAMAN' }),
-                            this.callAPI('getData', { module: 'PENGATURAN' })
-                        ]);
-
-                        this.stats.didik = didik ? didik.length : 0;
-                        this.stats.pelatihan = pelatihan ? pelatihan.length : 0;
-                        
-                        // Hitung pinjaman yang statusnya OPEN atau PENDING
-                        this.stats.pinjam = pinjam ? pinjam.filter(x => {
-                            const s = (x.Status || '').toUpperCase();
-                            return s === 'OPEN' || s === 'PENDING';
-                        }).length : 0;
-                        
-                        this.stats.acara = acara ? acara.length : 0;
-
-                        // Ekstrak data nyata untuk Grafik (Dashboard)
-                        this.processChartData(didik);
-
-                    } catch(e) {
-                        console.error('Gagal mengambil data dashboard:', e);
-                        this.stats = { didik: 0, pelatihan: 0, pinjam: 0, acara: 0 };
-                        this.chartDataInstitusi = { labels: ['Tidak ada data'], data: [1] };
-                        this.chartDataJurusan = { labels: ['Tidak ada data'], data: [1] };
-                    }
-                    this.isLoading = false;
-                    this.$nextTick(() => { this.renderCharts(); });
-                },
-
-                processChartData(didikData) {
-                    if (!didikData || didikData.length === 0) {
-                        this.chartDataInstitusi = { labels: ['Tidak ada data'], data: [1] };
-                        this.chartDataJurusan = { labels: ['Tidak ada data'], data: [1] };
-                        return;
-                    }
-
-                    const instCount = {};
-                    const jurCount = {};
-
-                    didikData.forEach(item => {
-                        const inst = item.namasekolah || 'Lainnya';
-                        const jur = item.jurusan || 'Lainnya';
-                        instCount[inst] = (instCount[inst] || 0) + 1;
-                        jurCount[jur] = (jurCount[jur] || 0) + 1;
-                    });
-
-                    const sortedInst = Object.entries(instCount).sort((a,b) => b[1]-a[1]).slice(0, 5);
-                    this.chartDataInstitusi = {
-                        labels: sortedInst.map(i => i[0]),
-                        data: sortedInst.map(i => i[1])
-                    };
-
-                    const sortedJur = Object.entries(jurCount).sort((a,b) => b[1]-a[1]).slice(0, 5);
-                    this.chartDataJurusan = {
-                        labels: sortedJur.map(i => i[0]),
-                        data: sortedJur.map(i => i[1])
-                    };
-                },
-
-                renderCharts() {
-                    const textColor = this.isDark ? '#e2e8f0' : '#475569';
-                    const gridColor = this.isDark ? '#334155' : '#e2e8f0';
-
-                    if(this.charts.institusi) this.charts.institusi.destroy();
-                    const ctx1 = document.getElementById('chartInstitusi');
-                    if(ctx1) {
-                        this.charts.institusi = new Chart(ctx1, {
-                            type: 'doughnut',
-                            data: {
-                                labels: this.chartDataInstitusi.labels,
-                                datasets: [{ 
-                                    data: this.chartDataInstitusi.data, 
-                                    backgroundColor: ['#0ea5e9', '#3b82f6', '#8b5cf6', '#cbd5e1', '#f59e0b'] 
-                                }]
-                            },
-                            options: { plugins: { legend: { position: 'right', labels: { color: textColor } } } }
-                        });
-                    }
-
-                    if(this.charts.jurusan) this.charts.jurusan.destroy();
-                    const ctx2 = document.getElementById('chartJurusan');
-                    if(ctx2) {
-                        this.charts.jurusan = new Chart(ctx2, {
-                            type: 'bar',
-                            data: {
-                                labels: this.chartDataJurusan.labels,
-                                datasets: [{ label: 'Jumlah Peserta', data: this.chartDataJurusan.data, backgroundColor: '#0ea5e9' }]
-                            },
-                            options: { scales: { y: { grid: { color: gridColor }, ticks: { color: textColor, stepSize: 1 } }, x: { grid: { display: false }, ticks: { color: textColor } } }, plugins: { legend: { display: false } } }
-                        });
-                    }
-                },
-                
-                printCard() {
-                    // Logic to open a new window and print ID cards based on filteredData
-                    const printWindow = window.open('', '_blank');
-                    let html = '<html><head><title>Print ID Card</title><style>body{font-family:sans-serif;} .card{border:1px solid #000; width:5.5cm; height:8.5cm; padding:10px; text-align:center; float:left; margin:10px; border-radius:8px;} img{width:80px;height:80px;object-fit:cover;border-radius:50%;margin-bottom:10px;}</style></head><body>';
-                    this.filteredData.forEach(row => {
-                        html += `<div class="card">
-                            <h3>RSUD Bandung Kiwari</h3>
-                            <img src="${row.pasfoto || 'https://placehold.co/100x100?text=Foto'}">
-                            <h4 style="margin:5px 0">${row.nama || '-'}</h4>
-                            <p style="font-size:12px;margin:2px">${row.Institusi || row.profesi || '-'}</p>
-                            <p style="font-size:12px;margin:2px">${row.nim || row.nik || '-'}</p>
-                        </div>`;
-                    });
-                    html += '</body></html>';
-                    printWindow.document.write(html);
-                    printWindow.document.close();
-                    setTimeout(() => { printWindow.print(); }, 500);
+        function handleLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnLogin');
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+            
+            // Dummy verifikasi login sederhana
+            setTimeout(() => {
+                if(u === 'admin' && p === 'admin123') {
+                    localStorage.setItem('isLoggedIn', 'true');
+                    document.getElementById('loginScreen').classList.add('hidden');
+                    loadContent('dashboard');
+                } else {
+                    customAlert("Username atau Password salah!", "error");
+                    btn.innerHTML = `<span>Masuk Dashboard</span>`;
                 }
+            }, 800);
+        }
+
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        // MODAL SYSTEM (PENGGANTI ALERT)
+        function showModal(title, htmlContent) {
+            const modal = document.getElementById('customModal');
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalBody').innerHTML = htmlContent;
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); modal.querySelector('div').classList.remove('scale-95'); }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('customModal');
+            modal.classList.add('opacity-0');
+            modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function customAlert(message, type = 'info') {
+            let icon = '<i class="fas fa-info-circle text-blue-500 text-4xl mb-4"></i>';
+            if(type === 'error') icon = '<i class="fas fa-times-circle text-red-500 text-4xl mb-4"></i>';
+            if(type === 'success') icon = '<i class="fas fa-check-circle text-green-500 text-4xl mb-4"></i>';
+            const html = `<div class="text-center flex flex-col items-center">${icon}<p class="text-base">${message}</p><button onclick="closeModal()" class="mt-6 w-full bg-primary text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition">Tutup</button></div>`;
+            showModal(type === 'error' ? 'Pemberitahuan' : 'Informasi', html);
+        }
+
+        // SIDEBAR & THEME
+        function initTheme() {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('themeIcon').classList.replace('fa-moon', 'fa-sun');
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('themeIcon').classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            const icon = document.getElementById('themeIcon');
+            if (isDark) { localStorage.theme = 'dark'; icon.classList.replace('fa-moon', 'fa-sun'); } 
+            else { localStorage.theme = 'light'; icon.classList.replace('fa-sun', 'fa-moon'); }
+            if(currentMenu === 'dashboard') loadContent('dashboard'); 
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const overlay = document.getElementById('mobileOverlay');
+            
+            if (window.innerWidth >= 1024) {
+                // Desktop toggle
+                sidebar.classList.toggle('sidebar-collapsed');
+                mainContent.classList.toggle('content-expanded');
+            } else {
+                // Mobile toggle
+                sidebar.classList.toggle('-translate-x-full');
+                overlay.classList.toggle('hidden');
+            }
+        }
+
+        function toggleSubmenu(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('hidden');
+            const icon = el.previousElementSibling.querySelector('.fa-chevron-down');
+            if(icon) icon.classList.toggle('rotate-180');
+        }
+
+        // FITUR SEARCH REALTIME & FILTER MULTIPLE
+        function applyFilters() {
+            const searchVal = document.getElementById('searchInput') ? document.getElementById('searchInput').value.toLowerCase() : '';
+            const institusiVal = document.getElementById('filterInstitusi') ? document.getElementById('filterInstitusi').value.toLowerCase() : '';
+            const jenjangVal = document.getElementById('filterJenjang') ? document.getElementById('filterJenjang').value.toLowerCase() : '';
+            const statusVal = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value.toLowerCase() : '';
+
+            const rows = document.querySelectorAll('#dataTable tbody tr');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                // Abaikan jika baris "Data Kosong"
+                if(row.cells.length === 1 && row.textContent.toLowerCase().includes("kosong")) return; 
+                
+                const textSearch = (row.getAttribute('data-search') || row.textContent).toLowerCase();
+                const textInstitusi = (row.getAttribute('data-institusi') || '').toLowerCase();
+                const textJenjang = (row.getAttribute('data-jenjang') || '').toLowerCase();
+                const textStatus = (row.getAttribute('data-status') || '').toLowerCase();
+
+                const matchSearch = textSearch.includes(searchVal);
+                const matchInstitusi = institusiVal === '' || textInstitusi === institusiVal;
+                const matchJenjang = jenjangVal === '' || textJenjang === jenjangVal;
+                const matchStatus = statusVal === '' || textStatus === statusVal;
+
+                if(matchSearch && matchInstitusi && matchJenjang && matchStatus) {
+                    row.style.display = "";
+                    visibleCount++;
+                } else {
+                    row.style.display = "none";
+                }
+            });
+
+            const countEl = document.getElementById('totalDataCount');
+            if(countEl) countEl.innerText = visibleCount;
+        }
+
+        async function loadContent(menuId, navElement = null, sheetFilter = '') {
+            currentMenu = menuId;
+            const loader = document.getElementById('loader');
+            const container = document.getElementById('contentContainer');
+            
+            if(navElement) {
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                navElement.classList.add('active');
+                document.getElementById('headerTitle').innerText = navElement.innerText;
+            }
+
+            if(window.innerWidth < 1024) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+                document.getElementById('mobileOverlay').classList.add('hidden');
+            }
+
+            loader.classList.remove('hidden');
+            chartsInstance.forEach(chart => chart.destroy());
+            chartsInstance = [];
+
+            try {
+                if (menuId === 'dashboard') {
+                    const res = await fetchAPI('getDashboard');
+                    renderDashboard(res);
+                } 
+                else if (['pd', 'pl', 'dh'].includes(menuId)) {
+                    let activeSheet = sheetFilter;
+                    let sheetList = [];
+                    try { 
+                        sheetList = await fetchAPI('getSettingSheets', { type: menuId }); 
+                        if(Array.isArray(sheetList) && sheetList.length > 0 && !activeSheet) activeSheet = sheetList[0];
+                    } catch(e) { console.warn("List Filter Kosong/Gagal Dimuat"); }
+
+                    const res = await fetchAPI('getMenuData', { menuId: menuId, sheetName: activeSheet });
+                    if(res.error) throw new Error(res.message);
+                    renderMainDataView(menuId, res, sheetList, activeSheet);
+                }
+                else if (menuId.startsWith('pinjam_')) {
+                    const res = await fetchAPI('getMenuData', { menuId: menuId });
+                    if(res.error) throw new Error(res.message);
+                    renderPeminjamanView(menuId, res);
+                }
+                else if (menuId.startsWith('sarpras_')) {
+                    const res = await fetchAPI('getMenuData', { menuId: menuId });
+                    if(res.error) throw new Error(res.message);
+                    renderSarprasView(menuId, res);
+                }
+                else if (menuId.startsWith('set_')) {
+                    const res = await fetchAPI('getMenuData', { menuId: menuId });
+                    if(res.error) throw new Error(res.message);
+                    renderPengaturanView(menuId, res);
+                }
+                else {
+                    container.innerHTML = `<div class="p-8 text-center bg-white rounded-xl shadow"><h3>Fitur belum tersedia</h3></div>`;
+                }
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = `<div class="p-8 text-center text-red-500 bg-white dark:bg-darkcard rounded-xl shadow"><i class="fas fa-exclamation-triangle text-3xl mb-3"></i><p>Gagal memuat data. Periksa koneksi Apps Script Anda.</p></div>`;
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        function renderDashboard(data) {
+            const container = document.getElementById('contentContainer');
+            const stats = data.stats || {};
+            const textColor = document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#374151';
+
+            container.innerHTML = `
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white dark:bg-darkcard p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-center justify-center text-center">
+                        <i class="fas fa-user-graduate text-3xl text-blue-500 mb-2"></i>
+                        <h4 class="text-xs text-gray-500">Total Peserta Didik</h4>
+                        <p class="text-xl font-bold dark:text-white">${stats.totalAcaraPd || 0}</p>
+                    </div>
+                    <div class="bg-white dark:bg-darkcard p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-center justify-center text-center">
+                        <i class="fas fa-users-cog text-3xl text-green-500 mb-2"></i>
+                        <h4 class="text-xs text-gray-500">Total Pelatihan</h4>
+                        <p class="text-xl font-bold dark:text-white">${stats.totalAcaraPl || 0}</p>
+                    </div>
+                    <div class="bg-white dark:bg-darkcard p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-center justify-center text-center">
+                        <i class="fas fa-handshake text-3xl text-yellow-500 mb-2"></i>
+                        <h4 class="text-xs text-gray-500">Peminjaman</h4>
+                        <p class="text-xl font-bold dark:text-white">${stats.peminjamanAktif || 0}</p>
+                    </div>
+                    <div class="bg-white dark:bg-darkcard p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-center justify-center text-center">
+                        <i class="fas fa-door-open text-3xl text-purple-500 mb-2"></i>
+                        <h4 class="text-xs text-gray-500">Total Ruangan</h4>
+                        <p class="text-xl font-bold dark:text-white">${stats.totalRuangan || 0}</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+                        <h3 class="text-sm font-semibold mb-4 text-center">Institusi</h3>
+                        <div class="h-64 relative"><canvas id="chartInst"></canvas></div>
+                    </div>
+                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+                        <h3 class="text-sm font-semibold mb-4 text-center">Jenjang</h3>
+                        <div class="h-64 relative"><canvas id="chartJenjang"></canvas></div>
+                    </div>
+                </div>`;
+
+            chartsInstance.push(new Chart(document.getElementById('chartInst'), {
+                type: 'pie', data: { labels: ['UNPAD','ITB','UPI','Lainnya'], datasets: [{ data: [45,20,15,20], backgroundColor: ['#0ea5e9','#10b981','#f59e0b','#8b5cf6'] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins:{ legend:{ labels:{color:textColor}, position:'bottom' } } }
             }));
+            chartsInstance.push(new Chart(document.getElementById('chartJenjang'), {
+                type: 'doughnut', data: { labels: ['S1','S2','Spesialis'], datasets: [{ data: [30,20,50], backgroundColor: ['#ec4899','#6366f1','#14b8a6'] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins:{ legend:{ labels:{color:textColor}, position:'bottom' } } }
+            }));
+        }
+
+        function renderMainDataView(menuId, response, sheetList, activeSheet) {
+            const container = document.getElementById('contentContainer');
+            const { data, sheetId, sheetGid } = response;
+            
+            // Konfigurasi Link
+            let addLink = "#"; let printLink = "#"; let searchPlaceholder = "Search..."; 
+            if(menuId === 'pd') { addLink = "input_pesertadidik.html"; printLink = "print_IDCard.html"; searchPlaceholder = "Cari Nama/NIM..."; } 
+            else if (menuId === 'pl') { addLink = "input_pesertapelatihan.html"; printLink = "print_IDCard.html"; searchPlaceholder = "Cari Nama/NIK..."; } 
+            else if (menuId === 'dh') { addLink = "input_daftarhadir.html"; printLink = "print_daftarhadir.html"; searchPlaceholder = "Cari Nama..."; }
+
+            // Link ke spreadsheet spesifik tab (berdasarkan GID)
+            let gsheetLink = `https://docs.google.com/spreadsheets/d/${sheetId}/edit`;
+            if (sheetGid !== undefined) gsheetLink += `#gid=${sheetGid}`;
+
+            let sheetOptions = '<option value="">-- Pilih Lembar Kerja --</option>';
+            if(Array.isArray(sheetList)) {
+                sheetList.forEach(name => { sheetOptions += `<option value="${name}" ${name === activeSheet ? 'selected' : ''}>${name}</option>`; });
+            }
+
+            // Generate Filter Dropdown KHUSUS PD
+            let extraFilters = '';
+            if (menuId === 'pd' && data && data.length > 0) {
+                const institusiSet = [...new Set(data.map(r => r[9]).filter(Boolean))].sort();
+                const jenjangSet = [...new Set(data.map(r => `${r[12]||''} ${r[10]||''}`.trim()).filter(Boolean))].sort();
+                
+                extraFilters += `<select id="filterInstitusi" onchange="applyFilters()" class="bg-white border border-gray-300 text-sm rounded-lg p-2 dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none min-w-[140px]"><option value="">Semua Institusi</option>`;
+                institusiSet.forEach(i => extraFilters += `<option value="${i}">${i}</option>`);
+                extraFilters += `</select>`;
+                
+                extraFilters += `<select id="filterJenjang" onchange="applyFilters()" class="bg-white border border-gray-300 text-sm rounded-lg p-2 dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none min-w-[140px]"><option value="">Sem. Jurusan/Jenjang</option>`;
+                jenjangSet.forEach(j => extraFilters += `<option value="${j}">${j}</option>`);
+                extraFilters += `</select>`;
+            }
+
+            let html = `
+                <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col overflow-hidden">
+                    <div class="p-4 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 flex flex-col xl:flex-row gap-3 items-center justify-between">
+                        <div class="flex flex-wrap w-full xl:w-auto gap-2">
+                            <select onchange="loadContent('${menuId}', null, this.value)" class="bg-white border border-gray-300 text-sm rounded-lg p-2 dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none min-w-[150px]">
+                                ${sheetOptions}
+                            </select>
+                            ${extraFilters}
+                            <div class="relative w-full sm:w-auto">
+                                <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
+                                <input type="text" id="searchInput" onkeyup="applyFilters()" placeholder="${searchPlaceholder}" class="w-full sm:w-48 pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none">
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 w-full xl:w-auto justify-end">
+                            <button onclick="loadContent('${menuId}', null, '${activeSheet}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition dark:bg-gray-700 dark:text-gray-200" title="Reload"><i class="fas fa-sync-alt"></i></button>
+                            <a href="${gsheetLink}" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm transition" title="Buka Spreadsheet"><i class="fas fa-file-excel"></i></a>
+                            <a href="${printLink}" target="_blank" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm transition whitespace-nowrap"><i class="fas fa-print"></i> Print</a>
+                            <a href="${addLink}" target="_blank" class="bg-primary hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm transition flex items-center whitespace-nowrap"><i class="fas fa-plus mr-1"></i> Add</a>
+                        </div>
+                    </div>
+                    
+                    <div class="table-container p-0">
+                        <table id="dataTable" class="w-full text-sm text-left whitespace-nowrap">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
+                                <tr>
+            `;
+
+            if (menuId === 'pd') html += `<th class="px-4 py-3">No</th><th class="px-4 py-3">Bagian</th><th class="px-4 py-3">Nama Peserta</th><th class="px-4 py-3">Institusi</th><th class="px-4 py-3">Jenjang & Jurusan</th><th class="px-4 py-3">Periode</th><th class="px-4 py-3 text-center">Aksi</th>`;
+            else if (menuId === 'pl') html += `<th class="px-4 py-3">No</th><th class="px-4 py-3">Nama Peserta</th><th class="px-4 py-3">Profesi</th><th class="px-4 py-3">Akun SatuSehat</th><th class="px-4 py-3 text-center">Aksi</th>`;
+            else if (menuId === 'dh') html += `<th class="px-4 py-3">No</th><th class="px-4 py-3">Nama</th><th class="px-4 py-3">Bagian/Ruangan</th><th class="px-4 py-3 text-center">Tanda Tangan</th><th class="px-4 py-3 text-center">Aksi</th>`;
+
+            html += `</tr></thead><tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-600 dark:text-gray-300">`;
+
+            let rowCount = 0;
+            if (!data || data.length === 0 || (data.length===1 && data[0][0] && data[0][0].includes("kosong"))) {
+                 html += `<tr><td colspan="10" class="px-4 py-8 text-center text-gray-400 italic">Belum ada data.</td></tr>`;
+            } else {
+                rowCount = data.length;
+                data.forEach((row, i) => {
+                    let searchStr = "", instStr = "", jenjStr = "";
+                    if(menuId === 'pd') { searchStr = `${row[0]||''} ${row[1]||''}`; instStr = row[9]||''; jenjStr = `${row[12]||''} ${row[10]||''}`.trim(); }
+                    else if (menuId === 'pl') { searchStr = `${row[2]||''} ${row[3]||''}`; }
+                    else if (menuId === 'dh') { searchStr = `${row[2]||''}`; }
+
+                    // Memasukkan data-attribute untuk filter realtime
+                    html += `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition" data-search="${searchStr}" data-institusi="${instStr}" data-jenjang="${jenjStr}">`;
+                    
+                    if(menuId === 'pd') {
+                        html += `<td class="px-4 py-3">${i+1}</td><td class="px-4 py-3">${row[22]||'-'}</td><td class="px-4 py-3 font-medium">${row[0]||'-'}</td><td class="px-4 py-3">${row[9]||'-'}</td><td class="px-4 py-3">${row[12]||''} ${row[10]||''}</td><td class="px-4 py-3">${row[17]||''} s/d ${row[18]||''}</td>`;
+                    } else if (menuId === 'pl') {
+                        html += `<td class="px-4 py-3">${i+1}</td><td class="px-4 py-3 font-medium">${row[2]||'-'}</td><td class="px-4 py-3">${row[14]||'-'}</td><td class="px-4 py-3">${row[23]||'-'}</td>`;
+                    } else if (menuId === 'dh') {
+                        let linkTTD = row[5] && row[5].includes('http') ? `<a href="${row[5]}" target="_blank" class="text-primary hover:underline">Lihat TTD</a>` : '-';
+                        html += `<td class="px-4 py-3">${row[0]||i+1}</td><td class="px-4 py-3 font-medium">${row[2]||'-'}</td><td class="px-4 py-3">${row[3]||'-'}</td><td class="px-4 py-3 text-center">${linkTTD}</td>`;
+                    }
+                    html += `<td class="px-4 py-3 text-center">
+                                <button class="text-gray-400 hover:text-primary px-1" title="Detail"><i class="fas fa-list"></i></button>
+                                <button class="text-gray-400 hover:text-blue-500 px-1" title="Edit"><i class="fas fa-edit"></i></button>
+                                <button class="text-gray-400 hover:text-red-500 px-1" title="Delete"><i class="fas fa-trash"></i></button>
+                             </td></tr>`;
+                });
+            }
+            html += `</tbody></table></div>
+                <div class="px-4 py-3 border-t dark:border-gray-700 text-xs text-gray-500 bg-gray-50/50 dark:bg-gray-800/30 flex justify-between items-center">
+                    <span>Menampilkan <strong id="totalDataCount">${rowCount}</strong> baris data</span>
+                </div>
+            </div>`;
+            container.innerHTML = html;
+        }
+
+        function renderPeminjamanView(menuId, response) {
+            const container = document.getElementById('contentContainer');
+            const { data, sheetId } = response; // Tidak menggunakan sheetGid untuk link menu ini
+            
+            let addLink = menuId === 'pinjam_kunci' ? 'peminjaman_kunci.html' : (menuId === 'pinjam_ruangan' ? 'peminjaman_ruangan.html' : 'peminjaman_barang.html');
+            
+            // Generate Filter Status Khusus
+            let extraFilters = '';
+            if (data && data.length > 0) {
+                let statusIndex = 5; // Default kolom Status kunci & barang
+                if(menuId === 'pinjam_ruangan') statusIndex = 6;
+                const statusSet = [...new Set(data.map(r => r[statusIndex]).filter(Boolean))].sort();
+                
+                extraFilters += `<select id="filterStatus" onchange="applyFilters()" class="bg-white border border-gray-300 text-sm rounded-lg p-2 dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none min-w-[140px]"><option value="">Semua Status</option>`;
+                statusSet.forEach(s => extraFilters += `<option value="${s}">${s}</option>`);
+                extraFilters += `</select>`;
+            }
+
+            let html = `
+                <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col overflow-hidden">
+                    <div class="p-4 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 flex flex-col sm:flex-row gap-3 justify-between items-center">
+                        <div class="flex flex-wrap w-full sm:w-auto gap-2">
+                            ${extraFilters}
+                            <div class="relative w-full sm:w-auto">
+                                <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
+                                <input type="text" id="searchInput" onkeyup="applyFilters()" placeholder="Cari Data..." class="w-full sm:w-48 pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none">
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
+                            <button onclick="loadContent('${menuId}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition"><i class="fas fa-sync-alt"></i></button>
+                            <a href="https://docs.google.com/spreadsheets/d/${sheetId}/edit" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm transition" title="Buka Spreadsheet"><i class="fas fa-file-excel"></i></a>
+                            <a href="${addLink}" target="_blank" class="bg-primary hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm transition flex items-center"><i class="fas fa-plus mr-1"></i> Add</a>
+                        </div>
+                    </div>
+                    <div class="table-container p-0">
+                        <table id="dataTable" class="w-full text-sm text-left whitespace-nowrap">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
+                                <tr>
+            `;
+            
+            if (menuId === 'pinjam_kunci') html += `<th class="px-4 py-3">No</th><th class="px-4 py-3">Tanggal</th><th class="px-4 py-3">Nama Peminjam</th><th class="px-4 py-3">No Kunci</th><th class="px-4 py-3">Waktu</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-center">Aksi</th>`;
+            else if (menuId === 'pinjam_ruangan') html += `<th class="px-4 py-3">No</th><th class="px-4 py-3">Tanggal</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Unit</th><th class="px-4 py-3">Nama Peminjam</th><th class="px-4 py-3">Ruangan</th><th class="px-4 py-3">Jml Peserta</th><th class="px-4 py-3 text-center">Aksi</th>`;
+            else html += `<th class="px-4 py-3">No</th><th class="px-4 py-3">Tanggal</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Unit</th><th class="px-4 py-3">Nama Peminjam</th><th class="px-4 py-3">Barang</th><th class="px-4 py-3">Qty</th><th class="px-4 py-3 text-center">Aksi</th>`;
+            
+            html += `</tr></thead><tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-600 dark:text-gray-300">`;
+
+            let rowCount = 0;
+            if (!data || data.length === 0) {
+                 html += `<tr><td colspan="9" class="px-4 py-8 text-center text-gray-400 italic">Data Kosong.</td></tr>`;
+            } else {
+                rowCount = data.length;
+                data.forEach((row, i) => {
+                    let searchStr = "", statusStr = "";
+                    if(menuId === 'pinjam_kunci') { searchStr = `${row[7]||''} ${row[3]||''}`; statusStr = row[5]||''; }
+                    else if(menuId === 'pinjam_ruangan') { searchStr = `${row[9]||''} ${row[7]||''}`; statusStr = row[6]||''; }
+                    else { searchStr = `${row[8]||''} ${row[6]||''}`; statusStr = row[5]||''; }
+
+                    html += `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50" data-search="${searchStr}" data-status="${statusStr}">`;
+                    
+                    if (menuId === 'pinjam_kunci') {
+                         html += `<td class="px-4 py-3">${i+1}</td><td class="px-4 py-3">${row[2]||'-'}</td><td class="px-4 py-3 font-medium">${row[7]||'-'}</td><td class="px-4 py-3">${row[3]||'-'}</td><td class="px-4 py-3">${row[11]||'-'} s/d ${row[12]||'-'}</td><td class="px-4 py-3">${formatStatus(row[5])}</td>`;
+                    } else if (menuId === 'pinjam_ruangan') {
+                         html += `<td class="px-4 py-3">${i+1}</td><td class="px-4 py-3">${row[2]||'-'}</td><td class="px-4 py-3">${formatStatus(row[6])}</td><td class="px-4 py-3">${row[7]||'-'}</td><td class="px-4 py-3 font-medium">${row[9]||'-'}</td><td class="px-4 py-3">${row[5]||'-'}</td><td class="px-4 py-3">${row[4]||'-'}</td>`;
+                    } else { 
+                         html += `<td class="px-4 py-3">${i+1}</td><td class="px-4 py-3">${row[2]||'-'}</td><td class="px-4 py-3">${formatStatus(row[5])}</td><td class="px-4 py-3">${row[6]||'-'}</td><td class="px-4 py-3 font-medium">${row[8]||'-'}</td><td class="px-4 py-3">${row[3]||'-'}</td><td class="px-4 py-3">${row[4]||'-'}</td>`;
+                    }
+                    html += `<td class="px-4 py-3 text-center">
+                                <button class="text-gray-400 hover:text-primary"><i class="fas fa-ellipsis-v"></i></button>
+                             </td></tr>`;
+                });
+            }
+            html += `</tbody></table></div>
+                <div class="px-4 py-3 border-t dark:border-gray-700 text-xs text-gray-500 bg-gray-50/50 dark:bg-gray-800/30 flex justify-between items-center">
+                    <span>Menampilkan <strong id="totalDataCount">${rowCount}</strong> baris data</span>
+                </div>
+            </div>`;
+            container.innerHTML = html;
+        }
+
+        function renderSarprasView(menuId, response) {
+            const container = document.getElementById('contentContainer');
+            const { data, sheetId } = response;
+            let rowCount = data ? data.length : 0;
+            
+            let html = `
+                <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+                    <div class="p-4 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <div class="flex items-center gap-3 w-full sm:w-auto">
+                            <h3 class="text-lg font-bold capitalize hidden sm:block whitespace-nowrap">Data ${menuId.split('_')[1]}</h3>
+                            <div class="relative w-full sm:w-auto">
+                                <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
+                                <input type="text" id="searchInput" onkeyup="applyFilters()" placeholder="Cari Data..." class="w-full sm:w-48 pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none">
+                            </div>
+                        </div>
+                        <div class="flex space-x-2 w-full sm:w-auto justify-end">
+                            <button onclick="loadContent('${menuId}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition"><i class="fas fa-sync-alt"></i></button>
+                            <a href="https://docs.google.com/spreadsheets/d/${sheetId}/edit" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm" title="Buka Spreadsheet"><i class="fas fa-file-excel"></i></a>
+                            <button onclick="showDialogForm('${menuId}')" class="bg-primary hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center"><i class="fas fa-plus mr-1"></i> Add</button>
+                        </div>
+                    </div>
+                    <div class="table-container p-0">
+                        <table id="dataTable" class="w-full text-sm text-left whitespace-nowrap">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
+                                <tr>
+                                    <th class="px-4 py-3">No</th><th class="px-4 py-3">Code</th><th class="px-4 py-3">Nama/Item</th><th class="px-4 py-3">Status/Lokasi</th><th class="px-4 py-3 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-600 dark:text-gray-300">
+                                ${(!data || data.length === 0) ? '<tr><td colspan="5" class="p-8 text-center italic">Data Kosong</td></tr>' : data.map((row, i) => `
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                    <td class="px-4 py-3">${i+1}</td>
+                                    <td class="px-4 py-3">${row[1]||'-'}</td>
+                                    <td class="px-4 py-3 font-medium">${row[2]||'-'}</td>
+                                    <td class="px-4 py-3">${row[3]||row[4]||'-'}</td>
+                                    <td class="px-4 py-3 text-center"><button class="text-blue-500 hover:underline"><i class="fas fa-edit"></i> Edit</button></td>
+                                </tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="px-4 py-3 border-t dark:border-gray-700 text-xs text-gray-500 bg-gray-50/50 dark:bg-gray-800/30 flex justify-between items-center">
+                        <span>Menampilkan <strong id="totalDataCount">${rowCount}</strong> baris data</span>
+                    </div>
+                </div>`;
+            container.innerHTML = html;
+        }
+
+        function renderPengaturanView(menuId, response) {
+            const container = document.getElementById('contentContainer');
+            const { data, sheetId } = response;
+            let rowCount = data ? data.length : 0;
+            
+            let html = `
+                <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+                    <div class="p-4 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <div class="flex items-center gap-3 w-full sm:w-auto">
+                            <h3 class="text-lg font-bold capitalize hidden sm:block whitespace-nowrap">Pengaturan ${menuId.split('_')[1].toUpperCase()}</h3>
+                            <div class="relative w-full sm:w-auto">
+                                <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
+                                <input type="text" id="searchInput" onkeyup="applyFilters()" placeholder="Cari Acara..." class="w-full sm:w-48 pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none">
+                            </div>
+                        </div>
+                        <div class="flex space-x-2 w-full sm:w-auto justify-end">
+                            <button onclick="loadContent('${menuId}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition"><i class="fas fa-sync-alt"></i></button>
+                            <a href="https://docs.google.com/spreadsheets/d/${sheetId}/edit" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm" title="Buka Spreadsheet"><i class="fas fa-file-excel"></i></a>
+                            <button onclick="showDialogForm('${menuId}')" class="bg-primary hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center"><i class="fas fa-plus mr-1"></i> Add</button>
+                        </div>
+                    </div>
+                    <div class="table-container p-0">
+                        <table id="dataTable" class="w-full text-sm text-left whitespace-nowrap">
+                             <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
+                                <tr><th class="px-4 py-3">No</th><th class="px-4 py-3">Nama Sheet</th><th class="px-4 py-3">Nama Acara</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-center">Toggle</th></tr>
+                             </thead>
+                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-600 dark:text-gray-300">
+                                 ${(!data || data.length === 0) ? '<tr><td colspan="5" class="text-center p-8 italic">Tidak ada pengaturan</td></tr>' : data.map((row, i) => `
+                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                    <td class="px-4 py-3">${i+1}</td>
+                                    <td class="px-4 py-3 font-medium">${row[1]||'-'}</td>
+                                    <td class="px-4 py-3">${row[2]||'-'}</td>
+                                    <td class="px-4 py-3">${formatStatus(row[row.length-1])}</td>
+                                    <td class="px-4 py-3 text-center">
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" value="" class="sr-only peer" ${row[row.length-1]?.toLowerCase() === 'open' ? 'checked' : ''}>
+                                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                                        </label>
+                                    </td>
+                                 </tr>`).join('')}
+                             </tbody>
+                        </table>
+                    </div>
+                    <div class="px-4 py-3 border-t dark:border-gray-700 text-xs text-gray-500 bg-gray-50/50 dark:bg-gray-800/30 flex justify-between items-center">
+                        <span>Menampilkan <strong id="totalDataCount">${rowCount}</strong> baris data</span>
+                    </div>
+                </div>`;
+            container.innerHTML = html;
+        }
+
+        // FUNGSI FORM DIALOG KHUSUS (SARPRAS & PENGATURAN)
+        function showDialogForm(type) {
+            let title = "Tambah Data";
+            let fieldsHtml = "";
+
+            if (type.startsWith('sarpras_')) {
+                title = "Tambah Sarpras";
+                fieldsHtml = `
+                    <div class="space-y-4">
+                        <div><label class="block text-sm font-medium mb-1">Kode</label><input type="text" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
+                        <div><label class="block text-sm font-medium mb-1">Nama Item/Ruangan</label><input type="text" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
+                        <div><label class="block text-sm font-medium mb-1">Lokasi/Penempatan</label><input type="text" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
+                    </div>
+                `;
+            } else if (type.startsWith('set_')) {
+                title = "Pengaturan Baru";
+                fieldsHtml = `
+                    <div class="space-y-4">
+                        <div><label class="block text-sm font-medium mb-1">Nama Sheet Baru</label><input type="text" placeholder="Contoh: PD_JANUARI_2026" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
+                        <div><label class="block text-sm font-medium mb-1">Nama Acara</label><input type="text" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="block text-sm font-medium mb-1">Waktu Mulai</label><input type="datetime-local" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
+                            <div><label class="block text-sm font-medium mb-1">Waktu Selesai</label><input type="datetime-local" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const html = `
+                ${fieldsHtml}
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 dark:bg-gray-700 dark:text-white transition">Batal</button>
+                    <button onclick="customAlert('Data berhasil disimpan ke sistem! (Contoh Simulasi)', 'success')" class="px-4 py-2 bg-primary text-white rounded hover:bg-blue-600 transition">Simpan Data</button>
+                </div>
+            `;
+            showModal(title, html);
+        }
+
+        function formatStatus(status) {
+            if(!status) return `<span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600">-</span>`;
+            let s = status.toString().trim().toLowerCase();
+            if(['approved', 'open', 'aktif'].includes(s)) return `<span class="px-2 py-1 text-[10px] uppercase font-bold rounded bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400">OPEN/APPROVE</span>`;
+            if(['rejected', 'close', 'cancel'].includes(s)) return `<span class="px-2 py-1 text-[10px] uppercase font-bold rounded bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400">CLOSE/REJECT</span>`;
+            return `<span class="px-2 py-1 text-[10px] uppercase font-bold rounded bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400">${s}</span>`;
+        }
+
+        // INIT
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            checkAuth(); // Cek login saat load pertama kali
         });
     </script>
 </body>
