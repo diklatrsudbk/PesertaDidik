@@ -210,7 +210,6 @@
         // FUNGSI POST (UNTUK CRUD & ADD SETTING)
         async function fetchPostAPI(payload) {
             try {
-                // Apps script requires POST body to be text/plain or default to prevent CORS preflight issues
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify(payload)
@@ -222,12 +221,12 @@
             }
         }
 
-        // AKSI HAPUS DATA GLOBAL
-        async function confirmDelete(menuId, sheetName, rowIndex) {
+        // AKSI HAPUS DATA GLOBAL (TERMASUK FOTO DI GDRIVE JIKA ADA URL-NYA)
+        async function confirmDelete(menuId, sheetName, rowIndex, fileUrl = "") {
             if(!confirm("Apakah Anda yakin ingin menghapus data ini?")) return;
             
             customAlert("Sedang menghapus data...", "info");
-            const result = await fetchPostAPI({ action: 'crud', menuId, sheetName, operation: 'delete', rowIndex });
+            const result = await fetchPostAPI({ action: 'crud', menuId, sheetName, operation: 'delete', rowIndex, oldFileUrl: fileUrl });
             
             closeModal();
             if(result.success) {
@@ -679,11 +678,25 @@
             container.innerHTML = html;
         }
 
+        /* ====================================================
+           RENDER KHUSUS DATA SARPRAS (KOLOM BERVARIASI)
+           ==================================================== */
         function renderSarprasView(menuId, response) {
             const container = document.getElementById('contentContainer');
             const { data, sheetId } = response;
             let rowCount = data ? data.length : 0;
             
+            let theadHtml = '';
+            // Penyesuaian Kolom (Header) berdasarkan menu
+            if (menuId === 'sarpras_kunci') {
+                theadHtml = `<tr><th class="px-4 py-3">No</th><th class="px-4 py-3">Kode Kunci</th><th class="px-4 py-3">Nomor</th><th class="px-4 py-3">Jenis/Loker</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-center">Aksi</th></tr>`;
+            } else if (menuId === 'sarpras_ruangan') {
+                theadHtml = `<tr><th class="px-4 py-3">No</th><th class="px-4 py-3">Kode Ruangan</th><th class="px-4 py-3">Nama Ruangan</th><th class="px-4 py-3">Lokasi</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-center">Aksi</th></tr>`;
+            } else {
+                // ATK, BHP, Barang
+                theadHtml = `<tr><th class="px-4 py-3">No</th><th class="px-4 py-3">Kode</th><th class="px-4 py-3">Nama Item</th><th class="px-4 py-3">Qty</th><th class="px-4 py-3">Satuan</th><th class="px-4 py-3">Penempatan</th><th class="px-4 py-3 text-center">Foto</th><th class="px-4 py-3 text-center">Aksi</th></tr>`;
+            }
+
             let html = `
                 <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
                     <div class="p-4 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 flex flex-col sm:flex-row justify-between items-center gap-3">
@@ -697,25 +710,41 @@
                         <div class="flex space-x-2 w-full sm:w-auto justify-end">
                             <button onclick="loadContent('${menuId}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition"><i class="fas fa-sync-alt"></i></button>
                             <a href="https://docs.google.com/spreadsheets/d/${sheetId}/edit" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm" title="Buka Spreadsheet"><i class="fas fa-file-excel"></i></a>
-                            <button onclick="showDialogForm('${menuId}')" class="bg-primary hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center"><i class="fas fa-plus mr-1"></i> Add</button>
+                            <button onclick="showDialogForm('${menuId}', 'add')" class="bg-primary hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center"><i class="fas fa-plus mr-1"></i> Add</button>
                         </div>
                     </div>
                     <div class="table-container p-0">
                         <table id="dataTable" class="w-full text-sm text-left whitespace-nowrap">
                             <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
-                                <tr>
-                                    <th class="px-4 py-3">No</th><th class="px-4 py-3">Code</th><th class="px-4 py-3">Nama/Item</th><th class="px-4 py-3">Status/Lokasi</th><th class="px-4 py-3 text-center">Aksi</th>
-                                </tr>
+                                ${theadHtml}
                             </thead>
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-600 dark:text-gray-300">
-                                ${(!data || data.length === 0) ? '<tr><td colspan="5" class="p-8 text-center italic">Data Kosong</td></tr>' : data.map((row, i) => `
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                    <td class="px-4 py-3">${i+1}</td>
-                                    <td class="px-4 py-3">${row[1]||'-'}</td>
-                                    <td class="px-4 py-3 font-medium">${row[2]||'-'}</td>
-                                    <td class="px-4 py-3">${row[3]||row[4]||'-'}</td>
-                                    <td class="px-4 py-3 text-center"><button class="text-blue-500 hover:underline"><i class="fas fa-edit"></i> Edit</button></td>
-                                </tr>`).join('')}
+                                ${(!data || data.length === 0) ? `<tr><td colspan="8" class="p-8 text-center italic">Data Kosong</td></tr>` : data.map((row, i) => {
+                                    
+                                    // Serialize row supaya aman dikirim ke fungsi Edit (menghindari kutip pecah)
+                                    const encodedRow = encodeURIComponent(JSON.stringify(row)); 
+                                    let searchStr = (row[1]||'') + ' ' + (row[2]||'');
+                                    let rowHtml = `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50" data-search="${searchStr}">`;
+                                    
+                                    // Pengisian Row Data sesuai menu
+                                    if (menuId === 'sarpras_kunci') {
+                                        rowHtml += `<td class="px-4 py-3">${row[0]||i+1}</td><td class="px-4 py-3 font-medium">${row[1]||'-'}</td><td class="px-4 py-3">${row[2]||'-'}</td><td class="px-4 py-3">${row[3]||'-'}</td><td class="px-4 py-3">${formatStatus(row[4])}</td>`;
+                                    } else if (menuId === 'sarpras_ruangan') {
+                                        rowHtml += `<td class="px-4 py-3">${row[0]||i+1}</td><td class="px-4 py-3 font-medium">${row[1]||'-'}</td><td class="px-4 py-3">${row[2]||'-'}</td><td class="px-4 py-3">${row[3]||'-'}</td><td class="px-4 py-3">${formatStatus(row[4])}</td>`;
+                                    } else {
+                                        // Menu Barang/ATK/BHP
+                                        let imgLink = row[6] && row[6].includes('http') ? `<a href="${row[6]}" target="_blank" class="text-blue-500 hover:underline"><i class="fas fa-image"></i> Lihat</a>` : '-';
+                                        rowHtml += `<td class="px-4 py-3">${row[0]||i+1}</td><td class="px-4 py-3 font-medium">${row[1]||'-'}</td><td class="px-4 py-3">${row[2]||'-'}</td><td class="px-4 py-3">${row[3]||'0'}</td><td class="px-4 py-3">${row[4]||'-'}</td><td class="px-4 py-3">${row[5]||'-'}</td><td class="px-4 py-3 text-center">${imgLink}</td>`;
+                                    }
+
+                                    // Kolom Aksi Titik Tiga (Edit & Hapus)
+                                    const fileUrl = (menuId !== 'sarpras_kunci' && menuId !== 'sarpras_ruangan' && row[6]) ? row[6] : "";
+                                    rowHtml += `<td class="px-4 py-3 text-center">
+                                        <button onclick="editSarpras('${menuId}', ${i + 2}, '${encodedRow}')" class="text-blue-500 hover:text-blue-700 px-2" title="Edit Data"><i class="fas fa-edit"></i></button>
+                                        <button onclick="confirmDelete('${menuId}', null, ${i + 2}, '${fileUrl}')" class="text-red-500 hover:text-red-700 px-2" title="Hapus Data"><i class="fas fa-trash"></i></button>
+                                    </td></tr>`;
+                                    return rowHtml;
+                                }).join('')}
                             </tbody>
                         </table>
                     </div>
@@ -724,6 +753,241 @@
                     </div>
                 </div>`;
             container.innerHTML = html;
+        }
+
+        /* ====================================================
+           FUNGSI FORM & CRUD KHUSUS
+           ==================================================== */
+           
+        // Trigger fungsi edit, mem-parsing data dari JSON agar aman
+        function editSarpras(menuId, rowIndex, encodedRow) {
+            const rowData = JSON.parse(decodeURIComponent(encodedRow));
+            showDialogForm(menuId, 'edit', rowIndex, rowData);
+        }
+
+        function showDialogForm(type, opType = 'add', rowIndex = -1, rowData = []) {
+            let title = opType === 'edit' ? "Edit Data" : "Tambah Data";
+            let fieldsHtml = "";
+            let btnText = opType === 'edit' ? "Update Data" : "Simpan Data";
+
+            // Helper: Tarik data saat mode Edit
+            const val = (idx) => (rowData && rowData[idx] !== undefined) ? rowData[idx] : "";
+
+            // 1. FORM KHUSUS KUNCI LOKER
+            if (type === 'sarpras_kunci') {
+                title = opType === 'edit' ? "Edit Kunci Loker" : "Tambah Kunci Loker";
+                fieldsHtml = `
+                    <div class="space-y-4">
+                        <input type="hidden" id="formType" value="${type}">
+                        <div><label class="block text-sm font-medium mb-1">Kode Kunci</label>
+                             <input type="text" id="sarKode" value="${val(1)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
+                        <div><label class="block text-sm font-medium mb-1">Nomor Kunci</label>
+                             <input type="text" id="sarNomor" value="${val(2)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
+                        <div><label class="block text-sm font-medium mb-1">Loker (P/L)</label>
+                            <select id="sarLoker" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none">
+                                <option value="P" ${val(3) === 'P' ? 'selected' : ''}>Pria (P)</option>
+                                <option value="L" ${val(3) === 'L' ? 'selected' : ''}>Wanita (L/W)</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+            } 
+            // 2. FORM KHUSUS RUANGAN
+            else if (type === 'sarpras_ruangan') {
+                title = opType === 'edit' ? "Edit Ruangan" : "Tambah Ruangan";
+                fieldsHtml = `
+                    <div class="space-y-4">
+                        <input type="hidden" id="formType" value="${type}">
+                        <div><label class="block text-sm font-medium mb-1">Kode Ruangan</label>
+                             <input type="text" id="sarKode" value="${val(1)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
+                        <div><label class="block text-sm font-medium mb-1">Nama Ruangan</label>
+                             <input type="text" id="sarNama" value="${val(2)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
+                        <div><label class="block text-sm font-medium mb-1">Lokasi</label>
+                             <input type="text" id="sarLokasi" value="${val(3)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
+                    </div>
+                `;
+            } 
+            // 3. FORM KHUSUS BARANG, ATK, DAN BHP
+            else if (['sarpras_barang', 'sarpras_atk', 'sarpras_bhp'].includes(type)) {
+                let labelKode = type === 'sarpras_barang' ? "Kode Barang" : (type === 'sarpras_atk' ? "Kode ATK" : "Kode BHP");
+                let labelNama = type === 'sarpras_barang' ? "Nama Barang" : (type === 'sarpras_atk' ? "Nama Item" : "Nama BHP");
+                title = opType === 'edit' ? `Edit ${labelNama}` : `Tambah ${labelNama}`;
+                
+                const satuanOpts = ['Buah', 'Pcs', 'Pak', 'Dus', 'Set', 'Botol', 'Rim', 'Unit', 'Lusin'].map(s => `<option value="${s}" ${val(4) === s ? 'selected' : ''}>${s}</option>`).join('');
+                
+                fieldsHtml = `
+                    <div class="space-y-4">
+                        <input type="hidden" id="formType" value="${type}">
+                        <input type="hidden" id="oldFileUrl" value="${val(6)}">
+                        <div><label class="block text-sm font-medium mb-1">${labelKode}</label>
+                             <input type="text" id="sarKode" value="${val(1)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
+                        <div><label class="block text-sm font-medium mb-1">${labelNama}</label>
+                             <input type="text" id="sarNama" value="${val(2)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="block text-sm font-medium mb-1">Jumlah</label>
+                                 <input type="number" id="sarQty" value="${val(3)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
+                            <div><label class="block text-sm font-medium mb-1">Satuan</label>
+                                 <select id="sarSatuan" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none">${satuanOpts}</select></div>
+                        </div>
+                        <div><label class="block text-sm font-medium mb-1">Penempatan</label>
+                             <input type="text" id="sarPenempatan" value="${val(5)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
+                        <div><label class="block text-sm font-medium mb-1">Foto (Kamera/Galeri) ${opType==='edit' ? '<br><span class="text-xs text-blue-500">Abaikan jika tidak ingin mengganti foto lama</span>' : ''}</label>
+                             <input type="file" id="sarFoto" accept="image/*" capture="environment" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm">
+                        </div>
+                    </div>
+                `;
+            } 
+            // 4. FORM KHUSUS PENGATURAN
+            else if (type.startsWith('set_')) {
+                title = "Pengaturan Baru";
+                let tplOptions = type === 'set_pd' ? '<option value="TEMPLATE_PD">Template PD</option>' : (type === 'set_pl' ? '<option value="TEMPLATE_PL">Template PL</option>' : '<option value="TEMPLATE_DHPD">Daftar Hadir PD</option><option value="TEMPLATE_DHPL">Daftar Hadir PL</option><option value="TEMPLATE_DH">Daftar Hadir Karyawan</option>');
+                
+                fieldsHtml = `
+                    <div class="space-y-4">
+                        <input type="hidden" id="formType" value="${type}">
+                        ${type === 'set_dh' ? `<div><label class="block text-sm font-medium mb-1">Pilih Template</label><select id="setTpl" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">${tplOptions}</select></div>` : '<input type="hidden" id="setTpl" value="'+(type === 'set_pd' ? 'TEMPLATE_PD' : 'TEMPLATE_PL')+'">'}
+                        <div><label class="block text-sm font-medium mb-1">Nama Sheet Baru (Tanpa Spasi)</label><input type="text" id="setSheet" placeholder="Contoh: PD_JAN_2026" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600" required></div>
+                        <div><label class="block text-sm font-medium mb-1">Nama Acara</label><input type="text" id="setAcara" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600" required></div>
+                        <div><label class="block text-sm font-medium mb-1">Tempat</label><input type="text" id="setTempat" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="block text-sm font-medium mb-1">Mulai</label><input type="datetime-local" id="setMulai" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600" required></div>
+                            <div><label class="block text-sm font-medium mb-1">Selesai</label><input type="datetime-local" id="setSelesai" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600" required></div>
+                        </div>
+                        ${type === 'set_dh' ? `
+                        <div class="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600">
+                            <label class="flex items-center space-x-2 text-sm font-medium mb-2"><input type="checkbox" id="chkPimpinan" onchange="document.getElementById('ttdPanel').classList.toggle('hidden')"> <span>Pakai Tanda Tangan Pimpinan?</span></label>
+                            <div id="ttdPanel" class="hidden space-y-3 mt-2">
+                                <input type="text" id="setPimpinan" placeholder="Nama Pimpinan" class="w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600">
+                                <input type="text" id="setJabatan" placeholder="Jabatan" class="w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600">
+                                <input type="text" id="setNip" placeholder="NIP" class="w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600">
+                            </div>
+                        </div>` : ''}
+                    </div>
+                `;
+            }
+
+            const html = `
+                ${fieldsHtml}
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 dark:bg-gray-700 dark:text-white transition">Batal</button>
+                    <button onclick="submitDialogForm('${opType}', ${rowIndex})" id="btnSubmitForm" class="px-4 py-2 bg-primary text-white rounded hover:bg-blue-600 transition flex items-center">${btnText}</button>
+                </div>
+            `;
+            showModal(title, html);
+        }
+
+        async function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]); 
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function submitDialogForm(opType = 'add', rowIdx = -1) {
+            const type = document.getElementById('formType').value;
+            const btn = document.getElementById('btnSubmitForm');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
+            btn.disabled = true;
+
+            let payload = {};
+
+            try {
+                if (type.startsWith('sarpras_')) {
+                    let finalRowData = [];
+                    let fileData = null;
+                    let fileName = "";
+                    let oldFileUrl = "";
+
+                    // Pemetaan Payload Spesifik Kunci Loker
+                    if (type === 'sarpras_kunci') {
+                        const code = document.getElementById('sarKode').value;
+                        const nomor = document.getElementById('sarNomor').value;
+                        const loker = document.getElementById('sarLoker').value;
+                        if(!code || !nomor) throw new Error("Kode dan Nomor Kunci wajib diisi!");
+                        // NO|CODE|NOMOR|JENIS|STATUS
+                        finalRowData = ["", code, nomor, loker, "Tersedia"]; 
+                    } 
+                    // Pemetaan Payload Spesifik Ruangan
+                    else if (type === 'sarpras_ruangan') {
+                        const code = document.getElementById('sarKode').value;
+                        const nama = document.getElementById('sarNama').value;
+                        const lokasi = document.getElementById('sarLokasi').value;
+                        if(!code || !nama) throw new Error("Kode dan Nama Ruangan wajib diisi!");
+                        // NO|KODE_RUANGAN|NAMA_RUANGAN|LOKASI|STATUS
+                        finalRowData = ["", code, nama, lokasi, "Tersedia"];
+                    } 
+                    // Pemetaan Payload Spesifik Barang, ATK, BHP
+                    else if (['sarpras_barang', 'sarpras_atk', 'sarpras_bhp'].includes(type)) {
+                        const code = document.getElementById('sarKode').value;
+                        const nama = document.getElementById('sarNama').value;
+                        const qty = document.getElementById('sarQty').value || 0;
+                        const satuan = document.getElementById('sarSatuan').value;
+                        const penempatan = document.getElementById('sarPenempatan').value;
+                        
+                        if(!code || !nama) throw new Error("Kode dan Nama wajib diisi!");
+
+                        oldFileUrl = document.getElementById('oldFileUrl') ? document.getElementById('oldFileUrl').value : "";
+                        // NO|CODE|NAMA|QTY|SATUAN|PENEMPATAN|FOTO
+                        finalRowData = ["", code, nama, qty, satuan, penempatan, oldFileUrl];
+
+                        const fileInput = document.getElementById('sarFoto');
+                        if (fileInput && fileInput.files.length > 0) {
+                            const file = fileInput.files[0];
+                            if(file.size > 5 * 1024 * 1024) throw new Error("Ukuran foto maksimal 5 MB."); 
+                            fileData = await getBase64(file);
+                            fileName = file.name;
+                        }
+                    }
+
+                    payload = { 
+                        action: 'crud', menuId: type, operation: opType, rowIndex: rowIdx, 
+                        rowData: finalRowData, fileData: fileData, fileName: fileName, oldFileUrl: oldFileUrl 
+                    };
+
+                } else if (type.startsWith('set_')) {
+                    // Logic Setup Pengaturan ... (Tetap Sesuai)
+                    const startVal = document.getElementById('setMulai').value;
+                    const endVal = document.getElementById('setSelesai').value;
+                    if (!startVal || !endVal) throw new Error("Waktu Mulai dan Selesai wajib diisi!");
+                    if (new Date(endVal) < new Date(startVal)) throw new Error("Waktu Selesai tidak boleh mendahului Waktu Mulai!");
+
+                    payload = {
+                        action: 'addSetting',
+                        menuId: type,
+                        templateName: document.getElementById('setTpl').value,
+                        namaSheet: document.getElementById('setSheet').value.toUpperCase().replace(/\s+/g, '_'),
+                        namaAcara: document.getElementById('setAcara').value,
+                        tempat: document.getElementById('setTempat').value,
+                        waktuMulai: startVal,
+                        waktuSelesai: endVal
+                    };
+
+                    if(document.getElementById('chkPimpinan') && document.getElementById('chkPimpinan').checked) {
+                        payload.pimpinan = document.getElementById('setPimpinan').value;
+                        payload.jabatan = document.getElementById('setJabatan').value;
+                        payload.nip = document.getElementById('setNip').value;
+                    }
+
+                    if (!payload.namaSheet || !payload.namaAcara) throw new Error("Nama Sheet & Acara wajib diisi!");
+                }
+
+                const result = await fetchPostAPI(payload);
+                closeModal();
+                
+                if(result.success) {
+                    customAlert(result.message, "success");
+                    loadContent(type); 
+                } else {
+                    customAlert(result.message || "Gagal menyimpan data", "error");
+                }
+
+            } catch(e) {
+                btn.innerHTML = opType === 'edit' ? 'Update Data' : 'Simpan Data';
+                btn.disabled = false;
+                customAlert(e.message, "error");
+            }
         }
 
         function renderSurveyView(menuId, response) {
