@@ -667,52 +667,6 @@
             container.innerHTML = html;
         }
 
-        function renderPengaturanView(menuId, response) {
-            const container = document.getElementById('contentContainer');
-            const { data, sheetId } = response;
-            let rowCount = data ? data.length : 0;
-            
-            const title = menuId === 'set_pd' ? 'Pengaturan Peserta Didik' : (menuId === 'set_pl' ? 'Pengaturan Peserta Pelatihan' : 'Pengaturan Daftar Hadir');
-            
-            let html = `
-                <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-                    <div class="p-4 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 flex flex-col sm:flex-row justify-between items-center gap-3">
-                        <div class="flex items-center gap-3 w-full sm:w-auto">
-                            <h3 class="text-lg font-bold hidden sm:block whitespace-nowrap">${title}</h3>
-                        </div>
-                        <div class="flex space-x-2 w-full sm:w-auto justify-end">
-                            <button onclick="loadContent('${menuId}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition"><i class="fas fa-sync-alt"></i></button>
-                            <a href="https://docs.google.com/spreadsheets/d/${sheetId}/edit" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm" title="Buka Spreadsheet"><i class="fas fa-file-excel"></i></a>
-                            <button onclick="showDialogForm('${menuId}')" class="bg-primary hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center"><i class="fas fa-plus mr-1"></i> Add Baru</button>
-                        </div>
-                    </div>
-                    <div class="table-container p-0">
-                        <table class="w-full text-sm text-left whitespace-nowrap">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
-                                <tr>
-                                    <th class="px-4 py-3">No</th><th class="px-4 py-3">Nama Sheet</th><th class="px-4 py-3">Nama Acara</th><th class="px-4 py-3">Tempat</th><th class="px-4 py-3">Waktu</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-600 dark:text-gray-300">
-                                ${(!data || data.length === 0) ? '<tr><td colspan="7" class="p-8 text-center italic">Data Kosong</td></tr>' : data.map((row, i) => `
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                    <td class="px-4 py-3">${i+1}</td>
-                                    <td class="px-4 py-3 font-bold">${row[1]||'-'}</td>
-                                    <td class="px-4 py-3">${row[2]||'-'}</td>
-                                    <td class="px-4 py-3">${(menuId === 'set_dh' ? row[6] : row[3])||'-'}</td>
-                                    <td class="px-4 py-3">${(menuId === 'set_dh' ? row[7] : row[4])||'-'} s/d ${(menuId === 'set_dh' ? row[8] : row[5])||'-'}</td>
-                                    <td class="px-4 py-3"><span class="px-2 py-1 text-[10px] font-bold rounded ${row[6] === 'OPEN' || row[9] === 'OPEN' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${row[6] === 'OPEN' || row[9] === 'OPEN' ? 'OPEN' : 'CLOSE'}</span></td>
-                                    <td class="px-4 py-3 text-center">
-                                        <button onclick="confirmDelete('${menuId}', null, ${i + 2})" class="text-red-500 hover:underline text-xs"><i class="fas fa-trash"></i> Hapus</button>
-                                    </td>
-                                </tr>`).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>`;
-            container.innerHTML = html;
-        }
-
         function renderSurveyView(menuId, response) {
             const container = document.getElementById('contentContainer');
             const { data, sheetId } = response;
@@ -851,6 +805,94 @@
             container.innerHTML = html;
         }
 
+        // ==================================================
+        // PENAMBAHAN FUNGSI PENGATURAN VIEW DARI UPDATE TERBARU
+        // ==================================================
+        function renderPengaturanView(menuId, response) {
+            const container = document.getElementById('contentContainer');
+            const { data, sheetId } = response;
+            let rowCount = data ? data.length : 0;
+            
+            const title = menuId === 'set_pd' ? 'Pengaturan Peserta Didik' : (menuId === 'set_pl' ? 'Pengaturan Peserta Pelatihan' : 'Pengaturan Daftar Hadir');
+            
+            let theadHtml = `<tr><th class="px-4 py-3">No</th><th class="px-4 py-3">Nama Sheet</th><th class="px-4 py-3">Nama Acara</th>`;
+            if (menuId === 'set_dh') {
+                theadHtml += `<th class="px-4 py-3">Pimpinan</th><th class="px-4 py-3">Tempat</th><th class="px-4 py-3">Waktu</th><th class="px-4 py-3 text-center">Status</th><th class="px-4 py-3 text-center">Aksi</th></tr>`;
+            } else {
+                theadHtml += `<th class="px-4 py-3">Tempat</th><th class="px-4 py-3">Waktu</th><th class="px-4 py-3 text-center">Status</th><th class="px-4 py-3 text-center">Aksi</th></tr>`;
+            }
+
+            let html = `
+                <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+                    <div class="p-4 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <div class="flex items-center gap-3 w-full sm:w-auto">
+                            <h3 class="text-lg font-bold hidden sm:block whitespace-nowrap">${title}</h3>
+                        </div>
+                        <div class="flex space-x-2 w-full sm:w-auto justify-end">
+                            <button onclick="loadContent('${menuId}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition"><i class="fas fa-sync-alt"></i></button>
+                            <a href="https://docs.google.com/spreadsheets/d/${sheetId}/edit" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm" title="Buka Spreadsheet"><i class="fas fa-file-excel"></i></a>
+                            <button onclick="showDialogForm('${menuId}')" class="bg-primary hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center"><i class="fas fa-plus mr-1"></i> Add Baru</button>
+                        </div>
+                    </div>
+                    <div class="table-container p-0">
+                        <table class="w-full text-sm text-left whitespace-nowrap">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
+                                ${theadHtml}
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-600 dark:text-gray-300">
+                                ${(!data || data.length === 0) ? `<tr><td colspan="8" class="p-8 text-center italic">Data Kosong</td></tr>` : data.map((row, i) => {
+                                    
+                                    let nmSheet = row[1]||'-', nmAcara = row[2]||'-', tempat = "", mulai = "", selesai = "", pimpinan = "";
+                                    if(menuId === 'set_dh') {
+                                        pimpinan = row[3]||'-'; tempat = row[6]||'-'; mulai = row[7]; selesai = row[8];
+                                    } else {
+                                        tempat = row[3]||'-'; mulai = row[4]; selesai = row[5];
+                                    }
+
+                                    let now = new Date();
+                                    let start = new Date(mulai);
+                                    let end = new Date(selesai);
+                                    let isAktif = false;
+                                    let badgeHtml = "";
+
+                                    if(now >= start && now <= end) {
+                                        isAktif = true;
+                                        badgeHtml = `<span class="px-2 py-1 text-[10px] font-bold rounded bg-green-100 text-green-700">OPEN</span>`;
+                                    } else if (now > end) {
+                                        badgeHtml = `<span class="px-2 py-1 text-[10px] font-bold rounded bg-red-100 text-red-700">CLOSE</span>`;
+                                    } else {
+                                        badgeHtml = `<span class="px-2 py-1 text-[10px] font-bold rounded bg-yellow-100 text-yellow-700">MENUNGGU</span>`;
+                                    }
+
+                                    let tr = `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                        <td class="px-4 py-3">${i+1}</td>
+                                        <td class="px-4 py-3 font-bold text-primary">${nmSheet}</td>
+                                        <td class="px-4 py-3">${nmAcara}</td>`;
+                                    
+                                    if(menuId === 'set_dh') tr += `<td class="px-4 py-3">${pimpinan}</td>`;
+                                    
+                                    tr += `<td class="px-4 py-3">${tempat}</td>
+                                        <td class="px-4 py-3 text-xs">${mulai} <br/>s/d<br/> ${selesai}</td>
+                                        <td class="px-4 py-3 text-center">${badgeHtml}</td>
+                                        <td class="px-4 py-3 text-center">
+                                            <div class="flex items-center justify-center space-x-3">
+                                                <label class="relative inline-flex items-center cursor-pointer" title="Ubah Waktu Buka/Tutup">
+                                                    <input type="checkbox" class="sr-only peer" ${isAktif ? 'checked' : ''} onchange="customAlert('Fitur ganti jam menyusul', 'info')">
+                                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                                                </label>
+                                                <button onclick="confirmDelete('${menuId}', null, ${i + 2})" class="text-red-500 hover:text-red-700" title="Hapus"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>`;
+                                    return tr;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
+            container.innerHTML = html;
+        }
+
         function editSarpras(menuId, rowIndex, encodedRow) {
             const rowData = JSON.parse(decodeURIComponent(encodedRow));
             showDialogForm(menuId, 'edit', rowIndex, rowData);
@@ -861,8 +903,10 @@
             let fieldsHtml = "";
             let btnText = opType === 'edit' ? "Update Data" : "Simpan Data";
 
-            // Helper: Tarik data saat mode Edit
             const val = (idx) => (rowData && rowData[idx] !== undefined) ? rowData[idx] : "";
+
+            let tzoffset = (new Date()).getTimezoneOffset() * 60000;
+            let localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 16);
 
             // 1. FORM KHUSUS KUNCI LOKER
             if (type === 'sarpras_kunci') {
@@ -898,7 +942,7 @@
                     </div>
                 `;
             } 
-            // 3. FORM KHUSUS BARANG, ATK, DAN BHP (DENGAN UI FOTO BARU)
+            // 3. FORM KHUSUS BARANG, ATK, DAN BHP 
             else if (['sarpras_barang', 'sarpras_atk', 'sarpras_bhp'].includes(type)) {
                 let labelKode = type === 'sarpras_barang' ? "Kode Barang" : (type === 'sarpras_atk' ? "Kode ATK" : "Kode BHP");
                 let labelNama = type === 'sarpras_barang' ? "Nama Barang" : (type === 'sarpras_atk' ? "Nama Item" : "Nama BHP");
@@ -923,18 +967,15 @@
                         <div><label class="block text-sm font-medium mb-1">Penempatan</label>
                              <input type="text" id="sarPenempatan" value="${val(5)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
                         
-                        <!-- UI Upload Foto (Kamera vs Galeri) -->
                         <div>
                             <label class="block text-sm font-medium mb-1">Foto Item (Opsional) ${opType==='edit' ? '<br><span class="text-xs text-blue-500">Abaikan jika tidak ingin mengganti foto lama</span>' : ''}</label>
                             <div class="flex gap-2 mb-2">
                                 <button type="button" onclick="document.getElementById('sarFotoCam').click()" class="flex-1 py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-600 transition shadow-sm"><i class="fas fa-camera text-primary"></i> Kamera</button>
                                 <button type="button" onclick="document.getElementById('sarFotoGal').click()" class="flex-1 py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-600 transition shadow-sm"><i class="fas fa-images text-secondary"></i> Galeri</button>
                             </div>
-                            <!-- Input hidden -->
                             <input type="file" id="sarFotoCam" accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(this, 'sarFotoGal')">
                             <input type="file" id="sarFotoGal" accept="image/*" class="hidden" onchange="handleFileSelect(this, 'sarFotoCam')">
                             
-                            <!-- Container Preview -->
                             <div id="fotoPreviewContainer" class="hidden mt-2 relative inline-block">
                                 <img id="fotoPreview" src="" class="h-24 w-24 object-cover rounded-lg border border-gray-300 shadow-sm">
                                 <button type="button" onclick="clearPhoto()" class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md"><i class="fas fa-times"></i></button>
@@ -943,50 +984,64 @@
                     </div>
                 `;
             } 
-            // 4. FORM KHUSUS PENGATURAN
+            // 4. FORM KHUSUS PENGATURAN (UPDATE TERBARU)
             else if (type.startsWith('set_')) {
                 title = "Pengaturan Baru";
-                let tplOptions = type === 'set_pd' ? '<option value="TEMPLATE_PD">Template PD</option>' : (type === 'set_pl' ? '<option value="TEMPLATE_PL">Template PL</option>' : '<option value="TEMPLATE_DHPD">Daftar Hadir PD</option><option value="TEMPLATE_DHPL">Daftar Hadir PL</option><option value="TEMPLATE_DH">Daftar Hadir Karyawan</option>');
+                btnText = "Simpan Pengaturan";
+                let tplOptions = '<option value="TEMPLATE_DHPD">Daftar Hadir PD</option><option value="TEMPLATE_DHPL">Daftar Hadir PL</option><option value="TEMPLATE_DH">Daftar Hadir Karyawan</option>';
                 
                 fieldsHtml = `
                     <div class="space-y-4">
                         <input type="hidden" id="formType" value="${type}">
-                        ${type === 'set_dh' ? `<div><label class="block text-sm font-medium mb-1">Pilih Template</label><select id="setTpl" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">${tplOptions}</select></div>` : '<input type="hidden" id="setTpl" value="'+(type === 'set_pd' ? 'TEMPLATE_PD' : 'TEMPLATE_PL')+'">'}
-                        <div><label class="block text-sm font-medium mb-1">Nama Sheet Baru (Tanpa Spasi)</label><input type="text" id="setSheet" placeholder="Contoh: PD_JAN_2026" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600" required></div>
-                        <div><label class="block text-sm font-medium mb-1">Nama Acara</label><input type="text" id="setAcara" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600" required></div>
-                        <div><label class="block text-sm font-medium mb-1">Tempat</label><input type="text" id="setTempat" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
+                        ${type === 'set_dh' ? `<div><label class="block text-sm font-medium mb-1">Pilih Template</label><select id="setTpl" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 outline-none">${tplOptions}</select></div>` : ''}
+                        
+                        <div><label class="block text-sm font-medium mb-1">Nama Sheet Baru (Tanpa Spasi)</label>
+                             <input type="text" id="setSheet" placeholder="Contoh: PD_JAN_2026" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 outline-none" required></div>
+                        <div><label class="block text-sm font-medium mb-1">Nama Acara</label>
+                             <input type="text" id="setAcara" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 outline-none" required></div>
+                        <div><label class="block text-sm font-medium mb-1">Tempat</label>
+                             <input type="text" id="setTempat" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 outline-none"></div>
                         <div class="grid grid-cols-2 gap-4">
-                            <div><label class="block text-sm font-medium mb-1">Mulai</label><input type="datetime-local" id="setMulai" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600" required></div>
-                            <div><label class="block text-sm font-medium mb-1">Selesai</label><input type="datetime-local" id="setSelesai" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600" required></div>
+                            <div><label class="block text-sm font-medium mb-1">Mulai</label>
+                                 <input type="datetime-local" id="setMulai" min="${localISOTime}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 outline-none" required></div>
+                            <div><label class="block text-sm font-medium mb-1">Selesai</label>
+                                 <input type="datetime-local" id="setSelesai" min="${localISOTime}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 outline-none" required></div>
                         </div>
+                        
                         ${type === 'set_dh' ? `
                         <div class="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600">
-                            <label class="flex items-center space-x-2 text-sm font-medium mb-2"><input type="checkbox" id="chkPimpinan" onchange="document.getElementById('ttdPanel').classList.toggle('hidden')"> <span>Pakai Tanda Tangan Pimpinan?</span></label>
+                            <label class="flex items-center space-x-2 text-sm font-medium mb-2 cursor-pointer">
+                                <input type="checkbox" id="chkPimpinan" onchange="document.getElementById('ttdPanel').classList.toggle('hidden')"> 
+                                <span>Pakai Tanda Tangan Pimpinan?</span>
+                            </label>
                             <div id="ttdPanel" class="hidden space-y-3 mt-2">
-                                <input type="text" id="setPimpinan" placeholder="Nama Pimpinan" class="w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600">
-                                <input type="text" id="setJabatan" placeholder="Jabatan" class="w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600">
-                                <input type="text" id="setNip" placeholder="NIP" class="w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600">
+                                <input type="text" id="setPimpinan" placeholder="Nama Pimpinan" class="w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 outline-none">
+                                <input type="text" id="setJabatan" placeholder="Jabatan" class="w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 outline-none">
+                                <input type="text" id="setNip" placeholder="NIP" class="w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 outline-none">
                             </div>
                         </div>` : ''}
                     </div>
                 `;
             }
 
+            // Atur fungsi tombol Submit tergantung apakah ini Menu Pengaturan atau Sarpras
+            const submitFunction = type.startsWith('set_') ? 'submitSettingForm()' : `submitDialogForm('${opType}', ${rowIndex})`;
+
             const html = `
                 ${fieldsHtml}
                 <div class="mt-6 flex justify-end space-x-3">
                     <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 dark:bg-gray-700 dark:text-white transition">Batal</button>
-                    <button onclick="submitDialogForm('${opType}', ${rowIndex})" id="btnSubmitForm" class="px-4 py-2 bg-primary text-white rounded hover:bg-blue-600 transition flex items-center">${btnText}</button>
+                    <button onclick="${submitFunction}" id="btnSubmitForm" class="px-4 py-2 bg-primary text-white rounded hover:bg-blue-600 transition flex items-center">${btnText}</button>
                 </div>
             `;
             showModal(title, html);
         }
 
         /* ====================================================
-           UI HELPER & IMAGE COMPRESSION (MENCEGAH ERROR PAYLOAD)
+           UI HELPER & IMAGE COMPRESSION 
            ==================================================== */
         function handleFileSelect(input, otherInputId) {
-            document.getElementById(otherInputId).value = ""; // Kosongkan input lainnya
+            document.getElementById(otherInputId).value = ""; 
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -1004,7 +1059,6 @@
             document.getElementById('fotoPreview').src = "";
         }
 
-        // Kompresi sisi klien agar payload file tidak terlalu besar saat di-POST ke Apps Script
         function compressImage(file, maxSize = 800) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -1028,9 +1082,8 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
                         
-                        // Konversi menjadi JPEG dengan kualitas 75%
                         const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
-                        resolve(dataUrl.split(',')[1]); // Hanya ambil base64-nya
+                        resolve(dataUrl.split(',')[1]); 
                     };
                     img.onerror = error => reject(error);
                 };
@@ -1039,7 +1092,7 @@
         }
 
         /* ====================================================
-           SUBMIT DATA CRUD
+           SUBMIT DATA CRUD (KHUSUS SARPRAS & PENGATURAN)
            ==================================================== */
         async function submitDialogForm(opType = 'add', rowIdx = -1) {
             const type = document.getElementById('formType').value;
@@ -1056,25 +1109,20 @@
                     let fileName = "";
                     let oldFileUrl = "";
 
-                    // 1. Payload Spesifik Kunci Loker
                     if (type === 'sarpras_kunci') {
                         const code = document.getElementById('sarKode').value;
                         const nomor = document.getElementById('sarNomor').value;
                         const loker = document.getElementById('sarLoker').value;
                         if(!code || !nomor) throw new Error("Kode dan Nomor Kunci wajib diisi!");
-                        // NO|CODE|NOMOR|JENIS|STATUS
                         finalRowData = ["", code, nomor, loker, "Tersedia"]; 
                     } 
-                    // 2. Payload Spesifik Ruangan
                     else if (type === 'sarpras_ruangan') {
                         const code = document.getElementById('sarKode').value;
                         const nama = document.getElementById('sarNama').value;
                         const lokasi = document.getElementById('sarLokasi').value;
                         if(!code || !nama) throw new Error("Kode dan Nama Ruangan wajib diisi!");
-                        // NO|KODE_RUANGAN|NAMA_RUANGAN|LOKASI|STATUS
                         finalRowData = ["", code, nama, lokasi, "Tersedia"];
                     } 
-                    // 3. Payload Spesifik Barang, ATK, BHP
                     else if (['sarpras_barang', 'sarpras_atk', 'sarpras_bhp'].includes(type)) {
                         const code = document.getElementById('sarKode').value;
                         const nama = document.getElementById('sarNama').value;
@@ -1085,17 +1133,14 @@
                         if(!code || !nama) throw new Error("Kode dan Nama wajib diisi!");
 
                         oldFileUrl = document.getElementById('oldFileUrl') ? document.getElementById('oldFileUrl').value : "";
-                        // NO|CODE|NAMA|QTY|SATUAN|PENEMPATAN|FOTO
                         finalRowData = ["", code, nama, qty, satuan, penempatan, oldFileUrl];
 
-                        // Cek Input dari Kamera ATAU Galeri
                         const camInput = document.getElementById('sarFotoCam');
                         const galInput = document.getElementById('sarFotoGal');
                         const activeInput = (camInput && camInput.files.length > 0) ? camInput : (galInput && galInput.files.length > 0 ? galInput : null);
                         
                         if (activeInput) {
                             const file = activeInput.files[0];
-                            // KOMPRESI GAMBAR TERLEBIH DAHULU AGAR TIDAK GAGAL DI APPS SCRIPT
                             fileData = await compressImage(file);
                             fileName = file.name || 'foto.jpg';
                         }
@@ -1105,32 +1150,6 @@
                         action: 'crud', menuId: type, operation: opType, rowIndex: rowIdx, 
                         rowData: finalRowData, fileData: fileData, fileName: fileName, oldFileUrl: oldFileUrl 
                     };
-
-                } else if (type.startsWith('set_')) {
-                    // Logic Setup Pengaturan
-                    const startVal = document.getElementById('setMulai').value;
-                    const endVal = document.getElementById('setSelesai').value;
-                    if (!startVal || !endVal) throw new Error("Waktu Mulai dan Selesai wajib diisi!");
-                    if (new Date(endVal) < new Date(startVal)) throw new Error("Waktu Selesai tidak boleh mendahului Waktu Mulai!");
-
-                    payload = {
-                        action: 'addSetting',
-                        menuId: type,
-                        templateName: document.getElementById('setTpl').value,
-                        namaSheet: document.getElementById('setSheet').value.toUpperCase().replace(/\s+/g, '_'),
-                        namaAcara: document.getElementById('setAcara').value,
-                        tempat: document.getElementById('setTempat').value,
-                        waktuMulai: startVal,
-                        waktuSelesai: endVal
-                    };
-
-                    if(document.getElementById('chkPimpinan') && document.getElementById('chkPimpinan').checked) {
-                        payload.pimpinan = document.getElementById('setPimpinan').value;
-                        payload.jabatan = document.getElementById('setJabatan').value;
-                        payload.nip = document.getElementById('setNip').value;
-                    }
-
-                    if (!payload.namaSheet || !payload.namaAcara) throw new Error("Nama Sheet & Acara wajib diisi!");
                 }
 
                 const result = await fetchPostAPI(payload);
@@ -1150,10 +1169,76 @@
             }
         }
 
+        // ==================================================
+        // PENAMBAHAN FUNGSI SUBMIT KHUSUS PENGATURAN (Validasi Waktu)
+        // ==================================================
+        async function submitSettingForm() {
+            const type = document.getElementById('formType').value;
+            const startVal = document.getElementById('setMulai').value;
+            const endVal = document.getElementById('setSelesai').value;
+            const sheetVal = document.getElementById('setSheet').value.toUpperCase().replace(/\s+/g, '_');
+            const acaraVal = document.getElementById('setAcara').value;
+
+            if (!sheetVal || !acaraVal || !startVal || !endVal) {
+                customAlert("Harap isi semua kolom wajib (Nama Sheet, Acara, Mulai, Selesai)!", "error");
+                return;
+            }
+
+            // VALIDASI WAKTU
+            const now = new Date();
+            const startDate = new Date(startVal);
+            const endDate = new Date(endVal);
+
+            if (startDate < (now - 60000)) { // Toleransi 1 menit jika user lambat menekan tombol
+                customAlert("Waktu Mulai tidak boleh kurang dari waktu saat ini!", "error");
+                return;
+            }
+            if (endDate < startDate) {
+                customAlert("Waktu Selesai tidak boleh mendahului Waktu Mulai!", "error");
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmitForm');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Meng-copy Template...';
+            btn.disabled = true;
+
+            let payload = {
+                action: 'addSetting',
+                menuId: type,
+                namaSheet: sheetVal,
+                namaAcara: acaraVal,
+                tempat: document.getElementById('setTempat').value || "-",
+                waktuMulai: startVal,
+                waktuSelesai: endVal
+            };
+
+            if (type === 'set_dh') {
+                payload.templateName = document.getElementById('setTpl').value;
+                if(document.getElementById('chkPimpinan').checked) {
+                    payload.pimpinan = document.getElementById('setPimpinan').value;
+                    payload.jabatan = document.getElementById('setJabatan').value;
+                    payload.nip = document.getElementById('setNip').value;
+                }
+            }
+
+            try {
+                const result = await fetchPostAPI(payload);
+                closeModal();
+                if(result.success) {
+                    customAlert(result.message, "success");
+                    loadContent(type); 
+                } else {
+                    customAlert(result.message, "error");
+                }
+            } catch(e) {
+                closeModal();
+                customAlert("Terjadi Kesalahan: " + e.message, "error");
+            }
+        }
+
         function formatStatus(status) {
             if(!status) return `<span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600">-</span>`;
             let s = status.toString().trim().toLowerCase();
-            // Maps "Tersedia" to green/open status
             if(['approved', 'open', 'aktif', 'tersedia', 'selesai'].includes(s)) return `<span class="px-2 py-1 text-[10px] uppercase font-bold rounded bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400">${status}</span>`;
             if(['rejected', 'close', 'cancel'].includes(s)) return `<span class="px-2 py-1 text-[10px] uppercase font-bold rounded bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400">${status}</span>`;
             return `<span class="px-2 py-1 text-[10px] uppercase font-bold rounded bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400">${status}</span>`;
