@@ -207,6 +207,37 @@
             }
         }
 
+        // FUNGSI POST (UNTUK CRUD & ADD SETTING)
+        async function fetchPostAPI(payload) {
+            try {
+                // Apps script requires POST body to be text/plain or default to prevent CORS preflight issues
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                return await response.json();
+            } catch (error) {
+                console.error("Fetch POST Error:", error);
+                return { error: true, message: error.message };
+            }
+        }
+
+        // AKSI HAPUS DATA GLOBAL
+        async function confirmDelete(menuId, sheetName, rowIndex) {
+            if(!confirm("Apakah Anda yakin ingin menghapus data ini?")) return;
+            
+            customAlert("Sedang menghapus data...", "info");
+            const result = await fetchPostAPI({ action: 'crud', menuId, sheetName, operation: 'delete', rowIndex });
+            
+            closeModal();
+            if(result.success) {
+                customAlert(result.message, "success");
+                loadContent(menuId, null, sheetName); // Reload table
+            } else {
+                customAlert(result.message || "Gagal menghapus data", "error");
+            }
+        }
+
         // SISTEM LOGIN CUSTOM
         function checkAuth() {
             if (localStorage.getItem('isLoggedIn') === 'true') {
@@ -394,6 +425,11 @@
                     if(res.error) throw new Error(res.message);
                     renderSarprasView(menuId, res);
                 }
+                else if (menuId.startsWith('survey_')) {
+                    const res = await fetchAPI('getMenuData', { menuId: menuId });
+                    if(res.error) throw new Error(res.message);
+                    renderSurveyView(menuId, res);
+                }
                 else if (menuId.startsWith('set_')) {
                     const res = await fetchAPI('getMenuData', { menuId: menuId });
                     if(res.error) throw new Error(res.message);
@@ -532,6 +568,7 @@
             } else {
                 rowCount = data.length;
                 data.forEach((row, i) => {
+                    const rowIndex = i + 2; // Index baris GSheet sebenarnya (header di baris 1)
                     let searchStr = "", instStr = "", jenjStr = "";
                     if(menuId === 'pd') { searchStr = `${row[0]||''} ${row[1]||''}`; instStr = row[9]||''; jenjStr = `${row[12]||''} ${row[10]||''}`.trim(); }
                     else if (menuId === 'pl') { searchStr = `${row[2]||''} ${row[3]||''}`; }
@@ -545,13 +582,13 @@
                     } else if (menuId === 'pl') {
                         html += `<td class="px-4 py-3">${i+1}</td><td class="px-4 py-3 font-medium">${row[2]||'-'}</td><td class="px-4 py-3">${row[14]||'-'}</td><td class="px-4 py-3">${row[23]||'-'}</td>`;
                     } else if (menuId === 'dh') {
-                        let linkTTD = row[5] && row[5].includes('http') ? `<a href="${row[5]}" target="_blank" class="text-primary hover:underline">Lihat TTD</a>` : '-';
+                        let linkTTD = row[5] && row[5].includes('http') ? `<a href="${row[5]}" target="_blank" class="text-primary hover:underline"><i class="fas fa-external-link-alt"></i> Lihat</a>` : '-';
                         html += `<td class="px-4 py-3">${row[0]||i+1}</td><td class="px-4 py-3 font-medium">${row[2]||'-'}</td><td class="px-4 py-3">${row[3]||'-'}</td><td class="px-4 py-3 text-center">${linkTTD}</td>`;
                     }
                     html += `<td class="px-4 py-3 text-center">
-                                <button class="text-gray-400 hover:text-primary px-1" title="Detail"><i class="fas fa-list"></i></button>
-                                <button class="text-gray-400 hover:text-blue-500 px-1" title="Edit"><i class="fas fa-edit"></i></button>
-                                <button class="text-gray-400 hover:text-red-500 px-1" title="Delete"><i class="fas fa-trash"></i></button>
+                                <button onclick="customAlert('Fitur Detail Segera Hadir', 'info')" class="text-gray-400 hover:text-primary px-1" title="Detail"><i class="fas fa-list"></i></button>
+                                <button onclick="customAlert('Silakan edit langsung via Spreadsheet', 'info')" class="text-gray-400 hover:text-blue-500 px-1" title="Edit"><i class="fas fa-edit"></i></button>
+                                <button onclick="confirmDelete('${menuId}', '${activeSheet}', ${rowIndex})" class="text-gray-400 hover:text-red-500 px-1" title="Delete"><i class="fas fa-trash"></i></button>
                              </td></tr>`;
                 });
             }
@@ -689,46 +726,71 @@
             container.innerHTML = html;
         }
 
-        function renderPengaturanView(menuId, response) {
+        function renderSurveyView(menuId, response) {
             const container = document.getElementById('contentContainer');
             const { data, sheetId } = response;
             let rowCount = data ? data.length : 0;
+            
+            // Tentukan Judul dan Link berdasarkan menu
+            const title = menuId === 'survey_pd' ? 'Survey Kepuasan Pasien ke Peserta Didik' : 'Survey Kepuasan Pasien ke Residen';
+            const printLink = "print_survey.html"; // Sesuaikan jika ada file cetak khusus
             
             let html = `
                 <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
                     <div class="p-4 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 flex flex-col sm:flex-row justify-between items-center gap-3">
                         <div class="flex items-center gap-3 w-full sm:w-auto">
-                            <h3 class="text-lg font-bold capitalize hidden sm:block whitespace-nowrap">Pengaturan ${menuId.split('_')[1].toUpperCase()}</h3>
+                            <h3 class="text-lg font-bold hidden sm:block whitespace-nowrap">${title}</h3>
                             <div class="relative w-full sm:w-auto">
                                 <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-                                <input type="text" id="searchInput" onkeyup="applyFilters()" placeholder="Cari Acara..." class="w-full sm:w-48 pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none">
+                                <input type="text" id="searchInput" onkeyup="applyFilters()" placeholder="Cari Nama/Tanggal..." class="w-full sm:w-48 pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none">
                             </div>
                         </div>
                         <div class="flex space-x-2 w-full sm:w-auto justify-end">
                             <button onclick="loadContent('${menuId}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition"><i class="fas fa-sync-alt"></i></button>
                             <a href="https://docs.google.com/spreadsheets/d/${sheetId}/edit" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm" title="Buka Spreadsheet"><i class="fas fa-file-excel"></i></a>
-                            <button onclick="showDialogForm('${menuId}')" class="bg-primary hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center"><i class="fas fa-plus mr-1"></i> Add</button>
+                            <a href="${printLink}" target="_blank" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm transition flex items-center whitespace-nowrap"><i class="fas fa-print mr-1"></i> Print Laporan</a>
                         </div>
                     </div>
                     <div class="table-container p-0">
                         <table id="dataTable" class="w-full text-sm text-left whitespace-nowrap">
                              <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
-                                <tr><th class="px-4 py-3">No</th><th class="px-4 py-3">Nama Sheet</th><th class="px-4 py-3">Nama Acara</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-center">Toggle</th></tr>
+                                <tr>
+                                    <th class="px-4 py-3">No</th>
+                                    <th class="px-4 py-3">Tanggal Survey</th>
+                                    <th class="px-4 py-3">Nama (Peserta/Residen)</th>
+                                    <th class="px-4 py-3">Rating Kepuasan</th>
+                                    <th class="px-4 py-3">Kritik & Saran</th>
+                                    <th class="px-4 py-3 text-center">Aksi</th>
+                                </tr>
                              </thead>
                              <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-600 dark:text-gray-300">
-                                 ${(!data || data.length === 0) ? '<tr><td colspan="5" class="text-center p-8 italic">Tidak ada pengaturan</td></tr>' : data.map((row, i) => `
-                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                    <td class="px-4 py-3">${i+1}</td>
-                                    <td class="px-4 py-3 font-medium">${row[1]||'-'}</td>
-                                    <td class="px-4 py-3">${row[2]||'-'}</td>
-                                    <td class="px-4 py-3">${formatStatus(row[row.length-1])}</td>
-                                    <td class="px-4 py-3 text-center">
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" value="" class="sr-only peer" ${row[row.length-1]?.toLowerCase() === 'open' ? 'checked' : ''}>
-                                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
-                                        </label>
-                                    </td>
-                                 </tr>`).join('')}
+                                 ${(!data || data.length === 0) ? '<tr><td colspan="6" class="text-center p-8 italic">Data survey masih kosong</td></tr>' : data.map((row, i) => {
+                                    
+                                    // Asumsi Urutan Kolom: [0] ID/Timestamp, [1] Tanggal, [2] Nama, [3] Rating, [4] Kritik
+                                    // Silakan ubah index array row[...] sesuai urutan kolom asli di spreadsheet survey Anda
+                                    const searchStr = `${row[1]||''} ${row[2]||''}`;
+                                    
+                                    // Membuat bintang rating (contoh jika rating 1-5)
+                                    let ratingStars = '';
+                                    let ratingVal = parseInt(row[3]) || 0;
+                                    for(let j=1; j<=5; j++) {
+                                        if(j <= ratingVal) ratingStars += '<i class="fas fa-star text-yellow-400"></i>';
+                                        else ratingStars += '<i class="far fa-star text-gray-300 dark:text-gray-600"></i>';
+                                    }
+
+                                    return `
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50" data-search="${searchStr}">
+                                        <td class="px-4 py-3">${i+1}</td>
+                                        <td class="px-4 py-3">${row[1]||'-'}</td>
+                                        <td class="px-4 py-3 font-medium">${row[2]||'-'}</td>
+                                        <td class="px-4 py-3">${ratingStars}</td>
+                                        <td class="px-4 py-3 truncate max-w-xs" title="${row[4]||''}">${row[4]||'-'}</td>
+                                        <td class="px-4 py-3 text-center">
+                                            <button class="text-gray-400 hover:text-primary px-1" title="Detail"><i class="fas fa-eye"></i></button>
+                                            <button class="text-gray-400 hover:text-red-500 px-1" title="Delete"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>`;
+                                 }).join('')}
                              </tbody>
                         </table>
                     </div>
@@ -739,7 +801,54 @@
             container.innerHTML = html;
         }
 
-        // FUNGSI FORM DIALOG KHUSUS (SARPRAS & PENGATURAN)
+        // TAMBAHAN FUNGSI RENDER PENGATURAN
+        function renderPengaturanView(menuId, response) {
+            const container = document.getElementById('contentContainer');
+            const { data, sheetId } = response;
+            let rowCount = data ? data.length : 0;
+            
+            const title = menuId === 'set_pd' ? 'Pengaturan Peserta Didik' : (menuId === 'set_pl' ? 'Pengaturan Peserta Pelatihan' : 'Pengaturan Daftar Hadir');
+            
+            let html = `
+                <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+                    <div class="p-4 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <div class="flex items-center gap-3 w-full sm:w-auto">
+                            <h3 class="text-lg font-bold hidden sm:block whitespace-nowrap">${title}</h3>
+                        </div>
+                        <div class="flex space-x-2 w-full sm:w-auto justify-end">
+                            <button onclick="loadContent('${menuId}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition"><i class="fas fa-sync-alt"></i></button>
+                            <a href="https://docs.google.com/spreadsheets/d/${sheetId}/edit" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm" title="Buka Spreadsheet"><i class="fas fa-file-excel"></i></a>
+                            <button onclick="showDialogForm('${menuId}')" class="bg-primary hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center"><i class="fas fa-plus mr-1"></i> Add Baru</button>
+                        </div>
+                    </div>
+                    <div class="table-container p-0">
+                        <table class="w-full text-sm text-left whitespace-nowrap">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
+                                <tr>
+                                    <th class="px-4 py-3">No</th><th class="px-4 py-3">Nama Sheet</th><th class="px-4 py-3">Nama Acara</th><th class="px-4 py-3">Tempat</th><th class="px-4 py-3">Waktu</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-600 dark:text-gray-300">
+                                ${(!data || data.length === 0) ? '<tr><td colspan="7" class="p-8 text-center italic">Data Kosong</td></tr>' : data.map((row, i) => `
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                    <td class="px-4 py-3">${i+1}</td>
+                                    <td class="px-4 py-3 font-bold">${row[1]||'-'}</td>
+                                    <td class="px-4 py-3">${row[2]||'-'}</td>
+                                    <td class="px-4 py-3">${(menuId === 'set_dh' ? row[6] : row[3])||'-'}</td>
+                                    <td class="px-4 py-3">${(menuId === 'set_dh' ? row[7] : row[4])||'-'} s/d ${(menuId === 'set_dh' ? row[8] : row[5])||'-'}</td>
+                                    <td class="px-4 py-3"><span class="px-2 py-1 text-[10px] font-bold rounded ${row[6] === 'OPEN' || row[9] === 'OPEN' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${row[6] === 'OPEN' || row[9] === 'OPEN' ? 'OPEN' : 'CLOSE'}</span></td>
+                                    <td class="px-4 py-3 text-center">
+                                        <button onclick="confirmDelete('${menuId}', null, ${i + 2})" class="text-red-500 hover:underline text-xs"><i class="fas fa-trash"></i> Hapus</button>
+                                    </td>
+                                </tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
+            container.innerHTML = html;
+        }
+
+        // FUNGSI FORM DIALOG KHUSUS (SARPRAS & PENGATURAN) - KINI LIVE / BUKAN SIMULASI
         function showDialogForm(type) {
             let title = "Tambah Data";
             let fieldsHtml = "";
@@ -748,20 +857,26 @@
                 title = "Tambah Sarpras";
                 fieldsHtml = `
                     <div class="space-y-4">
-                        <div><label class="block text-sm font-medium mb-1">Kode</label><input type="text" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
-                        <div><label class="block text-sm font-medium mb-1">Nama Item/Ruangan</label><input type="text" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
-                        <div><label class="block text-sm font-medium mb-1">Lokasi/Penempatan</label><input type="text" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
+                        <input type="hidden" id="formType" value="${type}">
+                        <div><label class="block text-sm font-medium mb-1">Kode</label><input type="text" id="sarKode" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
+                        <div><label class="block text-sm font-medium mb-1">Nama Item/Ruangan</label><input type="text" id="sarNama" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
+                        <div><label class="block text-sm font-medium mb-1">Lokasi/Penempatan</label><input type="text" id="sarLokasi" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
                     </div>
                 `;
             } else if (type.startsWith('set_')) {
                 title = "Pengaturan Baru";
+                let tplOptions = type === 'set_pd' ? '<option value="TEMPLATE_PD">Template PD</option>' : (type === 'set_pl' ? '<option value="TEMPLATE_PL">Template PL</option>' : '<option value="TEMPLATE_DHPD">Daftar Hadir PD</option><option value="TEMPLATE_DHPL">Daftar Hadir PL</option><option value="TEMPLATE_DH">Daftar Hadir Karyawan</option>');
+                
                 fieldsHtml = `
                     <div class="space-y-4">
-                        <div><label class="block text-sm font-medium mb-1">Nama Sheet Baru</label><input type="text" placeholder="Contoh: PD_JANUARI_2026" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
-                        <div><label class="block text-sm font-medium mb-1">Nama Acara</label><input type="text" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
+                        <input type="hidden" id="formType" value="${type}">
+                        <div><label class="block text-sm font-medium mb-1">Pilih Template</label><select id="setTpl" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">${tplOptions}</select></div>
+                        <div><label class="block text-sm font-medium mb-1">Nama Sheet Baru (Tanpa Spasi/Gunakan Underscore)</label><input type="text" id="setSheet" placeholder="Contoh: PD_JANUARI_2026" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600" required></div>
+                        <div><label class="block text-sm font-medium mb-1">Nama Acara</label><input type="text" id="setAcara" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600" required></div>
+                        <div><label class="block text-sm font-medium mb-1">Tempat</label><input type="text" id="setTempat" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
                         <div class="grid grid-cols-2 gap-4">
-                            <div><label class="block text-sm font-medium mb-1">Waktu Mulai</label><input type="datetime-local" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
-                            <div><label class="block text-sm font-medium mb-1">Waktu Selesai</label><input type="datetime-local" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
+                            <div><label class="block text-sm font-medium mb-1">Mulai</label><input type="datetime-local" id="setMulai" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
+                            <div><label class="block text-sm font-medium mb-1">Selesai</label><input type="datetime-local" id="setSelesai" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"></div>
                         </div>
                     </div>
                 `;
@@ -771,10 +886,55 @@
                 ${fieldsHtml}
                 <div class="mt-6 flex justify-end space-x-3">
                     <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 dark:bg-gray-700 dark:text-white transition">Batal</button>
-                    <button onclick="customAlert('Data berhasil disimpan ke sistem! (Contoh Simulasi)', 'success')" class="px-4 py-2 bg-primary text-white rounded hover:bg-blue-600 transition">Simpan Data</button>
+                    <button onclick="submitDialogForm()" id="btnSubmitForm" class="px-4 py-2 bg-primary text-white rounded hover:bg-blue-600 transition flex items-center">Simpan Data</button>
                 </div>
             `;
             showModal(title, html);
+        }
+
+        async function submitDialogForm() {
+            const type = document.getElementById('formType').value;
+            const btn = document.getElementById('btnSubmitForm');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
+            btn.disabled = true;
+
+            let payload = {};
+
+            if (type.startsWith('sarpras_')) {
+                // Generate Row Data format: [NO (auto if script allows), CODE, NAMA, LOKASI]
+                // For simplicity, NO and Qty can be left blank or filled with default
+                const code = document.getElementById('sarKode').value;
+                const nama = document.getElementById('sarNama').value;
+                const lokasi = document.getElementById('sarLokasi').value;
+                payload = { action: 'crud', menuId: type, operation: 'add', rowData: ["", code, nama, 0, "", lokasi] };
+            } else if (type.startsWith('set_')) {
+                // Waktu validasi
+                const start = new Date(document.getElementById('setMulai').value);
+                const end = new Date(document.getElementById('setSelesai').value);
+                if (end < start) { alert("Waktu Selesai tidak boleh lebih awal dari Waktu Mulai!"); btn.disabled=false; btn.innerText="Simpan Data"; return; }
+
+                payload = {
+                    action: 'addSetting',
+                    menuId: type,
+                    templateName: document.getElementById('setTpl').value,
+                    namaSheet: document.getElementById('setSheet').value.toUpperCase().replace(/\s+/g, '_'), // Auto format sheet name
+                    namaAcara: document.getElementById('setAcara').value,
+                    tempat: document.getElementById('setTempat').value,
+                    waktuMulai: document.getElementById('setMulai').value,
+                    waktuSelesai: document.getElementById('setSelesai').value
+                };
+                if (!payload.namaSheet || !payload.namaAcara) { alert("Nama Sheet & Acara wajib diisi!"); btn.disabled=false; btn.innerText="Simpan Data"; return; }
+            }
+
+            const result = await fetchPostAPI(payload);
+            closeModal();
+            
+            if(result.success) {
+                customAlert(result.message, "success");
+                loadContent(type); // Reload page to show new data
+            } else {
+                customAlert(result.message || "Gagal menyimpan data", "error");
+            }
         }
 
         function formatStatus(status) {
