@@ -393,7 +393,11 @@
 
             try {
                 if (menuId === 'dashboard') {
-                    const res = await fetchAPI('getDashboard');
+                    // AMBIL FILTER TAHUN JIKA ADA
+                    const yFilter = document.getElementById('dashYearFilter');
+                    const targetYear = yFilter ? yFilter.value : new Date().getFullYear().toString();
+                    
+                    const res = await fetchAPI('getDashboard', { year: targetYear });
                     renderDashboard(res);
                 } 
                 else if (['pd', 'pl', 'dh'].includes(menuId)) {
@@ -439,53 +443,173 @@
             }
         }
 
+        // =========================================================
+        // DASHBOARD SUPER LENGKAP V2 (7 CARDS + LEGENDS + TOTALS)
+        // =========================================================
         function renderDashboard(data) {
             const container = document.getElementById('contentContainer');
-            const stats = data.stats || {};
+            const { pd, pl, pinjam, sarpras, year, years } = data;
             const textColor = document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#374151';
+            const colors = ['#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f43f5e', '#84cc16', '#3b82f6', '#06b6d4'];
+
+            // Generate Dropdown Filter Tahun
+            let yearOptions = `<option value="ALL" ${year === 'ALL' ? 'selected' : ''}>Semua Tahun</option>`;
+            if (years && years.length > 0) {
+                years.forEach(y => { yearOptions += `<option value="${y}" ${year === y ? 'selected' : ''}>${y}</option>`; });
+            } else {
+                yearOptions += `<option value="${year}" selected>${year}</option>`;
+            }
+
+            // Hitung Stok Ruangan (Total Ruangan - Pinjam)
+            const stokRuangan = Math.max(0, (sarpras?.ruangan || 0) - (pinjam?.ruangan || 0));
 
             container.innerHTML = `
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-white dark:bg-darkcard p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-center justify-center text-center">
-                        <i class="fas fa-user-graduate text-3xl text-blue-500 mb-2"></i>
-                        <h4 class="text-xs text-gray-500">Total Peserta Didik</h4>
-                        <p class="text-xl font-bold dark:text-white">${stats.totalAcaraPd || 0}</p>
-                    </div>
-                    <div class="bg-white dark:bg-darkcard p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-center justify-center text-center">
-                        <i class="fas fa-users-cog text-3xl text-green-500 mb-2"></i>
-                        <h4 class="text-xs text-gray-500">Total Pelatihan</h4>
-                        <p class="text-xl font-bold dark:text-white">${stats.totalAcaraPl || 0}</p>
-                    </div>
-                    <div class="bg-white dark:bg-darkcard p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-center justify-center text-center">
-                        <i class="fas fa-handshake text-3xl text-yellow-500 mb-2"></i>
-                        <h4 class="text-xs text-gray-500">Peminjaman</h4>
-                        <p class="text-xl font-bold dark:text-white">${stats.peminjamanAktif || 0}</p>
-                    </div>
-                    <div class="bg-white dark:bg-darkcard p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-center justify-center text-center">
-                        <i class="fas fa-door-open text-3xl text-purple-500 mb-2"></i>
-                        <h4 class="text-xs text-gray-500">Total Ruangan</h4>
-                        <p class="text-xl font-bold dark:text-white">${stats.totalRuangan || 0}</p>
+                <!-- FILTER TAHUN -->
+                <div class="flex flex-col sm:flex-row justify-between items-center bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6 gap-3">
+                    <h2 class="font-bold text-gray-700 dark:text-gray-200">Executive Summary</h2>
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm text-gray-500 font-medium">Filter Tahun:</label>
+                        <select id="dashYearFilter" onchange="loadContent('dashboard')" class="bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-primary focus:border-primary block p-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white font-bold cursor-pointer outline-none">
+                            ${yearOptions}
+                        </select>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- 7 CARD METRIK UTAMA -->
+                <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 mb-8">
+                    <!-- 1. PD -->
+                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-blue-100 dark:border-blue-900/50 flex flex-col justify-center text-center transition hover:shadow-md">
+                        <h4 class="text-[11px] text-gray-500 uppercase font-bold mb-1">Peserta Didik</h4>
+                        <p class="text-2xl font-black text-blue-600 dark:text-blue-400">${pd?.total || 0}</p>
+                        <p class="text-[10px] text-gray-400 font-bold mt-1 bg-gray-100 dark:bg-gray-800 rounded py-1">${pd?.gelombang || 0} Gelombang</p>
+                    </div>
+                    <!-- 2. PL -->
+                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-green-100 dark:border-green-900/50 flex flex-col justify-center text-center transition hover:shadow-md">
+                        <h4 class="text-[11px] text-gray-500 uppercase font-bold mb-1">Pelatihan</h4>
+                        <p class="text-2xl font-black text-green-600 dark:text-green-400">${pl?.total || 0}</p>
+                        <p class="text-[10px] text-gray-400 font-bold mt-1 bg-gray-100 dark:bg-gray-800 rounded py-1">${pl?.gelombang || 0} Gelombang</p>
+                    </div>
+                    <!-- 3. Barang -->
+                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-yellow-100 dark:border-yellow-900/50 flex flex-col justify-center text-center transition hover:shadow-md">
+                        <h4 class="text-[11px] text-gray-500 uppercase font-bold mb-1">Total Barang</h4>
+                        <p class="text-2xl font-black text-yellow-600 dark:text-yellow-400">${sarpras?.barang || 0}</p>
+                        <p class="text-[10px] text-yellow-700 font-bold mt-1 bg-yellow-50 dark:bg-yellow-900/30 rounded py-1">${pinjam?.barang || 0} Aktif Dipinjam</p>
+                    </div>
+                    <!-- 4. Ruangan -->
+                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-purple-100 dark:border-purple-900/50 flex flex-col justify-center text-center transition hover:shadow-md">
+                        <h4 class="text-[11px] text-gray-500 uppercase font-bold mb-1">Total Ruangan</h4>
+                        <p class="text-2xl font-black text-purple-600 dark:text-purple-400">${sarpras?.ruangan || 0}</p>
+                        <p class="text-[10px] text-purple-700 font-bold mt-1 bg-purple-50 dark:bg-purple-900/30 rounded py-1">${pinjam?.ruangan || 0} Dipinjam &bull; ${stokRuangan} Stok</p>
+                    </div>
+                    <!-- 5. Loker Laki -->
+                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-cyan-100 dark:border-cyan-900/50 flex flex-col justify-center text-center transition hover:shadow-md">
+                        <h4 class="text-[11px] text-gray-500 uppercase font-bold mb-1">Loker Pria (L)</h4>
+                        <p class="text-2xl font-black text-cyan-600 dark:text-cyan-400">${sarpras?.kunciLaki?.total || 0}</p>
+                        <p class="text-[10px] text-cyan-700 font-bold mt-1 bg-cyan-50 dark:bg-cyan-900/30 rounded py-1">${sarpras?.kunciLaki?.pinjam || 0} Dipinjam &bull; ${sarpras?.kunciLaki?.stok || 0} Stok</p>
+                    </div>
+                    <!-- 6. Loker Perempuan -->
+                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-pink-100 dark:border-pink-900/50 flex flex-col justify-center text-center transition hover:shadow-md">
+                        <h4 class="text-[11px] text-gray-500 uppercase font-bold mb-1">Loker Wanita (P)</h4>
+                        <p class="text-2xl font-black text-pink-600 dark:text-pink-400">${sarpras?.kunciPerempuan?.total || 0}</p>
+                        <p class="text-[10px] text-pink-700 font-bold mt-1 bg-pink-50 dark:bg-pink-900/30 rounded py-1">${sarpras?.kunciPerempuan?.pinjam || 0} Dipinjam &bull; ${sarpras?.kunciPerempuan?.stok || 0} Stok</p>
+                    </div>
+                    <!-- 7. ATK -->
+                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col justify-center text-center transition hover:shadow-md">
+                        <h4 class="text-[11px] text-gray-500 uppercase font-bold mb-1">Total ATK</h4>
+                        <p class="text-2xl font-black text-gray-700 dark:text-gray-300">${sarpras?.atk || 0}</p>
+                        <p class="text-[10px] text-gray-500 font-bold mt-1 bg-gray-100 dark:bg-gray-800 rounded py-1">Item Tersedia</p>
+                    </div>
+                </div>
+
+                <!-- GRAFIK -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                     <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
-                        <h3 class="text-sm font-semibold mb-4 text-center">Institusi</h3>
-                        <div class="h-64 relative"><canvas id="chartInst"></canvas></div>
+                        <h4 class="text-sm font-bold mb-1 text-center">10 Besar Jenjang & Jurusan</h4>
+                        <p class="text-xs text-center text-gray-400 mb-4">(Total Peserta: ${pd?.total || 0})</p>
+                        <div class="h-64 relative"><canvas id="chartPdPie"></canvas></div>
+                    </div>
+                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 lg:col-span-2">
+                        <h4 class="text-sm font-bold mb-1 text-center">Peserta Didik Per Bulan & Jenis</h4>
+                        <p class="text-xs text-center text-gray-400 mb-4">(Total Peserta: ${pd?.total || 0})</p>
+                        <div class="h-64 relative"><canvas id="chartPdBarBulan"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+                        <h4 class="text-sm font-bold mb-1 text-center">Peserta Didik Per Triwulan</h4>
+                        <p class="text-xs text-center text-gray-400 mb-4">(Total Peserta: ${pd?.total || 0})</p>
+                        <div class="h-64 relative"><canvas id="chartPdTriwulan"></canvas></div>
                     </div>
                     <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
-                        <h3 class="text-sm font-semibold mb-4 text-center">Jenjang</h3>
-                        <div class="h-64 relative"><canvas id="chartJenjang"></canvas></div>
+                        <h4 class="text-sm font-bold mb-1 text-center">Peserta Pelatihan Per Acara</h4>
+                        <p class="text-xs text-center text-gray-400 mb-4">(Total Pelatihan: ${pl?.total || 0})</p>
+                        <div class="h-64 relative"><canvas id="chartPlSheet"></canvas></div>
                     </div>
                 </div>`;
 
-            chartsInstance.push(new Chart(document.getElementById('chartInst'), {
-                type: 'pie', data: { labels: ['UNPAD','ITB','UPI','Lainnya'], datasets: [{ data: [45,20,15,20], backgroundColor: ['#0ea5e9','#10b981','#f59e0b','#8b5cf6'] }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins:{ legend:{ labels:{color:textColor}, position:'bottom' } } }
-            }));
-            chartsInstance.push(new Chart(document.getElementById('chartJenjang'), {
-                type: 'doughnut', data: { labels: ['S1','S2','Spesialis'], datasets: [{ data: [30,20,50], backgroundColor: ['#ec4899','#6366f1','#14b8a6'] }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins:{ legend:{ labels:{color:textColor}, position:'bottom' } } }
-            }));
+            // === INSTALASI CHART.JS ===
+            
+            // 1. Chart Pie dengan Legend di Samping
+            if(document.getElementById('chartPdPie') && pd) {
+                const pieLabels = (pd.jenjangTop10 && pd.jenjangTop10.labels.length) ? pd.jenjangTop10.labels : ['Belum Ada Data'];
+                const pieData = (pd.jenjangTop10 && pd.jenjangTop10.data.length) ? pd.jenjangTop10.data : [1];
+                
+                chartsInstance.push(new Chart(document.getElementById('chartPdPie'), {
+                    type: 'pie', 
+                    data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: colors }] },
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, 
+                        plugins:{ 
+                            legend:{ display: true, position: 'right', labels: {color: textColor, boxWidth: 12, font: {size: 10}} }, 
+                            tooltip: {callbacks: {label: function(c){return ' '+c.label+': '+c.raw+' org'}}} 
+                        } 
+                    }
+                }));
+            }
+
+            // 2. Chart Bar Per Bulan & Per Jenis
+            if(document.getElementById('chartPdBarBulan') && pd) {
+                const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+                const datasets = (pd.jenisList && pd.jenisList.length > 0) ? pd.jenisList.map((jenis, i) => {
+                    return {
+                        label: jenis,
+                        data: monthLabels.map((_, m) => (pd.perBulan[m] && pd.perBulan[m][jenis]) ? pd.perBulan[m][jenis] : 0),
+                        backgroundColor: colors[i % colors.length]
+                    };
+                }) : [{ label: 'Belum Ada', data: Array(12).fill(0), backgroundColor: colors[0] }];
+
+                chartsInstance.push(new Chart(document.getElementById('chartPdBarBulan'), {
+                    type: 'bar',
+                    data: { labels: monthLabels, datasets: datasets },
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, 
+                        scales: { x:{stacked:true}, y:{stacked:true, ticks:{color:textColor}} }, 
+                        plugins:{ legend:{ labels:{color:textColor}, position:'top' } } 
+                    }
+                }));
+            }
+
+            // 3. Chart Bar Triwulan
+            if(document.getElementById('chartPdTriwulan') && pd) {
+                chartsInstance.push(new Chart(document.getElementById('chartPdTriwulan'), {
+                    type: 'bar',
+                    data: { labels: ['Q1 (Jan-Mar)', 'Q2 (Apr-Jun)', 'Q3 (Jul-Sep)', 'Q4 (Okt-Des)'], datasets: [{ label: 'Total Peserta', data: pd.perTriwulan || [0,0,0,0], backgroundColor: '#0ea5e9', borderRadius: 6 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins:{ legend:{ display:false } }, scales: { y:{beginAtZero:true, ticks:{color:textColor}} } }
+                }));
+            }
+
+            // 4. Chart Bar Peserta Pelatihan Per Sheet
+            if(document.getElementById('chartPlSheet') && pl) {
+                const plLabels = (pl.labels && pl.labels.length) ? pl.labels : ['Belum Ada Data'];
+                const plData = (pl.data && pl.data.length) ? pl.data : [0];
+
+                chartsInstance.push(new Chart(document.getElementById('chartPlSheet'), {
+                    type: 'bar',
+                    data: { labels: plLabels, datasets: [{ label: 'Jml Peserta', data: plData, backgroundColor: '#10b981', borderRadius: 4 }] },
+                    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins:{ legend:{ display:false } }, scales: { x:{beginAtZero:true, ticks:{color:textColor}}, y:{ticks:{color:textColor}} } }
+                }));
+            }
         }
 
         function renderMainDataView(menuId, response, sheetList, activeSheet) {
