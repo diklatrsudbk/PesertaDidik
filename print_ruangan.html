@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Pengecekan Ruangan - Diklat RSUD Bandung Kiwari</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Font Wajib: Bookman Old Style */
+        body { 
+            font-family: 'Bookman Old Style', 'Bookman', 'Georgia', serif !important; 
+            background-color: #f3f4f6; 
+            color: #000;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        /* 1. KUNCI MARGIN NATIVE MESIN PRINTER (Presisi 100%) */
+        @page {
+            size: A4 portrait;
+            /* Urutan: Atas Kanan Bawah Kiri */
+            margin: 23mm 5mm 10mm 23mm !important; 
+        }
+        
+        /* 2. TAMPILAN DI LAYAR (SEBELUM DIPRINT) */
+        @media screen {
+            #printArea {
+                background-color: #fff;
+                width: 210mm;
+                min-height: 297mm;
+                margin: 20px auto;
+                /* Padding simulasi visual margin di layar */
+                padding: 23mm 5mm 10mm 23mm;
+                box-sizing: border-box;
+                box-shadow: 0 0 10px rgba(0,0,0,0.15);
+            }
+        }
+
+        /* 3. TAMPILAN AKTUAL SAAT MASUK MESIN PRINT */
+        @media print {
+            body, html { 
+                background-color: #fff; 
+                margin: 0 !important; 
+                padding: 0 !important; 
+            }
+            .no-print { display: none !important; }
+            #printArea { 
+                /* Dinolkan karena margin sudah diurus oleh @page */
+                padding: 0 !important; 
+                margin: 0 !important; 
+                box-shadow: none !important; 
+                width: 100% !important; 
+            }
+        }
+
+        /* Menghindari baris tabel terpotong di tengah halaman */
+        tr {
+            page-break-inside: avoid;
+        }
+        /* Kop Surat dan Header Tabel agar otomatis berulang di setiap halaman */
+        thead {
+            display: table-header-group;
+        }
+
+        /* Styling khusus untuk teks Kotor atau Rusak (Merah agak muda) */
+        .text-alert {
+            color: #dc2626 !important; /* Merah agak muda / terang */
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Tombol Kontrol -->
+    <div class="no-print fixed top-4 right-4 flex space-x-2 z-50">
+        <button onclick="window.close()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded shadow transition">Tutup</button>
+        <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow transition font-bold"><i class="fas fa-print"></i> Cetak Sekarang</button>
+    </div>
+
+    <!-- Container Loading -->
+    <div id="loadingText" class="w-full flex flex-col items-center py-20">
+        <div class="text-center text-gray-500 font-medium">
+            <svg class="animate-spin h-8 w-8 mx-auto mb-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            Memuat Data Pengecekan Ruangan...
+        </div>
+    </div>
+
+    <!-- Area Cetak -->
+    <div id="printArea" class="hidden">
+        <table class="w-full border-collapse">
+            <thead>
+                <!-- KOP SURAT (Otomatis berulang di setiap halaman) -->
+                <tr>
+                    <td colspan="14" class="border-none p-0 pb-4">
+                        <div class="flex items-center justify-start border-b-[4px] border-[#0f244a] pb-2 mb-3 mt-2">
+                            <img src="img/rsudbk2.png" alt="Logo" class="h-[75px] object-contain ml-2 mr-4" onerror="this.src='https://placehold.co/200x80/ffffff/0ea5e9?text=LOGO+RSUD'">
+                            <div class="h-[60px] border-l-[3px] border-[#0f244a] mx-2"></div>
+                            <div class="text-left pl-3">
+                                <h1 class="text-[26px] font-bold leading-none tracking-wide text-[#000000]">INSTALASI DIKLAT</h1>
+                                <h2 class="text-[19px] font-bold leading-tight text-[#000000] mt-1 tracking-wide">RSUD BANDUNG KIWARI</h2>
+                            </div>
+                        </div>
+                        <div class="text-center mb-4">
+                            <h2 class="text-[18px] font-bold uppercase tracking-wide leading-snug">FORM PENGECEKAN RUANGAN<br>SARANA DAN PRASARANA</h2>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- HEADER TABEL -->
+                <tr class="bg-[#b4c6e7] text-[#0f244a] text-[10px] font-bold text-center">
+                    <td rowspan="2" class="border border-black p-1 w-[25px]">No</td>
+                    <td rowspan="2" class="border border-black p-1 w-[60px]">Tanggal</td>
+                    <td rowspan="2" class="border border-black p-1 w-[80px]">Nama Ruangan</td>
+                    <td colspan="3" class="border border-black p-1">Check Kebersihan</td>
+                    <td colspan="5" class="border border-black p-1">Check Fungsi</td>
+                    <td rowspan="2" class="border border-black p-1 w-[80px]">Keterangan</td>
+                    <td rowspan="2" class="border border-black p-1 w-[55px]">Petugas</td>
+                    <td rowspan="2" class="border border-black p-1 w-[55px]">TTD</td>
+                </tr>
+                <tr class="bg-[#b4c6e7] text-[#0f244a] text-[9px] font-bold text-center">
+                    <td class="border border-black p-1">Ruang</td>
+                    <td class="border border-black p-1">Toilet</td>
+                    <td class="border border-black p-1">Alat</td>
+                    <td class="border border-black p-1">AC</td>
+                    <td class="border border-black p-1">Pintu</td>
+                    <td class="border border-black p-1">Lampu</td>
+                    <td class="border border-black p-1">Toilet</td>
+                    <td class="border border-black p-1">Alat</td>
+                </tr>
+            </thead>
+            
+            <tbody id="tableBody" class="text-[10px] text-center">
+                <!-- Data akan disuntikkan di sini oleh JavaScript -->
+            </tbody>
+        </table>
+
+        <!-- AREA TANDA TANGAN PIMPINAN (Di akhir dokumen, hanya muncul di halaman terakhir) -->
+        <div class="flex justify-end mt-8 pr-2">
+            <div class="text-left w-[240px]">
+                <p class="text-[14px] leading-snug mb-2">Bandung, ............................... 2026</p>
+                <p class="text-[14px] leading-snug">Mengetahui,</p>
+                <p class="text-[14px] leading-snug">Kepala Instalasi Diklat</p>
+                <p class="text-[14px] leading-snug mb-1">RSUD Bandung Kiwari</p>
+                <div class="h-[70px] flex items-end">
+                    <span class="italic text-white">.</span>
+                </div>
+                <p class="font-bold text-[14px] underline leading-snug">Inna Apriani Chardina, Am.Keb,SKM.,MMRS</p>
+                <p class="text-[14px] leading-snug">NIP. 198004102003122009</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API URL ANDA
+        const API_URL = "https://script.google.com/macros/s/AKfycbxLVbaFA2ycKxm0JU-sxkr1Tg6NQ1-arej3FRbhcQm63AWRwEX92W9hOtXLGzdj8IGsLg/exec";
+
+        // Fungsi konverter tanda tangan
+        function getPrintableImageUrl(url) {
+            if (!url) return '';
+            url = String(url).trim();
+            if (url.startsWith('data:image')) return url;
+            const match = url.match(/[\/?&]id=([^&]+)/) || url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            if (match && match[1]) {
+                return `https://lh3.googleusercontent.com/d/${match[1]}`;
+            }
+            return url;
+        }
+
+        // Fungsi pendeteksi kata "Kotor" atau "Rusak" untuk memunculkan warna merah agak muda
+        function formatCellContent(val) {
+            if (!val) return '-';
+            let strVal = String(val).trim();
+            let upperVal = strVal.toUpperCase();
+            if (upperVal.includes('KOTOR') || upperVal.includes('RUSAK')) {
+                return `<span class="text-alert">${strVal}</span>`;
+            }
+            return strVal;
+        }
+
+        async function loadPrintData() {
+            try {
+                const response = await fetch(`${API_URL}?action=getMenuData&menuId=check_ruangan`);
+                const result = await response.json();
+
+                if (result.error) throw new Error(result.message);
+
+                const data = result.data || [];
+                const tbody = document.getElementById('tableBody');
+                
+                if (data.length === 0 || (data.length === 1 && data[0][0] && String(data[0][0]).toLowerCase().includes('kosong'))) {
+                    document.getElementById('loadingText').innerHTML = `<div class="text-center text-red-500 mt-20 font-bold text-xl">Tidak ada data ruangan untuk dicetak.</div>`;
+                    return;
+                }
+
+                let tbodyHtml = '';
+
+                data.forEach((row, index) => {
+                    const tanggal = row[1] || '-';
+                    const namaRuangan = row[2] || '-';
+                    
+                    // Menerapkan fungsi pengecekan warna merah pada kolom kebersihan & fungsi
+                    const kbR = formatCellContent(row[3]);
+                    const kbT = formatCellContent(row[4]);
+                    const kbA = formatCellContent(row[5]);
+                    const fnAC = formatCellContent(row[6]);
+                    const fnPintu = formatCellContent(row[7]);
+                    const fnLampu = formatCellContent(row[8]);
+                    const fnToilet = formatCellContent(row[9]);
+                    const fnAlat = formatCellContent(row[10]);
+                    
+                    const keterangan = row[12] || '-';
+                    const petugas = row[13] || '-';
+                    const ttdPetugas = getPrintableImageUrl(row[14]);
+
+                    const imgTtd = ttdPetugas ? `<img src="${ttdPetugas}" referrerpolicy="no-referrer" class="w-[45px] h-[30px] object-contain mx-auto mix-blend-multiply">` : '-';
+
+                    tbodyHtml += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="border border-black p-1">${index + 1}</td>
+                        <td class="border border-black p-1">${tanggal}</td>
+                        <td class="border border-black p-1 text-left">${namaRuangan}</td>
+                        <td class="border border-black p-1">${kbR}</td>
+                        <td class="border border-black p-1">${kbT}</td>
+                        <td class="border border-black p-1">${kbA}</td>
+                        <td class="border border-black p-1">${fnAC}</td>
+                        <td class="border border-black p-1">${fnPintu}</td>
+                        <td class="border border-black p-1">${fnLampu}</td>
+                        <td class="border border-black p-1">${fnToilet}</td>
+                        <td class="border border-black p-1">${fnAlat}</td>
+                        <td class="border border-black p-1 text-left leading-tight">${keterangan}</td>
+                        <td class="border border-black p-1">${petugas}</td>
+                        <td class="border border-black p-1 p-[2px]">${imgTtd}</td>
+                    </tr>
+                    `;
+                });
+
+                tbody.innerHTML = tbodyHtml;
+                
+                document.getElementById('loadingText').style.display = 'none';
+                document.getElementById('printArea').classList.remove('hidden');
+
+                setTimeout(() => {
+                    window.print();
+                }, 2000);
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loadingText').innerHTML = `<span class="text-red-500 font-bold"><i class="fas fa-exclamation-triangle"></i> Gagal memuat data cetak.</span>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadPrintData);
+    </script>
+</body>
+</html>

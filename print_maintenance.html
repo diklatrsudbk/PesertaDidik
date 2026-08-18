@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Laporan Maintenance - Diklat RSUD Bandung Kiwari</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Memaksa penggunaan Font Bookman Old Style untuk seluruh elemen cetak */
+        body { 
+            font-family: 'Bookman Old Style', 'Bookman', 'Georgia', serif !important; 
+            background-color: #f3f4f6; 
+            color: #000;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        @page {
+            size: A4 portrait;
+            margin: 0; /* Margin dinolkan agar diatur sepenuhnya oleh padding di bawah */
+        }
+        
+        .page-break {
+            page-break-after: always;
+            page-break-inside: avoid;
+            background-color: #fff;
+            width: 210mm;
+            height: 297mm; /* Kunci tinggi kertas full A4 */
+            margin: 0 auto;
+            
+            /* INI SETTINGAN MARGIN YANG DIMINTA: Atas 23mm, Kanan 5mm, Bawah 10mm, Kiri 23mm */
+            padding: 23mm 5mm 10mm 23mm;
+            
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .page-break:last-child {
+            page-break-after: auto;
+            margin-bottom: 0;
+        }
+        
+        @media print {
+            body { background-color: #fff; }
+            .no-print { display: none !important; }
+            .page-break { 
+                box-shadow: none; 
+                margin: 0; 
+                width: 100%; 
+                height: 100%;
+                
+                /* INI SETTINGAN MARGIN YANG DIMINTA SAAT MASUK MESIN PRINT */
+                padding: 23mm 5mm 10mm 23mm; 
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print fixed top-4 right-4 flex space-x-2 z-50">
+        <button onclick="window.close()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded shadow transition">Tutup</button>
+        <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow transition font-bold"><i class="fas fa-print"></i> Cetak Sekarang</button>
+    </div>
+
+    <div id="printContainer" class="w-full flex flex-col items-center py-8">
+        <div class="text-center text-gray-500 font-medium py-20" id="loadingText">
+            <svg class="animate-spin h-8 w-8 mx-auto mb-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            Memuat Data Laporan Perbaikan...
+        </div>
+    </div>
+
+    <script>
+        // API URL ANDA
+        const API_URL = "https://script.google.com/macros/s/AKfycbxLVbaFA2ycKxm0JU-sxkr1Tg6NQ1-arej3FRbhcQm63AWRwEX92W9hOtXLGzdj8IGsLg/exec";
+
+        // Konverter Tautan Drive (TIDAK DIUTAK-ATIK SAMA SEKALI)
+        function getPrintableImageUrl(url) {
+            if (!url) return '';
+            url = String(url).trim();
+            if (url.startsWith('data:image')) return url;
+            const match = url.match(/[\/?&]id=([^&]+)/) || url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            if (match && match[1]) {
+                return `https://lh3.googleusercontent.com/d/${match[1]}`;
+            }
+            return url;
+        }
+
+        async function loadPrintData() {
+            try {
+                // Hanya menarik data dari Sheet Maintenance
+                const response = await fetch(`${API_URL}?action=getMenuData&menuId=check_maintenance`);
+                const result = await response.json();
+
+                if (result.error) throw new Error(result.message);
+
+                const data = result.data || [];
+                const container = document.getElementById('printContainer');
+                
+                if (data.length === 0 || (data.length === 1 && data[0][0] && String(data[0][0]).toLowerCase().includes('kosong'))) {
+                    container.innerHTML = `<div class="text-center text-red-500 py-20 font-bold text-xl">Tidak ada data maintenance untuk dicetak.</div>`;
+                    return;
+                }
+
+                let html = '';
+
+                data.forEach(row => {
+                    const tanggal = row[1] || '-';
+                    const targetMtc = row[2] || '-'; 
+                    const jenis = row[3] || '-';
+                    const namaFasilitas = row[4] || '-';
+                    const status = row[5] || '-';
+                    const tindakan = row[6] || '-';
+                    const fotoBefore = getPrintableImageUrl(row[7]);
+                    const fotoAfter = getPrintableImageUrl(row[8]);
+                    const keterangan = row[9] || '-';
+                    const petugas = row[10] || '-';
+                    const ttdPetugas = getPrintableImageUrl(row[11]);
+                    
+                    let jamStr = '-';
+                    if (row[0]) {
+                        let parts = String(row[0]).split(' ');
+                        if (parts.length > 1) jamStr = parts[parts.length - 1];
+                    }
+
+                    // PERBAIKAN LOGIKA STATUS
+                    let sUpper = status.toString().toUpperCase().trim();
+                    let isSelesai = false;
+                    
+                    // Jika teks mengandung kata BELUM atau TIDAK, maka pasti belum selesai
+                    if (sUpper.includes("BELUM") || sUpper.includes("TIDAK")) {
+                        isSelesai = false;
+                    } 
+                    // Jika teks mengandung kata SELESAI, APPROVED, atau OPEN (dan lolos cek BELUM di atas)
+                    else if (sUpper.includes("SELESAI") || sUpper === "APPROVED" || sUpper === "OPEN") {
+                        isSelesai = true;
+                    }
+
+                    let statusHtml = '';
+                    if(isSelesai) {
+                        statusHtml = `
+                            <div class="border-[2px] border-[#16a34a] bg-[#dcfce7] rounded-[6px] px-3 py-1 flex items-center justify-between w-[160px]">
+                                <div>
+                                    <p class="text-[11px] font-bold text-[#15803d] mb-0 leading-tight">Status :</p>
+                                    <p class="text-[13px] font-black text-[#16a34a] leading-tight tracking-wide">SUDAH SELESAI</p>
+                                </div>
+                                <div class="bg-[#16a34a] text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                            </div>`;
+                    } else {
+                        statusHtml = `
+                            <div class="border-[2px] border-[#dc2626] bg-[#fee2e2] rounded-[6px] px-3 py-1 flex items-center justify-between w-[160px]">
+                                <div>
+                                    <p class="text-[11px] font-bold text-[#b91c1c] mb-0 leading-tight">Status :</p>
+                                    <p class="text-[13px] font-black text-[#dc2626] leading-tight tracking-wide">BELUM SELESAI</p>
+                                </div>
+                                <div class="bg-[#dc2626] text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                                    <i class="fas fa-times"></i>
+                                </div>
+                            </div>`;
+                    }
+
+                    html += `
+                    <div class="page-break relative text-[14px] text-black">
+                        
+                        <div class="flex items-center justify-start border-b-[4px] border-[#0f244a] pb-2 mb-3 mt-2">
+                            <img src="img/rsudbk2.png" alt="Logo" class="h-[75px] object-contain ml-6 mr-4" onerror="this.src='https://placehold.co/200x80/ffffff/0ea5e9?text=LOGO+RSUD'">
+                            <div class="h-[60px] border-l-[3px] border-[#0f244a] mx-2"></div>
+                            <div class="text-left pl-3">
+                                <h1 class="text-[26px] font-bold leading-none tracking-wide text-[#000000]">INSTALASI DIKLAT</h1>
+                                <h2 class="text-[19px] font-bold leading-tight text-[#000000] mt-1 tracking-wide">RSUD BANDUNG KIWARI</h2>
+                            </div>
+                        </div>
+
+                        <div class="text-center mb-3">
+                            <h2 class="text-[18px] font-bold uppercase tracking-wide leading-snug">LAPORAN MAINTENANCE / PERBAIKAN<br>SARANA DAN PRASARANA</h2>
+                        </div>
+
+                        <div class="border-[2px] border-[#5b7fb8] rounded-[10px] p-5 flex flex-col flex-1 mb-2">
+                            
+                            <div class="grid grid-cols-2 gap-x-8 gap-y-1 mb-3">
+                                <table class="w-full text-[14px] leading-relaxed">
+                                    <tr><td class="font-bold w-[140px] pb-1.5">Target Maintenance</td><td class="pb-1.5">: ${targetMtc}</td></tr>
+                                    <tr><td class="font-bold pb-1.5">Nama Fasilitas</td><td class="pb-1.5">: ${namaFasilitas}</td></tr>
+                                    <tr><td class="font-bold pb-1.5 align-top">Tindakan</td><td class="pb-1.5 align-top">: ${tindakan}</td></tr>
+                                    <tr><td class="font-bold pb-1.5 align-top">Keterangan</td><td class="pb-1.5 align-top">: ${keterangan}</td></tr>
+                                </table>
+                                <table class="w-full text-[14px] leading-relaxed">
+                                    <tr><td class="font-bold w-[130px] pb-1.5">Jenis Tindakan</td><td class="pb-1.5">: ${jenis}</td></tr>
+                                    <tr><td class="font-bold pb-1.5">Nama Petugas</td><td class="pb-1.5">: ${petugas}</td></tr>
+                                    <tr><td class="font-bold pb-1.5">Tanggal</td><td class="pb-1.5">: ${tanggal}</td></tr>
+                                    <tr><td class="font-bold pb-1.5">Jam</td><td class="pb-1.5">: ${jamStr}</td></tr>
+                                </table>
+                            </div>
+                            
+                            <div class="border-t-[1px] border-black my-2 w-full"></div>
+
+                            <div class="flex flex-row gap-6 mt-3 mb-2 flex-1">
+                                <div class="w-1/2 flex flex-col items-center">
+                                    <span class="bg-[#b4c6e7] text-[#0f244a] font-bold px-6 py-1.5 rounded-full text-[13px] uppercase tracking-wide mb-3">BUKTI FOTO BEFORE</span>
+                                    <div class="w-full h-[210px] border border-gray-400 rounded-[8px] overflow-hidden flex items-center justify-center p-1 bg-gray-50 mb-3">
+                                        ${fotoBefore ? `<img src="${fotoBefore}" referrerpolicy="no-referrer" class="w-full h-full object-cover rounded-[6px]">` : `<span class="text-gray-400 text-xs italic">Tidak ada lampiran foto</span>`}
+                                    </div>
+                                    <div class="w-full flex justify-start pl-1 mt-1">
+                                        ${statusHtml}
+                                    </div>
+                                </div>
+
+                                <div class="w-1/2 flex flex-col items-center">
+                                    <span class="bg-[#b4c6e7] text-[#0f244a] font-bold px-6 py-1.5 rounded-full text-[13px] uppercase tracking-wide mb-3">BUKTI FOTO AFTER</span>
+                                    <div class="w-full h-[210px] border border-gray-400 rounded-[8px] overflow-hidden flex items-center justify-center p-1 bg-gray-50">
+                                        ${fotoAfter ? `<img src="${fotoAfter}" referrerpolicy="no-referrer" class="w-full h-full object-cover rounded-[6px]">` : `<span class="text-gray-400 text-xs italic">Tidak ada lampiran foto</span>`}
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="flex justify-between items-end px-4 mt-auto mb-2">
+                            <div class="text-center w-[200px]">
+                                <p class="text-[14px] leading-snug mb-1">Petugas,</p>
+                                <div class="h-[80px] flex items-center justify-center border-b-[1.5px] border-dashed border-black mx-4 mb-1">
+                                    ${ttdPetugas ? `<img src="${ttdPetugas}" referrerpolicy="no-referrer" class="max-h-full mix-blend-multiply">` : `<span class="italic text-gray-300">TTD</span>`}
+                                </div>
+                                <p class="font-bold text-[14px] leading-snug">( ${petugas} )</p>
+                            </div>
+
+                            <div class="text-left w-[260px]">
+                                <p class="text-[14px] leading-snug">Mengetahui,</p>
+                                <p class="text-[14px] leading-snug">Kepala Instalasi Diklat</p>
+                                <p class="text-[14px] leading-snug mb-1">RSUD Bandung Kiwari</p>
+                                <div class="h-[80px] flex items-end">
+                                    <span class="italic text-white">.</span> </div>
+                                <p class="font-bold text-[14px] underline leading-snug">Inna Chardina, SKM</p>
+                                <p class="text-[14px] leading-snug">NIP. 63973883929899</p>
+                            </div>
+                        </div>
+
+                    </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+
+                setTimeout(() => {
+                    window.print();
+                }, 2500);
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loadingText').innerHTML = `<span class="text-red-500"><i class="fas fa-exclamation-triangle"></i> Gagal memuat data cetak.</span>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadPrintData);
+    </script>
+</body>
+</html>
