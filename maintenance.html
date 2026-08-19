@@ -570,8 +570,25 @@
             postData(payload, 'formManual');
         }
 
-        // 7. CORE FETCH API SENDER
+                // ============================================================
+        // 7. CORE FETCH API SENDER (Versi Stabil + Anti Duplikat)
+        // ============================================================
+        
+        // Fungsi pembuat ID unik untuk setiap transaksi
+        function generateRequestId() {
+            return 'REQ-' + Date.now() + '-' + Math.random().toString(36).substring(2, 10);
+        }
+
         function postData(payload, formId) {
+            // 1. Sisipkan requestId ke dalam data yang akan dikirim
+            if (!payload.requestId) {
+                payload.requestId = generateRequestId();
+            }
+
+            // 2. Tampilkan layar loading
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+
+            // 3. Kirim data secara normal
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -579,22 +596,32 @@
             })
             .then(res => res.json())
             .then(data => {
+                // Matikan layar loading
                 document.getElementById('loadingOverlay').classList.add('hidden');
-                if (data.status === 'success') {
+                
+                if (data.status === 'success' || data.status === 'already_saved') {
                     alert('Data berhasil disimpan!');
+                    
+                    // Reset form
                     document.getElementById(formId).reset();
-                    // Reset radio button styling custom (remove checked visual)
+                    
+                    // Reset tampilan radio button
                     document.querySelectorAll('.radio-btn').forEach(el => el.checked = false);
+                    
+                    // Kembali ke menu
                     navigateTo('menu');
                 } else {
-                    alert('Terjadi kesalahan sistem.');
+                    alert('Terjadi kesalahan sistem: ' + (data.message || ''));
                 }
             })
             .catch(error => {
+                // Matikan layar loading jika koneksi benar-benar terputus
                 document.getElementById('loadingOverlay').classList.add('hidden');
-                alert('Gagal terkoneksi ke Server.');
+                alert('Gagal terkoneksi ke Server. Pastikan internet Anda stabil.');
+                console.error(error);
             });
         }
+
     </script>
 </body>
 </html>
