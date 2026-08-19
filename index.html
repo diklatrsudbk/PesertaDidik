@@ -382,70 +382,73 @@
         }
 
         async function loadContent(menuId, navElement = null, sheetFilter = '') {
-            requestToken++;
-            const myToken = requestToken;
+    requestToken++;
+    const myToken = requestToken;
 
-            currentMenu = menuId;
-            const loader = document.getElementById('loader');
-            const container = document.getElementById('contentContainer');
-            
-            if(navElement) {
-                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-                navElement.classList.add('active');
-                document.getElementById('headerTitle').innerText = navElement.innerText;
-            }
+    currentMenu = menuId;
+    const loader = document.getElementById('loader');
+    const container = document.getElementById('contentContainer');
+    
+    if(navElement) {
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        navElement.classList.add('active');
+        document.getElementById('headerTitle').innerText = navElement.innerText;
+    }
 
-            if(window.innerWidth < 1024) {
-                document.getElementById('sidebar').classList.add('-translate-x-full');
-                document.getElementById('mobileOverlay').classList.add('hidden');
-            }
+    if(window.innerWidth < 1024) {
+        document.getElementById('sidebar').classList.add('-translate-x-full');
+        document.getElementById('mobileOverlay').classList.add('hidden');
+    }
 
-            loader.classList.remove('hidden');
-            chartsInstance.forEach(chart => chart.destroy());
-            chartsInstance = [];
+    loader.classList.remove('hidden');
+    chartsInstance.forEach(chart => chart.destroy());
+    chartsInstance = [];
 
-            try {
-                let res;
-                if (menuId === 'dashboard') {
-                    const yFilter = document.getElementById('dashYearFilter');
-                    const targetYear = yFilter ? yFilter.value : new Date().getFullYear().toString();
-                    res = await fetchAPI('getDashboard', { year: targetYear });
-                } 
-                else if (['pd', 'pl', 'dh'].includes(menuId)) {
-                    res = await fetchAPI('getMenuData', { menuId: menuId, sheetName: sheetFilter });
-                }
-                else if (menuId.startsWith('pinjam_') || menuId.startsWith('sarpras_') || menuId.startsWith('survey_') || menuId.startsWith('set_') || menuId.startsWith('check_')) {
-                    res = await fetchAPI('getMenuData', { menuId: menuId });
-                }
-
-                if (myToken !== requestToken) return;
-
-                if (res && res.error) throw new Error(res.message);
-
-                if (menuId === 'dashboard') {
-                    renderDashboard(res);
-                }
-                else if (['pd', 'pl', 'dh'].includes(menuId)) {
-                    renderMainDataView(menuId, res, res.sheetList || [], res.activeSheet || sheetFilter);
-                }
-                else if (menuId.startsWith('pinjam_')) renderPeminjamanView(menuId, res);
-                else if (menuId.startsWith('sarpras_')) renderSarprasView(menuId, res);
-                else if (menuId.startsWith('survey_')) renderSurveyView(menuId, res);
-                else if (menuId.startsWith('set_')) renderPengaturanView(menuId, res);
-                else if (menuId.startsWith('check_')) renderChecklistView(menuId, res);
-                else {
-                    container.innerHTML = `<div class="p-8 text-center bg-white rounded-xl shadow"><h3>Fitur belum tersedia</h3></div>`;
-                }
-            } catch (error) {
-                if (myToken !== requestToken) return; 
-                console.error(error);
-                container.innerHTML = `<div class="p-8 text-center text-red-500 bg-white dark:bg-darkcard rounded-xl shadow"><i class="fas fa-exclamation-triangle text-3xl mb-3"></i><p>Gagal memuat data. Periksa koneksi Apps Script Anda.</p></div>`;
-            } finally {
-                if (myToken === requestToken) {
-                    loader.classList.add('hidden');
-                }
-            }
+    try {
+        let res;
+        if (menuId === 'dashboard') {
+            const yFilter = document.getElementById('dashYearFilter');
+            const targetYear = yFilter ? yFilter.value : new Date().getFullYear().toString();
+            res = await fetchAPI('getDashboard', { year: targetYear });
+        } 
+        // -------------------------------------------------------------------------
+        // PERBAIKAN DI SINI: Masukkan 'survey_' agar membaca sheetFilter
+        // -------------------------------------------------------------------------
+        else if (['pd', 'pl', 'dh'].includes(menuId) || menuId.startsWith('survey_')) {
+            res = await fetchAPI('getMenuData', { menuId: menuId, sheetName: sheetFilter });
         }
+        else if (menuId.startsWith('pinjam_') || menuId.startsWith('sarpras_') || menuId.startsWith('set_') || menuId.startsWith('check_')) {
+            res = await fetchAPI('getMenuData', { menuId: menuId });
+        }
+
+        if (myToken !== requestToken) return;
+
+        if (res && res.error) throw new Error(res.message);
+
+        if (menuId === 'dashboard') {
+            renderDashboard(res);
+        }
+        else if (['pd', 'pl', 'dh'].includes(menuId)) {
+            renderMainDataView(menuId, res, res.sheetList || [], res.activeSheet || sheetFilter);
+        }
+        else if (menuId.startsWith('pinjam_')) renderPeminjamanView(menuId, res);
+        else if (menuId.startsWith('sarpras_')) renderSarprasView(menuId, res);
+        else if (menuId.startsWith('survey_')) renderSurveyView(menuId, res);
+        else if (menuId.startsWith('set_')) renderPengaturanView(menuId, res);
+        else if (menuId.startsWith('check_')) renderChecklistView(menuId, res);
+        else {
+            container.innerHTML = `<div class="p-8 text-center bg-white rounded-xl shadow"><h3>Fitur belum tersedia</h3></div>`;
+        }
+    } catch (error) {
+        if (myToken !== requestToken) return; 
+        console.error(error);
+        container.innerHTML = `<div class="p-8 text-center text-red-500 bg-white dark:bg-darkcard rounded-xl shadow"><i class="fas fa-exclamation-triangle text-3xl mb-3"></i><p>Gagal memuat data. Periksa koneksi Apps Script Anda.</p></div>`;
+    } finally {
+        if (myToken === requestToken) {
+            loader.classList.add('hidden');
+        }
+    }
+}
 
         // =========================================================
         // DASHBOARD SUPER LENGKAP V2
@@ -900,26 +903,46 @@
             container.innerHTML = html;
         }
 
+        // =========================================================================
+        // VIEW: SURVEY KEPUASAN (DENGAN FILTER SHEET/TAHUN)
+        // =========================================================================
         function renderSurveyView(menuId, response) {
             const container = document.getElementById('contentContainer');
-            const { data, sheetId } = response;
+            const { data, sheetId, sheetList, activeSheet } = response;
             let rowCount = data ? data.length : 0;
             
             const title = menuId === 'survey_pd' ? 'Survey Kepuasan Pasien ke Peserta Didik' : 'Survey Kepuasan Pasien ke Residen';
             const printLink = "print_survey.html"; 
             
+            // LOGIKA PEMBUATAN DROPDOWN SHEET TAHUN
+            let sheetDropdownHtml = '';
+            if (sheetList && sheetList.length > 0) {
+                sheetDropdownHtml = `
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-semibold text-gray-600 dark:text-gray-300 hidden sm:block">Pilih Tahun:</span>
+                        <select onchange="loadContent('${menuId}', null, this.value)" class="bg-white border border-gray-300 text-gray-700 rounded-lg text-sm px-3 py-2 focus:ring-primary outline-none cursor-pointer dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm font-bold">
+                            ${sheetList.map(s => `<option value="${s}" ${s === activeSheet ? 'selected' : ''}>Data Tahun ${s}</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+            }
+
             let html = `
                 <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
                     <div class="p-4 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 flex flex-col sm:flex-row justify-between items-center gap-3">
                         <div class="flex items-center gap-3 w-full sm:w-auto">
                             <h3 class="text-lg font-bold hidden sm:block whitespace-nowrap">${title}</h3>
+                            
+                            <!-- Dropdown Filter Tahun Disisipkan di Sini -->
+                            ${sheetDropdownHtml}
+
                             <div class="relative w-full sm:w-auto">
                                 <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
                                 <input type="text" id="searchInput" onkeyup="applyFilters()" placeholder="Cari Nama/Tanggal..." class="w-full sm:w-48 pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none">
                             </div>
                         </div>
                         <div class="flex space-x-2 w-full sm:w-auto justify-end">
-                            <button onclick="loadContent('${menuId}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition"><i class="fas fa-sync-alt"></i></button>
+                            <button onclick="loadContent('${menuId}', '${activeSheet}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition"><i class="fas fa-sync-alt"></i></button>
                             <a href="https://docs.google.com/spreadsheets/d/${sheetId}/edit" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm" title="Buka Spreadsheet"><i class="fas fa-file-excel"></i></a>
                             <a href="${printLink}" target="_blank" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm transition flex items-center whitespace-nowrap"><i class="fas fa-print mr-1"></i> Print Laporan</a>
                         </div>
@@ -930,35 +953,63 @@
                                 <tr>
                                     <th class="px-4 py-3">No</th>
                                     <th class="px-4 py-3">Tanggal Survey</th>
-                                    <th class="px-4 py-3">Nama (Peserta/Residen)</th>
-                                    <th class="px-4 py-3">Rating Kepuasan</th>
+                                    <th class="px-4 py-3">Nama Pasien</th>
+                                    <th class="px-4 py-3">Demografi</th>
+                                    <th class="px-4 py-3">Ruangan</th>
+                                    <th class="px-4 py-3 text-center" title="Pertanyaan 1">Q1</th>
+                                    <th class="px-4 py-3 text-center" title="Pertanyaan 2">Q2</th>
+                                    <th class="px-4 py-3 text-center" title="Pertanyaan 3">Q3</th>
+                                    <th class="px-4 py-3 text-center" title="Pertanyaan 4">Q4</th>
+                                    <th class="px-4 py-3 text-center" title="Pertanyaan 5">Q5</th>
                                     <th class="px-4 py-3">Kritik & Saran</th>
+                                    <th class="px-4 py-3 text-center">Drive Link</th>
                                     <th class="px-4 py-3 text-center">Aksi</th>
                                 </tr>
                              </thead>
                              <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-600 dark:text-gray-300">
-                                 ${(!data || data.length === 0) ? '<tr><td colspan="6" class="text-center p-8 italic">Data survey masih kosong</td></tr>' : data.map((row, i) => {
+                                 ${(!data || data.length === 0) ? `<tr><td colspan="13" class="p-8 text-center font-bold text-gray-400 italic">Data Kosong / Belum Ada Survey di Tahun Ini</td></tr>` : data.map((row, i) => {
                                     
                                     const searchStr = `${row[1]||''} ${row[2]||''}`;
-                                    let ratingStars = '';
-                                    let ratingVal = parseInt(row[3]) || 0;
-                                    for(let j=1; j<=5; j++) {
-                                        if(j <= ratingVal) ratingStars += '<i class="fas fa-star text-yellow-400"></i>';
-                                        else ratingStars += '<i class="far fa-star text-gray-300 dark:text-gray-600"></i>';
-                                    }
+                                    
+                                    // Row data index: 
+                                    // 0:Timestamp, 1:Tanggal, 2:Nama, 3:Gender, 4:Usia, 5:Alamat, 6:Ruangan, 7-11:Q1-Q5, 12:Saran, 13:Drive_Link
 
-                                    return `
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50" data-search="${searchStr}">
-                                        <td class="px-4 py-3">${i+1}</td>
-                                        <td class="px-4 py-3">${row[1]||'-'}</td>
-                                        <td class="px-4 py-3 font-medium">${row[2]||'-'}</td>
-                                        <td class="px-4 py-3">${ratingStars}</td>
-                                        <td class="px-4 py-3 truncate max-w-xs" title="${row[4]||''}">${row[4]||'-'}</td>
-                                        <td class="px-4 py-3 text-center">
-                                            <button class="text-gray-400 hover:text-primary px-1" title="Detail"><i class="fas fa-eye"></i></button>
-                                            <button onclick="confirmDelete('${menuId}', null, ${i + 2})" class="text-gray-400 hover:text-red-500 px-1" title="Delete"><i class="fas fa-trash"></i></button>
-                                        </td>
-                                    </tr>`;
+                                    let tr = `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50" data-search="${searchStr}">`;
+                                    
+                                    tr += `<td class="px-4 py-3">${i+1}</td>`;
+                                    tr += `<td class="px-4 py-3 text-xs whitespace-normal w-32"><span class="font-bold">${row[1]||'-'}</span><br/><span class="text-gray-500">${row[0]||'-'}</span></td>`;
+                                    tr += `<td class="px-4 py-3 font-bold text-gray-900 dark:text-white">${row[2]||'-'}</td>`;
+                                    
+                                    // Demografi Digabung
+                                    tr += `<td class="px-4 py-3 text-xs whitespace-normal w-48">
+                                            <span class="font-bold">${row[3]||'-'}</span>, ${row[4]||'-'} Thn<br>
+                                            <span class="text-gray-500">${row[5]||'-'}</span>
+                                           </td>`;
+                                           
+                                    tr += `<td class="px-4 py-3 font-bold text-blue-600">${row[6]||'-'}</td>`; 
+                                    
+                                    // Pengecekan Warna Q1-Q5
+                                    for(let q=7; q<=11; q++) {
+                                        let val = row[q] || '-';
+                                        let colorClass = "text-gray-600";
+                                        if (val == '5' || val == '4') colorClass = "text-green-600";
+                                        else if (val == '3') colorClass = "text-yellow-600";
+                                        else if (val == '2' || val == '1') colorClass = "text-red-600";
+                                        
+                                        tr += `<td class="px-4 py-3 text-center font-bold text-[15px] ${colorClass}">${val}</td>`;
+                                    }
+                                    
+                                    // Saran & Link
+                                    tr += `<td class="px-4 py-3 min-w-[200px] whitespace-normal italic text-gray-600 leading-tight" title="${row[12]||''}">${row[12]||'-'}</td>`; 
+                                    let link = (row[13] && String(row[13]).includes('http')) ? `<a href="${row[13]}" target="_blank" class="bg-blue-50 text-blue-500 hover:bg-blue-100 px-3 py-1.5 rounded-full text-xs font-bold transition"><i class="fas fa-external-link-alt"></i> Buka</a>` : '-';
+                                    tr += `<td class="px-4 py-3 text-center">${link}</td>`;
+
+                                    // Aksi
+                                    tr += `<td class="px-4 py-3 text-center">
+                                        <button onclick="confirmDelete('${menuId}', '${activeSheet}', ${i + 2})" class="text-gray-400 hover:text-red-500 px-1" title="Delete"><i class="fas fa-trash"></i></button>
+                                    </td></tr>`;
+                                    
+                                    return tr;
                                  }).join('')}
                              </tbody>
                         </table>
