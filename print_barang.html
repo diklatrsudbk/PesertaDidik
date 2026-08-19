@@ -114,6 +114,7 @@
                     <td class="border border-black p-1.5 w-[140px]">Nama Alat / Barang</td>
                     <td class="border border-black p-1.5 w-[80px]">Kebersihan</td>
                     <td class="border border-black p-1.5 w-[80px]">Fungsi</td>
+                    <td class="border border-black p-1.5 w-[80px]">Kelengkapan</td> <!-- BARU -->
                     <td class="border border-black p-1.5">Keterangan</td>
                     <td class="border border-black p-1.5 w-[90px]">Petugas</td>
                     <td class="border border-black p-1.5 w-[70px]">TTD</td>
@@ -194,9 +195,10 @@
                     const kebersihan = formatCellContent(row[3]);
                     const fungsi = formatCellContent(row[4]);
                     // Index 5 adalah Foto Temuan (Sengaja dilewati/disembunyikan)
-                    const keterangan = row[6] || '-';
-                    const petugas = row[7] || '-';
-                    const ttdPetugas = getPrintableImageUrl(row[8]);
+                    const kelengkapan = formatCellContent(row[6]); // BARU
+                    const keterangan = row[7] || '-';
+                    const petugas = row[8] || '-';
+                    const ttdPetugas = getPrintableImageUrl(row[9]);
 
                     const imgTtd = ttdPetugas ? `<img src="${ttdPetugas}" referrerpolicy="no-referrer" class="w-[45px] h-[30px] object-contain mx-auto mix-blend-multiply">` : '-';
 
@@ -207,6 +209,7 @@
                         <td class="border border-black p-1.5 text-left">${namaBarang}</td>
                         <td class="border border-black p-1.5">${kebersihan}</td>
                         <td class="border border-black p-1.5">${fungsi}</td>
+                        <td class="border border-black p-1.5">${kelengkapan}</td> <!-- BARU -->
                         <td class="border border-black p-1.5 text-left leading-tight">${keterangan}</td>
                         <td class="border border-black p-1.5">${petugas}</td>
                         <td class="border border-black p-1.5 p-[2px]">${imgTtd}</td>
