@@ -114,6 +114,7 @@
                     <td rowspan="2" class="border border-black p-1 w-[80px]">Nama Ruangan</td>
                     <td colspan="3" class="border border-black p-1">Check Kebersihan</td>
                     <td colspan="5" class="border border-black p-1">Check Fungsi</td>
+                    <td rowspan="2" class="border border-black p-1 w-[60px]">Kelengkapan</td> <!-- BARU -->
                     <td rowspan="2" class="border border-black p-1 w-[80px]">Keterangan</td>
                     <td rowspan="2" class="border border-black p-1 w-[55px]">Petugas</td>
                     <td rowspan="2" class="border border-black p-1 w-[55px]">TTD</td>
@@ -209,9 +210,11 @@
                     const fnToilet = formatCellContent(row[9]);
                     const fnAlat = formatCellContent(row[10]);
                     
-                    const keterangan = row[12] || '-';
-                    const petugas = row[13] || '-';
-                    const ttdPetugas = getPrintableImageUrl(row[14]);
+                    // Index 11 adalah Foto (Tidak dirender)
+                    const kelengkapan = formatCellContent(row[12]); // BARU
+                    const keterangan = row[13] || '-';
+                    const petugas = row[14] || '-';
+                    const ttdPetugas = getPrintableImageUrl(row[15]);
 
                     const imgTtd = ttdPetugas ? `<img src="${ttdPetugas}" referrerpolicy="no-referrer" class="w-[45px] h-[30px] object-contain mx-auto mix-blend-multiply">` : '-';
 
@@ -228,6 +231,7 @@
                         <td class="border border-black p-1">${fnLampu}</td>
                         <td class="border border-black p-1">${fnToilet}</td>
                         <td class="border border-black p-1">${fnAlat}</td>
+                        <td class="border border-black p-1">${kelengkapan}</td> <!-- BARU -->
                         <td class="border border-black p-1 text-left leading-tight">${keterangan}</td>
                         <td class="border border-black p-1">${petugas}</td>
                         <td class="border border-black p-1 p-[2px]">${imgTtd}</td>
