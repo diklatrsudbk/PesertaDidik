@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Google Fonts Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
@@ -118,14 +117,27 @@
                     </div>
                 </div>
 
-                <!-- MUNCUL JIKA ADA KOTOR/RUSAK -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 mb-5 shadow-sm">
+                    <h3 class="font-bold text-slate-800 mb-3 border-b pb-2">Indikator Kelengkapan</h3>
+                    <div class="grid gap-3">
+                        <div class="flex justify-between items-center text-sm border-b pb-2 mb-2 last:border-0">
+                            <span class="text-slate-600">Kelengkapan Fasilitas</span>
+                            <div class="flex gap-2">
+                                <label class="cursor-pointer"><input type="radio" name="kelengkapanRuang" value="Lengkap" class="hidden radio-btn req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Lengkap</div></label>
+                                <label class="cursor-pointer"><input type="radio" name="kelengkapanRuang" value="Tidak Lengkap" class="hidden radio-btn rusak req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Tidak Lengkap</div></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MUNCUL JIKA ADA KOTOR/RUSAK/TIDAK LENGKAP -->
                 <div id="cond-ruangan" class="hidden bg-red-50 p-4 rounded-xl border border-red-200 mb-5">
-                    <p class="text-xs text-red-600 font-bold mb-3"><i class="fas fa-exclamation-circle"></i> Ditemukan item Kotor/Rusak. Silakan lengkapi bukti.</p>
+                    <p class="text-xs text-red-600 font-bold mb-3"><i class="fas fa-exclamation-circle"></i> Ditemukan temuan (Kotor/Rusak/Tidak Lengkap). Silakan lengkapi bukti.</p>
                     <label class="block text-sm font-bold text-slate-700 mb-1">Bukti Foto Temuan <span class="text-red-500">*</span></label>
                     <input type="file" id="foto_ruangan" accept="image/*" class="w-full mb-3 text-sm">
                     
                     <label class="block text-sm font-bold text-slate-700 mb-1">Keterangan / Tindak Lanjut <span class="text-red-500">*</span></label>
-                    <textarea id="ket_ruangan" rows="2" class="w-full p-3 border border-slate-300 rounded-lg" placeholder="Deskripsikan kerusakannya..."></textarea>
+                    <textarea id="ket_ruangan" rows="2" class="w-full p-3 border border-slate-300 rounded-lg" placeholder="Deskripsikan temuannya..."></textarea>
                 </div>
 
                 <div class="mb-5">
@@ -157,7 +169,7 @@
                     <label class="block text-sm font-bold text-slate-700 mb-1">Pilih Alat / Barang</label>
                     <select id="namaBarang" required class="req-barang w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
                         <option value="">-- Pilih Barang --</option>
-                        <option>BHP</option><option>ATK</option><option>Manikin</option><option>Kunci Loker</option><option>Printer</option><option>Proyektor+Layar</option><option>Sound System</option>
+                        <option>BHP</option><option>ATK</option><option>Manikin</option><option>Kunci Loker</option><option>PC/Laptop</option><option>Printer</option><option>Proyektor+Layar</option><option>Sound System</option>
                     </select>
                 </div>
 
@@ -169,8 +181,22 @@
                     </div>
                 </div>
 
-                <!-- MUNCUL JIKA ADA KOTOR/RUSAK -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 mb-5 shadow-sm">
+                    <h3 class="font-bold text-slate-800 mb-3 border-b pb-2">Indikator Kelengkapan</h3>
+                    <div class="grid gap-3">
+                        <div class="flex justify-between items-center text-sm border-b pb-2 mb-2 last:border-0">
+                            <span class="text-slate-600">Kelengkapan Alat</span>
+                            <div class="flex gap-2">
+                                <label class="cursor-pointer"><input type="radio" name="kelengkapanAlat" value="Lengkap" class="hidden radio-btn req-radio-barang"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Lengkap</div></label>
+                                <label class="cursor-pointer"><input type="radio" name="kelengkapanAlat" value="Tidak Lengkap" class="hidden radio-btn rusak req-radio-barang"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Tidak Lengkap</div></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MUNCUL JIKA ADA KOTOR/RUSAK/TIDAK LENGKAP -->
                 <div id="cond-barang" class="hidden bg-red-50 p-4 rounded-xl border border-red-200 mb-5">
+                    <p class="text-xs text-red-600 font-bold mb-3"><i class="fas fa-exclamation-circle"></i> Ditemukan temuan (Kotor/Rusak/Tidak Lengkap). Silakan lengkapi bukti.</p>
                     <label class="block text-sm font-bold text-slate-700 mb-1">Bukti Foto Temuan <span class="text-red-500">*</span></label>
                     <input type="file" id="foto_barang" accept="image/*" class="w-full mb-3 text-sm">
                     <label class="block text-sm font-bold text-slate-700 mb-1">Keterangan / Tindak Lanjut <span class="text-red-500">*</span></label>
@@ -324,7 +350,7 @@
         // PASTE URL WEB APP ANDA DI SINI
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRh1PkoVXniYC3uYsOutsfWb_hZs0Zl7HLLT4DKaYnjanjFla0ufEHe2AU3oorkfDN4A/exec';
 
-        // 1. INISIALISASI CANVAS SIGNATURE PAD (Dengan sistem Retry Anti-Error)
+        // 1. INISIALISASI CANVAS SIGNATURE PAD
         let padRuangan, padBarang, padAction, padManual;
 
         function initSignaturePads() {
@@ -334,16 +360,13 @@
                 padAction = new SignaturePad(document.getElementById('canvas_action'));
                 padManual = new SignaturePad(document.getElementById('canvas_manual'));
             } else {
-                // Jika library belum termuat, tunggu 200ms lalu coba lagi
                 setTimeout(initSignaturePads, 200); 
             }
         }
-
-        // Panggil saat window dan script external selesai diload
         window.addEventListener('load', initSignaturePads);
 
         function resizeCanvas(padObj, canvasId) {
-            if (!padObj) return; // Mencegah error jika belum siap
+            if (!padObj) return; 
             const canvas = document.getElementById(canvasId);
             const ratio =  Math.max(window.devicePixelRatio || 1, 1);
             canvas.width = canvas.offsetWidth * ratio;
@@ -357,12 +380,10 @@
             document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
             document.getElementById('screen-' + screenId).classList.add('active');
             
-            // Header button control
             const btnHome = document.getElementById('btnHome');
             if(screenId === 'menu') { btnHome.classList.add('hidden'); }
             else { btnHome.classList.remove('hidden'); }
 
-            // Set Waktu Otomatis
             const timeNow = getFormattedTime();
             if(screenId === 'ruangan') document.getElementById('waktu_ruangan').value = timeNow;
             if(screenId === 'barang') document.getElementById('waktu_barang').value = timeNow;
@@ -380,9 +401,8 @@
 
         // 3. LOGIKA KONDISIONAL TAMPIL/SEMBUNYI (Form Pengecekan)
         function checkCompletion(type) {
-            // Cek apakah ada radio yang nilainya Kotor/Rusak
             let radios = document.querySelectorAll(`input[type="radio"].req-radio-${type}:checked`);
-            let isRusak = Array.from(radios).some(r => r.value === 'Kotor' || r.value === 'Rusak');
+            let isRusak = Array.from(radios).some(r => r.value === 'Kotor' || r.value === 'Rusak' || r.value === 'Tidak Lengkap');
             
             let condDiv = document.getElementById(`cond-${type}`);
             let fotoInput = document.getElementById(`foto_${type}`);
@@ -398,12 +418,11 @@
                 ketInput.required = false;
             }
 
-            // Cek apakah SEMUA pertanyaan radio dan field Nama sdh diisi
-            let totalRadioGroups = type === 'ruangan' ? 8 : 2; // Ruangan ada 8 baris pertanyaan, barang 2
+            // Jumlah total grup radio (Ruangan: 9 grup | Barang: 3 grup)
+            let totalRadioGroups = type === 'ruangan' ? 9 : 3; 
             let isAllRadioFilled = radios.length === totalRadioGroups;
             let nama = document.getElementById(`petugas_${type}`).value.trim();
             
-            // Tambahan syarat jika rusak, foto dan keterangan harus diisi sebelum TTD muncul
             let isCondFilled = true;
             if (isRusak) {
                 if (fotoInput.files.length === 0 || ketInput.value.trim() === '') isCondFilled = false;
@@ -421,13 +440,39 @@
             }
         }
 
-        // 4. HELPER IMAGE KE BASE64
+        // 4. HELPER KOMPRESI IMAGE KE BASE64 (Mencegah Gagal Koneksi)
         function getBase64(file) {
             return new Promise((resolve, reject) => {
                 if(!file) return resolve('');
+                
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        // Kompresi ukuran gambar
+                        const MAX_WIDTH = 800; // Resolusi maksimal
+                        let canvas = document.createElement('canvas');
+                        let ctx = canvas.getContext('2d');
+
+                        if (img.width > MAX_WIDTH) {
+                            const scaleSize = MAX_WIDTH / img.width;
+                            canvas.width = MAX_WIDTH;
+                            canvas.height = img.height * scaleSize;
+                        } else {
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                        }
+
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        
+                        // Kualitas foto dikurangi menjadi 60% agar super ringan
+                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                        resolve(compressedBase64);
+                    };
+                    img.onerror = error => reject(error);
+                };
                 reader.onerror = error => reject(error);
             });
         }
@@ -442,7 +487,7 @@
             document.getElementById('loadingOverlay').classList.remove('hidden');
 
             let radios = document.querySelectorAll(`input[type="radio"].req-radio-${typeLower}:checked`);
-            let isRusak = Array.from(radios).some(r => r.value === 'Kotor' || r.value === 'Rusak');
+            let isRusak = Array.from(radios).some(r => r.value === 'Kotor' || r.value === 'Rusak' || r.value === 'Tidak Lengkap');
             let fotoFile = document.getElementById(`foto_${typeLower}`).files[0];
             let fotoBase64 = await getBase64(fotoFile);
 
@@ -466,10 +511,12 @@
                 payload.fungsiLampu = document.querySelector('input[name="fungsiLampu"]:checked')?.value;
                 payload.fungsiToilet = document.querySelector('input[name="fungsiToilet"]:checked')?.value;
                 payload.fungsiBarang = document.querySelector('input[name="fungsiBarang"]:checked')?.value;
+                payload.kelengkapan = document.querySelector('input[name="kelengkapanRuang"]:checked')?.value;
             } else {
                 payload.namaBarang = document.getElementById('namaBarang').value;
                 payload.kebersihan = document.querySelector('input[name="kebersihanAlat"]:checked')?.value;
                 payload.fungsi = document.querySelector('input[name="fungsiAlat"]:checked')?.value;
+                payload.kelengkapan = document.querySelector('input[name="kelengkapanAlat"]:checked')?.value;
             }
 
             postData(payload, `form${type}`);
@@ -570,7 +617,7 @@
             postData(payload, 'formManual');
         }
 
-                // ============================================================
+// ============================================================
         // 7. CORE FETCH API SENDER (Versi Stabil + Anti Duplikat)
         // ============================================================
         
@@ -621,7 +668,6 @@
                 console.error(error);
             });
         }
-
     </script>
 </body>
 </html>
