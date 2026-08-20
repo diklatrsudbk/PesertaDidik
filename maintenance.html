@@ -1,672 +1,743 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aplikasi Sarpras Diklat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Manajemen Fasilitas - RSUD Bandung Kiwari</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
-        .radio-btn:checked + div { background-color: #10b981; color: white; border-color: #10b981; }
-        .radio-btn.rusak:checked + div { background-color: #ef4444; color: white; border-color: #ef4444; }
-        .radio-btn.kuning:checked + div { background-color: #f59e0b; color: white; border-color: #f59e0b; }
-        .radio-btn.abu:checked + div { background-color: #64748b; color: white; border-color: #64748b; }
-        canvas { touch-action: none; border: 1px dashed #cbd5e1; border-radius: 0.5rem; background: #fff; width: 100%; height: 180px;}
-        
-        .page-section { display: none; animation: fadeIn 0.3s ease-in-out; }
-        .page-section.active { display: block; }
+        body { transition: background-color 0.3s, color 0.3s; }
+        .form-section { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .form-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .loader-overlay { display: none; }
+        .loader-overlay.active { display: flex; }
     </style>
 </head>
-<body class="pb-10">
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
 
-    <!-- Header -->
-    <div class="bg-blue-800 text-white p-4 shadow-md sticky top-0 z-50 flex items-center justify-between">
-        <div>
-            <h1 class="text-lg font-bold">SIM Sarpras Diklat</h1>
-            <p class="text-xs text-blue-200">RSUD Bandung Kiwari</p>
+    <!-- Navbar -->
+    <nav class="bg-blue-700 dark:bg-blue-900 text-white shadow-lg sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="showMenu()">
+                <i class="fas fa-hospital text-2xl"></i>
+                <h1 class="text-xl font-bold hidden sm:block">RSUD Bandung Kiwari - Fasilitas</h1>
+                <h1 class="text-xl font-bold sm:hidden">Fasilitas RSUD</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button onclick="showMenu()" class="hover:text-blue-200 transition" title="Beranda">
+                    <i class="fas fa-home text-lg"></i>
+                </button>
+                <button id="theme-toggle" class="hover:text-blue-200 transition p-2 rounded-full bg-blue-800 dark:bg-blue-800">
+                    <i class="fas fa-moon dark:hidden"></i>
+                    <i class="fas fa-sun hidden dark:inline"></i>
+                </button>
+            </div>
         </div>
-        <button id="btnHome" onclick="navigateTo('menu')" class="hidden bg-blue-700 hover:bg-blue-600 p-2 rounded-lg text-sm">
-            <i class="fas fa-home"></i> Menu Utama
-        </button>
-    </div>
+    </nav>
 
-    <div class="max-w-xl mx-auto p-4">
-
-        <!-- SCREEN: MENU UTAMA -->
-        <div id="screen-menu" class="page-section active mt-6">
-            <h2 class="text-xl font-bold text-slate-800 mb-6 text-center">Pilih Menu Operasional</h2>
-            
-            <div class="grid gap-4">
-                <button onclick="navigateTo('ruangan')" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4 hover:bg-slate-50 transition active:scale-95">
-                    <div class="bg-blue-100 p-4 rounded-full text-blue-600 text-2xl"><i class="fas fa-door-open"></i></div>
-                    <div class="text-left"><h3 class="font-bold text-slate-800 text-lg">Pemeriksaan Ruangan</h3><p class="text-xs text-slate-500">Inspeksi rutin kondisi kelas & fasilitas</p></div>
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-4xl">
+        
+        <!-- Menu View -->
+        <div id="view-menu" class="form-section active space-y-6">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-semibold mb-2">Portal Manajemen Fasilitas</h2>
+                <p class="text-gray-600 dark:text-gray-400">Pilih modul pelaporan di bawah ini.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <button onclick="showForm('ruangan')" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-xl hover:scale-105 transition transform text-center border border-gray-200 dark:border-gray-700">
+                    <div class="bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-door-open text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold">Pengecekan Ruangan</h3>
+                    <p class="text-sm text-gray-500 mt-2">Formulir inspeksi kondisi dan kebersihan ruangan.</p>
                 </button>
-
-                <button onclick="navigateTo('barang')" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4 hover:bg-slate-50 transition active:scale-95">
-                    <div class="bg-indigo-100 p-4 rounded-full text-indigo-600 text-2xl"><i class="fas fa-boxes"></i></div>
-                    <div class="text-left"><h3 class="font-bold text-slate-800 text-lg">Pemeriksaan Barang</h3><p class="text-xs text-slate-500">Cek fungsi alat peraga & inventaris</p></div>
+                <button onclick="showForm('barang')" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-xl hover:scale-105 transition transform text-center border border-gray-200 dark:border-gray-700">
+                    <div class="bg-teal-100 dark:bg-teal-900/50 text-teal-600 dark:text-teal-400 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-boxes text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold">Pengecekan Barang</h3>
+                    <p class="text-sm text-gray-500 mt-2">Formulir inspeksi kelengkapan dan fungsi barang.</p>
                 </button>
-
-                <button onclick="navigateTo('maintenance-menu')" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4 hover:bg-slate-50 transition active:scale-95">
-                    <div class="bg-amber-100 p-4 rounded-full text-amber-600 text-2xl"><i class="fas fa-tools"></i></div>
-                    <div class="text-left"><h3 class="font-bold text-slate-800 text-lg">Menu Teknisi (Maintenance)</h3><p class="text-xs text-slate-500">Tindak lanjut tiket kerusakan & Lapor manual</p></div>
+                <button onclick="loadMaintenance()" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-xl hover:scale-105 transition transform text-center border border-gray-200 dark:border-gray-700">
+                    <div class="bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-tools text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold">Maintenance</h3>
+                    <p class="text-sm text-gray-500 mt-2">Daftar tiket & input laporan perbaikan.</p>
                 </button>
             </div>
         </div>
 
-        <!-- SCREEN: MAINTENANCE MENU -->
-        <div id="screen-maintenance-menu" class="page-section mt-4">
-            <button onclick="navigateTo('menu')" class="text-sm text-slate-500 mb-4"><i class="fas fa-arrow-left"></i> Kembali</button>
-            <h2 class="text-xl font-bold text-slate-800 mb-6">Modul Maintenance</h2>
-            <div class="grid gap-4">
-                <button onclick="loadPendingMaintenance()" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4 active:bg-slate-50">
-                    <div class="bg-red-100 p-3 rounded-full text-red-600 text-xl"><i class="fas fa-clipboard-list"></i></div>
-                    <div class="text-left w-full flex justify-between items-center">
-                        <div><h3 class="font-bold text-slate-800">Tiket Tindak Lanjut</h3><p class="text-xs text-slate-500">Daftar laporan dari pengecekan</p></div>
-                        <i class="fas fa-chevron-right text-slate-300"></i>
-                    </div>
-                </button>
-                <button onclick="navigateTo('maintenance-manual')" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4 active:bg-slate-50">
-                    <div class="bg-emerald-100 p-3 rounded-full text-emerald-600 text-xl"><i class="fas fa-plus-circle"></i></div>
-                    <div class="text-left w-full flex justify-between items-center">
-                        <div><h3 class="font-bold text-slate-800">Lapor Manual Langsung</h3><p class="text-xs text-slate-500">Input perbaikan tanpa tiket awal</p></div>
-                        <i class="fas fa-chevron-right text-slate-300"></i>
-                    </div>
-                </button>
+        <!-- FORM RUANGAN -->
+        <div id="view-ruangan" class="form-section bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-6">
+            <div class="flex justify-between items-center mb-6 border-b pb-3 border-gray-200 dark:border-gray-700">
+                <h2 class="text-2xl font-bold text-blue-700 dark:text-blue-400"><i class="fas fa-door-open mr-2"></i>Pengecekan Ruangan</h2>
+                <button onclick="showMenu()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"><i class="fas fa-times text-xl"></i></button>
             </div>
-        </div>
-
-        <!-- SCREEN: FORM RUANGAN -->
-        <div id="screen-ruangan" class="page-section">
-            <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Form Pemeriksaan Ruangan</h2>
-            <form id="formRuangan" oninput="checkCompletion('ruangan')" onchange="checkCompletion('ruangan')">
-                <div class="mb-4">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Tanggal & Waktu</label>
-                    <input type="text" id="waktu_ruangan" class="w-full p-3 border border-slate-300 rounded-lg bg-slate-100 text-slate-600" readonly>
-                </div>
-                
-                <div class="mb-5">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Pilih Ruangan</label>
-                    <select id="namaRuangan" required class="req-ruangan w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="">-- Pilih Ruangan --</option>
-                        <option>Ruang Kelas Belajar 1</option><option>Ruang Kelas Belajar 2</option><option>Ruang Diskusi</option><option>Ruang Sekretariat Diklat</option><option>Ruang Penelitian</option><option>Ruang Penyimpanan</option><option>Ruang Ganti Loker Laki-Laki</option><option>Ruang Ganti Loker Perempuan</option><option>Ruang Fasilitator</option><option>Ruang Labskill Maternal</option><option>Ruang Labskill BHD</option><option>Ruang Jaga Laki-Laki 1</option><option>Ruang Jaga Laki-Laki 2</option><option>Ruang Jaga Perempuan 1</option><option>Ruang Jaga Perempuan 2</option>
+            <form id="form-ruangan" onsubmit="submitData(event, 'ruangan')" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Nama Ruangan <span class="text-red-500">*</span></label>
+                    <select name="namaRuangan" required class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                        <option value="">Pilih Ruangan...</option>
+                        <option value="Ruang Belajar 1">Ruang Belajar 1</option>
+                        <option value="Ruang Sekretariat Diklat">Ruang Sekretariat Diklat</option>
+                        <option value="Ruang Penelitian">Ruang Penelitian</option>
+                        <option value="Ruang Penyimpanan">Ruang Penyimpanan</option>
+                        <option value="Ruang Ganti/Loker Laki-Laki">Ruang Ganti/Loker Laki-Laki</option>
+                        <option value="Ruang Ganti/Loker Perempuan">Ruang Ganti/Loker Perempuan</option>
+                        <option value="Ruang Diskusi">Ruang Diskusi</option>
+                        <option value="Ruang Jaga Perempuan 1">Ruang Jaga Perempuan 1</option>
+                        <option value="Ruang Jaga Perempuan 2">Ruang Jaga Perempuan 2</option>
+                        <option value="Ruang Jaga Laki-Laki 1">Ruang Jaga Laki-Laki 1</option>
+                        <option value="Ruang Jaga Laki-Laki 2">Ruang Jaga Laki-Laki 2</option>
+                        <option value="Ruang LabSkill Maternal">Ruang LabSkill Maternal</option>
+                        <option value="Ruang LabSkill BHD">Ruang LabSkill BHD</option>
+                        <option value="Ruang Fasilitator">Ruang Fasilitator</option>
+                        <option value="Ruang Belajar 2">Ruang Belajar 2</option>
                     </select>
                 </div>
-
-                <div class="bg-white p-4 rounded-xl border border-slate-200 mb-5 shadow-sm">
-                    <h3 class="font-bold text-slate-800 mb-3 border-b pb-2">Indikator Kebersihan</h3>
-                    <div class="grid gap-3">
-                        <div class="flex justify-between items-center text-sm border-b pb-2 mb-2 last:border-0"><span class="text-slate-600">Kebersihan Ruang</span><div class="flex gap-2"><label class="cursor-pointer"><input type="radio" name="kebersihanRuang" value="Bersih" class="hidden radio-btn req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Bersih</div></label><label class="cursor-pointer"><input type="radio" name="kebersihanRuang" value="Kotor" class="hidden radio-btn rusak req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Kotor</div></label></div></div>
-                        <div class="flex justify-between items-center text-sm border-b pb-2 mb-2 last:border-0"><span class="text-slate-600">Kebersihan Toilet</span><div class="flex gap-2"><label class="cursor-pointer"><input type="radio" name="kebersihanToilet" value="Bersih" class="hidden radio-btn req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Bersih</div></label><label class="cursor-pointer"><input type="radio" name="kebersihanToilet" value="Kotor" class="hidden radio-btn rusak req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Kotor</div></label><label class="cursor-pointer"><input type="radio" name="kebersihanToilet" value="Tidak Ada" class="hidden radio-btn abu req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Tidak Ada</div></label></div></div>
-                        <div class="flex justify-between items-center text-sm border-b pb-2 mb-2 last:border-0"><span class="text-slate-600">Kebersihan Alat/Barang</span><div class="flex gap-2"><label class="cursor-pointer"><input type="radio" name="kebersihanBarang" value="Bersih" class="hidden radio-btn req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Bersih</div></label><label class="cursor-pointer"><input type="radio" name="kebersihanBarang" value="Kotor" class="hidden radio-btn rusak req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Kotor</div></label></div></div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-4 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-100 dark:border-gray-600">
+                        <h3 class="font-semibold text-gray-700 dark:text-gray-300 border-b pb-1">Kondisi Kebersihan</h3>
+                        <div>
+                            <label class="block text-sm mb-1">Ruangan <span class="text-red-500">*</span></label>
+                            <select name="kebersihanRuangan" required class="cond-select w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                                <option value="">Pilih...</option><option value="Bersih">Bersih</option><option value="Kotor">Kotor</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">Toilet <span class="text-red-500">*</span></label>
+                            <select name="kebersihanToilet" id="kebersihanToilet" required class="cond-select w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                                <option value="">Pilih...</option><option value="Bersih">Bersih</option><option value="Kotor">Kotor</option><option value="Tidak Ada">Tidak Ada</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">Alat/Barang <span class="text-red-500">*</span></label>
+                            <select name="kebersihanAlat" required class="cond-select w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                                <option value="">Pilih...</option><option value="Bersih">Bersih</option><option value="Kotor">Kotor</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
-
-                <div class="bg-white p-4 rounded-xl border border-slate-200 mb-5 shadow-sm">
-                    <h3 class="font-bold text-slate-800 mb-3 border-b pb-2">Indikator Fungsi</h3>
-                    <div class="grid gap-3">
-                        <div class="flex justify-between items-center text-sm border-b pb-2 mb-2 last:border-0"><span class="text-slate-600">Fungsi AC</span><div class="flex gap-2"><label class="cursor-pointer"><input type="radio" name="fungsiAC" value="Baik" class="hidden radio-btn req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Baik</div></label><label class="cursor-pointer"><input type="radio" name="fungsiAC" value="Rusak" class="hidden radio-btn rusak req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Rusak</div></label><label class="cursor-pointer"><input type="radio" name="fungsiAC" value="Tidak Ada" class="hidden radio-btn abu req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Tidak Ada</div></label></div></div>
-                        <div class="flex justify-between items-center text-sm border-b pb-2 mb-2 last:border-0"><span class="text-slate-600">Fungsi Pintu</span><div class="flex gap-2"><label class="cursor-pointer"><input type="radio" name="fungsiPintu" value="Baik" class="hidden radio-btn req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Baik</div></label><label class="cursor-pointer"><input type="radio" name="fungsiPintu" value="Rusak" class="hidden radio-btn rusak req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Rusak</div></label></div></div>
-                        <div class="flex justify-between items-center text-sm border-b pb-2 mb-2 last:border-0"><span class="text-slate-600">Fungsi Lampu</span><div class="flex gap-2"><label class="cursor-pointer"><input type="radio" name="fungsiLampu" value="Baik" class="hidden radio-btn req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Baik</div></label><label class="cursor-pointer"><input type="radio" name="fungsiLampu" value="Rusak" class="hidden radio-btn rusak req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Rusak</div></label></div></div>
-                        <div class="flex justify-between items-center text-sm border-b pb-2 mb-2 last:border-0"><span class="text-slate-600">Fungsi Toilet</span><div class="flex gap-2"><label class="cursor-pointer"><input type="radio" name="fungsiToilet" value="Baik" class="hidden radio-btn req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Baik</div></label><label class="cursor-pointer"><input type="radio" name="fungsiToilet" value="Rusak" class="hidden radio-btn rusak req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Rusak</div></label><label class="cursor-pointer"><input type="radio" name="fungsiToilet" value="Tidak Ada" class="hidden radio-btn abu req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Tidak Ada</div></label></div></div>
-                        <div class="flex justify-between items-center text-sm border-b pb-2 mb-2 last:border-0"><span class="text-slate-600">Fungsi Alat/Barang</span><div class="flex gap-2"><label class="cursor-pointer"><input type="radio" name="fungsiBarang" value="Baik" class="hidden radio-btn req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Baik</div></label><label class="cursor-pointer"><input type="radio" name="fungsiBarang" value="Rusak" class="hidden radio-btn rusak req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Rusak</div></label></div></div>
-                    </div>
-                </div>
-
-                <div class="bg-white p-4 rounded-xl border border-slate-200 mb-5 shadow-sm">
-                    <h3 class="font-bold text-slate-800 mb-3 border-b pb-2">Indikator Kelengkapan</h3>
-                    <div class="grid gap-3">
-                        <div class="flex justify-between items-center text-sm border-b pb-2 mb-2 last:border-0">
-                            <span class="text-slate-600">Kelengkapan Fasilitas</span>
-                            <div class="flex gap-2">
-                                <label class="cursor-pointer"><input type="radio" name="kelengkapanRuang" value="Lengkap" class="hidden radio-btn req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Lengkap</div></label>
-                                <label class="cursor-pointer"><input type="radio" name="kelengkapanRuang" value="Tidak Lengkap" class="hidden radio-btn rusak req-radio-ruangan"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Tidak Lengkap</div></label>
+                    
+                    <div class="space-y-4 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-100 dark:border-gray-600">
+                        <h3 class="font-semibold text-gray-700 dark:text-gray-300 border-b pb-1">Kondisi Fungsi & Kelengkapan</h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-sm mb-1">Fungsi AC <span class="text-red-500">*</span></label>
+                                <select name="fungsiAC" required class="cond-select w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="">Pilih...</option><option value="Berfungsi">Berfungsi</option><option value="Rusak">Rusak</option>
+                                </select>
                             </div>
+                            <div>
+                                <label class="block text-sm mb-1">Fungsi Pintu <span class="text-red-500">*</span></label>
+                                <select name="fungsiPintu" required class="cond-select w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="">Pilih...</option><option value="Berfungsi">Berfungsi</option><option value="Rusak">Rusak</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm mb-1">Fungsi Lampu <span class="text-red-500">*</span></label>
+                                <select name="fungsiLampu" required class="cond-select w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="">Pilih...</option><option value="Berfungsi">Berfungsi</option><option value="Rusak">Rusak</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm mb-1">Fungsi Toilet <span class="text-red-500">*</span></label>
+                                <select name="fungsiToilet" id="fungsiToilet" required class="cond-select w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="">Pilih...</option><option value="Berfungsi">Berfungsi</option><option value="Rusak">Rusak</option><option value="Tidak Ada" class="hidden">Tidak Ada</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">Fungsi Alat/Barang <span class="text-red-500">*</span></label>
+                            <select name="fungsiAlat" required class="cond-select w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                                <option value="">Pilih...</option><option value="Berfungsi">Berfungsi</option><option value="Rusak">Rusak</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">Kelengkapan <span class="text-red-500">*</span></label>
+                            <select name="kelengkapan" required class="cond-select w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                                <option value="">Pilih...</option><option value="Lengkap">Lengkap</option><option value="Tidak Lengkap">Tidak Lengkap</option>
+                            </select>
                         </div>
                     </div>
                 </div>
 
-                <!-- MUNCUL JIKA ADA KOTOR/RUSAK/TIDAK LENGKAP -->
-                <div id="cond-ruangan" class="hidden bg-red-50 p-4 rounded-xl border border-red-200 mb-5">
-                    <p class="text-xs text-red-600 font-bold mb-3"><i class="fas fa-exclamation-circle"></i> Ditemukan temuan (Kotor/Rusak/Tidak Lengkap). Silakan lengkapi bukti.</p>
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Bukti Foto Temuan <span class="text-red-500">*</span></label>
-                    <input type="file" id="foto_ruangan" accept="image/*" class="w-full mb-3 text-sm">
-                    
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Keterangan / Tindak Lanjut <span class="text-red-500">*</span></label>
-                    <textarea id="ket_ruangan" rows="2" class="w-full p-3 border border-slate-300 rounded-lg" placeholder="Deskripsikan temuannya..."></textarea>
+                <div id="foto-ruangan-container" class="hidden bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800 p-4 rounded-lg">
+                    <label class="block text-sm font-medium text-orange-800 dark:text-orange-300 mb-1">
+                        <i class="fas fa-exclamation-circle mr-1"></i> Bukti Foto (Terdapat item Kotor/Rusak/Tidak Lengkap) <span class="text-red-500">*</span>
+                    </label>
+                    <input type="file" name="fotoBefore" accept="image/*" class="w-full text-sm">
+                    <p class="text-xs text-orange-600 dark:text-orange-400 mt-1">Data otomatis masuk daftar tiket Maintenance.</p>
                 </div>
 
-                <div class="mb-5">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Nama Petugas Pengecek</label>
-                    <input type="text" id="petugas_ruangan" required class="req-ruangan w-full p-3 border border-slate-300 rounded-lg" placeholder="Masukkan nama Anda">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Keterangan <span class="text-red-500">*</span></label>
+                    <textarea name="keterangan" required rows="2" class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:border-gray-600"></textarea>
                 </div>
 
-                <!-- TTD MUNCUL DI AKHIR -->
-                <div id="ttd-ruangan" class="hidden bg-white p-4 rounded-xl border border-slate-200 mb-5 shadow-sm text-center">
-                    <label class="block text-sm font-bold text-slate-700 mb-2">Tanda Tangan Digital</label>
-                    <canvas id="canvas_ruangan"></canvas>
-                    <button type="button" onclick="padRuangan.clear()" class="mt-2 text-xs text-slate-500 underline">Hapus & Ulangi TTD</button>
-                    
-                    <button type="button" onclick="submitForm('Ruangan')" class="w-full mt-6 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700">SIMPAN HASIL PENGECEKAN</button>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Nama Petugas <span class="text-red-500">*</span></label>
+                    <input type="text" name="namaPetugas" required oninput="toggleSignature('ruangan', this)" class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
                 </div>
+
+                <div id="sig-container-ruangan" class="hidden flex flex-col items-center mt-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-700">
+                    <label class="block text-sm font-medium mb-2 w-full text-center">Tanda Tangan Petugas <span class="text-red-500">*</span></label>
+                    <canvas id="canvas-ruangan" class="border border-gray-400 bg-white rounded cursor-crosshair w-full max-w-sm" height="200"></canvas>
+                    <button type="button" onclick="clearPad('ruangan')" class="mt-2 text-sm text-red-500 hover:text-red-700"><i class="fas fa-eraser mr-1"></i>Hapus Tanda Tangan</button>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow mt-6 transition"><i class="fas fa-paper-plane mr-2"></i>Kirim Laporan</button>
             </form>
         </div>
 
-        <!-- SCREEN: FORM BARANG -->
-        <div id="screen-barang" class="page-section">
-            <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Form Pemeriksaan Barang</h2>
-            <form id="formBarang" oninput="checkCompletion('barang')" onchange="checkCompletion('barang')">
-                <div class="mb-4">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Tanggal & Waktu</label>
-                    <input type="text" id="waktu_barang" class="w-full p-3 border border-slate-300 rounded-lg bg-slate-100 text-slate-600" readonly>
-                </div>
-                
-                <div class="mb-5">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Pilih Alat / Barang</label>
-                    <select id="namaBarang" required class="req-barang w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="">-- Pilih Barang --</option>
-                        <option>BHP</option><option>ATK</option><option>Manikin</option><option>Kunci Loker</option><option>PC/Laptop</option><option>Printer</option><option>Proyektor+Layar</option><option>Sound System</option>
+        <!-- FORM BARANG -->
+        <div id="view-barang" class="form-section bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-6">
+            <div class="flex justify-between items-center mb-6 border-b pb-3 border-gray-200 dark:border-gray-700">
+                <h2 class="text-2xl font-bold text-teal-700 dark:text-teal-400"><i class="fas fa-boxes mr-2"></i>Pengecekan Barang</h2>
+                <button onclick="showMenu()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <form id="form-barang" onsubmit="submitData(event, 'barang')" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Nama Alat/Barang <span class="text-red-500">*</span></label>
+                    <select name="namaBarang" required class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                        <option value="">Pilih Barang...</option>
+                        <option value="Manikin/ Alat Pelatihan">Manikin/ Alat Pelatihan</option>
+                        <option value="BHP">BHP</option>
+                        <option value="ATK">ATK</option>
+                        <option value="Kunci Loker">Kunci Loker</option>
+                        <option value="PC/Laptop">PC/Laptop</option>
+                        <option value="Printer">Printer</option>
+                        <option value="Proyektor + Layar">Proyektor + Layar</option>
+                        <option value="Sound System">Sound System</option>
                     </select>
                 </div>
 
-                <div class="bg-white p-4 rounded-xl border border-slate-200 mb-5 shadow-sm">
-                    <h3 class="font-bold text-slate-800 mb-3 border-b pb-2">Indikator Kondisi</h3>
-                    <div class="grid gap-3">
-                        <div class="flex justify-between items-center text-sm border-b pb-2 mb-2 last:border-0"><span class="text-slate-600">Kebersihan</span><div class="flex gap-2"><label class="cursor-pointer"><input type="radio" name="kebersihanAlat" value="Bersih" class="hidden radio-btn req-radio-barang"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Bersih</div></label><label class="cursor-pointer"><input type="radio" name="kebersihanAlat" value="Kotor" class="hidden radio-btn rusak req-radio-barang"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Kotor</div></label></div></div>
-                        <div class="flex justify-between items-center text-sm border-b pb-2 mb-2 last:border-0"><span class="text-slate-600">Fungsi</span><div class="flex gap-2"><label class="cursor-pointer"><input type="radio" name="fungsiAlat" value="Baik" class="hidden radio-btn req-radio-barang"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Baik</div></label><label class="cursor-pointer"><input type="radio" name="fungsiAlat" value="Rusak" class="hidden radio-btn rusak req-radio-barang"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Rusak</div></label></div></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm mb-1">Kebersihan <span class="text-red-500">*</span></label>
+                        <select name="kebersihan" required class="cond-select-brg w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                            <option value="">Pilih...</option><option value="Bersih">Bersih</option><option value="Kotor">Kotor</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-1">Fungsi <span class="text-red-500">*</span></label>
+                        <select name="fungsi" required class="cond-select-brg w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                            <option value="">Pilih...</option><option value="Berfungsi">Berfungsi</option><option value="Rusak">Rusak</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-1">Kelengkapan <span class="text-red-500">*</span></label>
+                        <select name="kelengkapan" required class="cond-select-brg w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                            <option value="">Pilih...</option><option value="Lengkap">Lengkap</option><option value="Tidak Lengkap">Tidak Lengkap</option>
+                        </select>
                     </div>
                 </div>
 
-                <div class="bg-white p-4 rounded-xl border border-slate-200 mb-5 shadow-sm">
-                    <h3 class="font-bold text-slate-800 mb-3 border-b pb-2">Indikator Kelengkapan</h3>
-                    <div class="grid gap-3">
-                        <div class="flex justify-between items-center text-sm border-b pb-2 mb-2 last:border-0">
-                            <span class="text-slate-600">Kelengkapan Alat</span>
-                            <div class="flex gap-2">
-                                <label class="cursor-pointer"><input type="radio" name="kelengkapanAlat" value="Lengkap" class="hidden radio-btn req-radio-barang"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Lengkap</div></label>
-                                <label class="cursor-pointer"><input type="radio" name="kelengkapanAlat" value="Tidak Lengkap" class="hidden radio-btn rusak req-radio-barang"><div class="px-3 py-1 rounded-full border border-slate-300 text-xs text-slate-500 font-semibold transition">Tidak Lengkap</div></label>
-                            </div>
+                <div id="foto-barang-container" class="hidden bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800 p-4 rounded-lg">
+                    <label class="block text-sm font-medium text-orange-800 dark:text-orange-300 mb-1">
+                        <i class="fas fa-exclamation-circle mr-1"></i> Bukti Foto (Barang Kotor/Rusak/Tidak Lengkap) <span class="text-red-500">*</span>
+                    </label>
+                    <input type="file" name="fotoBefore" accept="image/*" class="w-full text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1">Keterangan <span class="text-red-500">*</span></label>
+                    <textarea name="keterangan" required rows="2" class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:border-gray-600"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1">Nama Petugas <span class="text-red-500">*</span></label>
+                    <input type="text" name="namaPetugas" required oninput="toggleSignature('barang', this)" class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                </div>
+
+                <div id="sig-container-barang" class="hidden flex flex-col items-center mt-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-700">
+                    <label class="block text-sm font-medium mb-2 w-full text-center">Tanda Tangan Petugas <span class="text-red-500">*</span></label>
+                    <canvas id="canvas-barang" class="border border-gray-400 bg-white rounded cursor-crosshair w-full max-w-sm" height="200"></canvas>
+                    <button type="button" onclick="clearPad('barang')" class="mt-2 text-sm text-red-500 hover:text-red-700"><i class="fas fa-eraser mr-1"></i>Hapus Tanda Tangan</button>
+                </div>
+
+                <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-lg shadow mt-6 transition"><i class="fas fa-paper-plane mr-2"></i>Kirim Laporan</button>
+            </form>
+        </div>
+
+        <!-- VIEW MAINTENANCE HUB -->
+        <div id="view-maintenance-hub" class="form-section space-y-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-orange-600 dark:text-orange-400"><i class="fas fa-tools mr-2"></i>Pusat Maintenance</h2>
+                <button onclick="showMenu()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            
+            <div class="flex space-x-2 border-b border-gray-300 dark:border-gray-700 pb-2">
+                <button onclick="switchMaintTab('tiket')" id="tab-tiket" class="px-4 py-2 font-semibold text-orange-600 border-b-2 border-orange-600">Daftar Tiket (Pending)</button>
+                <button onclick="switchMaintTab('dadakan')" id="tab-dadakan" class="px-4 py-2 font-semibold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Buat Laporan Dadakan</button>
+            </div>
+
+            <!-- Tiket List -->
+            <div id="maint-tiket-list" class="space-y-4">
+                <div class="text-center py-8 text-gray-500" id="tiket-loading">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i><p>Memuat daftar tiket...</p>
+                </div>
+                <div id="tiket-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+                    <!-- Cards injected here -->
+                </div>
+                <div id="tiket-empty" class="hidden text-center py-8 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                    <i class="fas fa-check-circle text-4xl text-green-500 mb-2"></i>
+                    <p class="text-green-700 dark:text-green-400 font-semibold">Semua tiket telah ditindaklanjuti. Tidak ada pending maintenance.</p>
+                </div>
+            </div>
+
+            <!-- Form Dadakan -->
+            <div id="maint-form-dadakan" class="hidden bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-6">
+                <h3 class="font-bold text-lg mb-4 text-orange-700 dark:text-orange-300">Input Maintenance Baru</h3>
+                <form id="form-maintenance" onsubmit="submitData(event, 'maintenance')" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Target <span class="text-red-500">*</span></label>
+                            <select name="target" id="maint-target" required class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                                <option value="">Pilih Target...</option>
+                                <option value="Ruangan">Ruangan</option>
+                                <option value="Alat/Barang">Alat/Barang</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Jenis Masalah <span class="text-red-500">*</span></label>
+                            <select name="jenis" required class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                                <option value="">Pilih...</option><option value="Kebersihan">Kebersihan</option><option value="Fungsi">Fungsi</option><option value="Kelengkapan">Kelengkapan</option>
+                            </select>
                         </div>
                     </div>
-                </div>
 
-                <!-- MUNCUL JIKA ADA KOTOR/RUSAK/TIDAK LENGKAP -->
-                <div id="cond-barang" class="hidden bg-red-50 p-4 rounded-xl border border-red-200 mb-5">
-                    <p class="text-xs text-red-600 font-bold mb-3"><i class="fas fa-exclamation-circle"></i> Ditemukan temuan (Kotor/Rusak/Tidak Lengkap). Silakan lengkapi bukti.</p>
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Bukti Foto Temuan <span class="text-red-500">*</span></label>
-                    <input type="file" id="foto_barang" accept="image/*" class="w-full mb-3 text-sm">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Keterangan / Tindak Lanjut <span class="text-red-500">*</span></label>
-                    <textarea id="ket_barang" rows="2" class="w-full p-3 border border-slate-300 rounded-lg"></textarea>
-                </div>
-
-                <div class="mb-5">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Nama Petugas Pengecek</label>
-                    <input type="text" id="petugas_barang" required class="req-barang w-full p-3 border border-slate-300 rounded-lg">
-                </div>
-
-                <!-- TTD MUNCUL DI AKHIR -->
-                <div id="ttd-barang" class="hidden bg-white p-4 rounded-xl border border-slate-200 mb-5 shadow-sm text-center">
-                    <label class="block text-sm font-bold text-slate-700 mb-2">Tanda Tangan Digital</label>
-                    <canvas id="canvas_barang"></canvas>
-                    <button type="button" onclick="padBarang.clear()" class="mt-2 text-xs text-slate-500 underline">Hapus & Ulangi TTD</button>
-                    <button type="button" onclick="submitForm('Barang')" class="w-full mt-6 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700">SIMPAN HASIL PENGECEKAN</button>
-                </div>
-            </form>
-        </div>
-
-        <!-- SCREEN: MAINTENANCE LIST (TIKET) -->
-        <div id="screen-maintenance-list" class="page-section">
-            <button onclick="navigateTo('maintenance-menu')" class="text-sm text-slate-500 mb-4"><i class="fas fa-arrow-left"></i> Kembali</button>
-            <h2 class="text-xl font-bold text-slate-800 mb-4">Daftar Tiket Tindak Lanjut</h2>
-            
-            <div id="loading-tiket" class="text-center py-10 hidden">
-                <i class="fas fa-circle-notch fa-spin text-3xl text-blue-500 mb-2"></i>
-                <p class="text-slate-500 text-sm">Menarik data dari server...</p>
-            </div>
-            
-            <div id="tiket-container" class="grid gap-3">
-                <!-- Data dari script akan dirender di sini -->
-            </div>
-        </div>
-
-        <!-- SCREEN: MAINTENANCE ACTION (TINDAK LANJUT TIKET) -->
-        <div id="screen-maintenance-action" class="page-section">
-            <button onclick="navigateTo('maintenance-list')" class="text-sm text-slate-500 mb-4"><i class="fas fa-arrow-left"></i> Batal / Kembali</button>
-            <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Eksekusi Tindak Lanjut</h2>
-            
-            <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 mb-4 text-sm">
-                <p class="mb-1"><span class="font-bold text-slate-700">Fasilitas:</span> <span id="act_fasilitas" class="font-semibold text-amber-700"></span></p>
-                <p class="mb-1"><span class="font-bold text-slate-700">Laporan Masuk:</span> <span id="act_tanggal"></span></p>
-                <p><span class="font-bold text-slate-700">Temuan (Pelapor):</span> <span id="act_temuan"></span></p>
-            </div>
-
-            <form id="formAction">
-                <input type="hidden" id="act_rowIndex">
-                
-                <div class="mb-4">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Tanggal/Jam Selesai</label>
-                    <input type="text" id="waktu_action" class="w-full p-3 border border-slate-300 rounded-lg bg-slate-100" readonly>
-                </div>
-                
-                <div class="mb-4">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Aksi / Tindakan yang Dilakukan <span class="text-red-500">*</span></label>
-                    <textarea id="act_tindakan" rows="2" class="w-full p-3 border border-slate-300 rounded-lg" required placeholder="Misal: Pembersihan AC, Penggantian Lampu..."></textarea>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Foto Hasil (After) <span class="text-red-500">*</span></label>
-                    <input type="file" id="act_foto" accept="image/*" required class="w-full text-sm">
-                </div>
-
-                <div class="mb-5">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Nama Teknisi</label>
-                    <input type="text" id="act_teknisi" required class="w-full p-3 border border-slate-300 rounded-lg">
-                </div>
-
-                <div class="bg-white p-4 rounded-xl border border-slate-200 mb-5 text-center">
-                    <label class="block text-sm font-bold text-slate-700 mb-2">Tanda Tangan Teknisi</label>
-                    <canvas id="canvas_action"></canvas>
-                    <button type="button" onclick="padAction.clear()" class="mt-2 text-xs text-slate-500 underline">Hapus & Ulangi TTD</button>
-                    <button type="button" onclick="submitAction()" class="w-full mt-6 bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700">SELESAIKAN TIKET</button>
-                </div>
-            </form>
-        </div>
-
-        <!-- SCREEN: MAINTENANCE MANUAL -->
-        <div id="screen-maintenance-manual" class="page-section">
-            <button onclick="navigateTo('maintenance-menu')" class="text-sm text-slate-500 mb-4"><i class="fas fa-arrow-left"></i> Kembali</button>
-            <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Laporan Maintenance Langsung</h2>
-            
-            <form id="formManual">
-                <div class="mb-4">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Tanggal/Jam</label>
-                    <input type="text" id="waktu_manual" class="w-full p-3 border border-slate-300 rounded-lg bg-slate-100" readonly>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3 mb-4">
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Target</label>
-                        <select id="man_target" class="w-full p-3 border border-slate-300 rounded-lg" required>
-                            <option value="">--Pilih--</option><option>Ruangan</option><option>Alat/Barang</option>
+                        <label class="block text-sm font-medium mb-1">Nama Ruangan / Alat <span class="text-red-500">*</span></label>
+                        <select name="namaRuangan" id="maint-nama" required class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                            <option value="">Pilih Target terlebih dahulu...</option>
                         </select>
                     </div>
+
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Jenis Tindakan</label>
-                        <select id="man_jenis" class="w-full p-3 border border-slate-300 rounded-lg" required>
-                            <option value="">--Pilih--</option><option>Pembersihan</option><option>Perbaikan/Service</option><option>Ganti Sparepart</option>
-                        </select>
+                        <label class="block text-sm font-medium mb-1">Tindakan / Aksi yang Dilakukan</label>
+                        <textarea name="tindakan" rows="2" placeholder="Kosongkan jika belum dikerjakan" class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:border-gray-600"></textarea>
+                        <p class="text-xs text-gray-500 mt-1">Status otomatis "Selesai" jika tindakan diisi, dan "Belum Dikerjakan" jika kosong.</p>
                     </div>
-                </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Nama Fasilitas/Alat <span class="text-red-500">*</span></label>
-                    <input type="text" id="man_fasilitas" required class="w-full p-3 border border-slate-300 rounded-lg">
-                </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="border p-3 rounded dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
+                            <label class="block text-sm font-medium mb-1">Foto Before (Bila ada)</label>
+                            <input type="file" name="fotoBefore" accept="image/*" class="w-full text-sm">
+                        </div>
+                        <div class="border p-3 rounded dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
+                            <label class="block text-sm font-medium mb-1">Foto After (Bila ada)</label>
+                            <input type="file" name="fotoAfter" accept="image/*" class="w-full text-sm">
+                        </div>
+                    </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Tindakan / Aksi <span class="text-red-500">*</span></label>
-                    <textarea id="man_tindakan" rows="2" class="w-full p-3 border border-slate-300 rounded-lg" required></textarea>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3 mb-4">
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Foto Before <span class="text-red-500">*</span></label>
-                        <input type="file" id="man_foto_bef" accept="image/*" required class="w-full text-xs">
+                        <label class="block text-sm font-medium mb-1">Keterangan <span class="text-red-500">*</span></label>
+                        <textarea name="keterangan" required rows="2" class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:border-gray-600"></textarea>
                     </div>
+
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Foto After <span class="text-red-500">*</span></label>
-                        <input type="file" id="man_foto_aft" accept="image/*" required class="w-full text-xs">
+                        <label class="block text-sm font-medium mb-1">Nama Petugas <span class="text-red-500">*</span></label>
+                        <input type="text" name="namaPetugas" required oninput="toggleSignature('maintenance', this)" class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
                     </div>
+
+                    <div id="sig-container-maintenance" class="hidden flex flex-col items-center mt-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-700">
+                        <label class="block text-sm font-medium mb-2 w-full text-center">Tanda Tangan Petugas <span class="text-red-500">*</span></label>
+                        <canvas id="canvas-maintenance" class="border border-gray-400 bg-white rounded cursor-crosshair w-full max-w-sm" height="200"></canvas>
+                        <button type="button" onclick="clearPad('maintenance')" class="mt-2 text-sm text-red-500 hover:text-red-700"><i class="fas fa-eraser mr-1"></i>Hapus Tanda Tangan</button>
+                    </div>
+
+                    <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-lg shadow mt-6 transition"><i class="fas fa-paper-plane mr-2"></i>Simpan Laporan Dadakan</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- FORM UPDATE TIKET -->
+        <div id="view-update-tiket" class="form-section bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-6">
+            <div class="flex justify-between items-center mb-4 border-b pb-3 border-gray-200 dark:border-gray-700">
+                <h2 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400"><i class="fas fa-clipboard-check mr-2"></i>Tindak Lanjut Tiket</h2>
+                <button onclick="loadMaintenance()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"><i class="fas fa-arrow-left text-xl"></i></button>
+            </div>
+            
+            <div id="ticket-info-panel" class="mb-6 p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg border border-indigo-100 dark:border-indigo-800">
+                <!-- Injected via JS -->
+            </div>
+
+            <form id="form-updateTicket" onsubmit="submitData(event, 'updateTicket')" class="space-y-4">
+                <input type="hidden" name="rowId" id="update-rowId">
+                
+                <div>
+                    <label class="block text-sm font-medium mb-1">Tindakan yang Dilakukan <span class="text-red-500">*</span></label>
+                    <textarea name="tindakan" required rows="2" class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:border-gray-600"></textarea>
                 </div>
 
-                <div class="mb-5">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Nama Teknisi</label>
-                    <input type="text" id="man_teknisi" required class="w-full p-3 border border-slate-300 rounded-lg">
+                <div class="border p-3 rounded dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
+                    <label class="block text-sm font-medium mb-1">Foto After (Hasil Perbaikan) <span class="text-red-500">*</span></label>
+                    <input type="file" name="fotoAfter" required accept="image/*" class="w-full text-sm">
                 </div>
 
-                <div class="bg-white p-4 rounded-xl border border-slate-200 text-center">
-                    <label class="block text-sm font-bold text-slate-700 mb-2">Tanda Tangan Teknisi</label>
-                    <canvas id="canvas_manual"></canvas>
-                    <button type="button" onclick="padManual.clear()" class="mt-2 text-xs text-slate-500 underline">Hapus & Ulangi TTD</button>
-                    <button type="button" onclick="submitManual()" class="w-full mt-6 bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700">SIMPAN LAPORAN</button>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Keterangan Tambahan <span class="text-red-500">*</span></label>
+                    <textarea name="keterangan" required rows="2" class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:border-gray-600"></textarea>
                 </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1">Nama Petugas <span class="text-red-500">*</span></label>
+                    <input type="text" name="namaPetugas" required oninput="toggleSignature('updateTicket', this)" class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                </div>
+
+                <div id="sig-container-updateTicket" class="hidden flex flex-col items-center mt-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-700">
+                    <label class="block text-sm font-medium mb-2 w-full text-center">Tanda Tangan Petugas <span class="text-red-500">*</span></label>
+                    <canvas id="canvas-updateTicket" class="border border-gray-400 bg-white rounded cursor-crosshair w-full max-w-sm" height="200"></canvas>
+                    <button type="button" onclick="clearPad('updateTicket')" class="mt-2 text-sm text-red-500 hover:text-red-700"><i class="fas fa-eraser mr-1"></i>Hapus Tanda Tangan</button>
+                </div>
+
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow mt-6 transition"><i class="fas fa-check-double mr-2"></i>Selesaikan Tiket</button>
             </form>
         </div>
 
-        <!-- Overlay Loading -->
-        <div id="loadingOverlay" class="fixed inset-0 bg-slate-900 bg-opacity-60 flex-col justify-center items-center z-50 hidden">
-            <i class="fas fa-circle-notch fa-spin text-5xl text-white mb-4"></i>
-            <p class="text-white font-bold">Menyimpan ke Server...</p>
-        </div>
+    </main>
 
+    <!-- Custom Loading Overlay -->
+    <div id="loading" class="loader-overlay fixed inset-0 bg-black/60 z-50 flex-col justify-center items-center backdrop-blur-sm">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mb-4"></div>
+        <p class="text-white font-semibold tracking-widest animate-pulse">MEMPROSES DATA...</p>
     </div>
 
-    <!-- Script Utama -->
     <script>
-        // PASTE URL WEB APP ANDA DI SINI
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRh1PkoVXniYC3uYsOutsfWb_hZs0Zl7HLLT4DKaYnjanjFla0ufEHe2AU3oorkfDN4A/exec';
+        // GANTI URL INI DENGAN URL DEPLOY GOOGLE APPS SCRIPT ANDA
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwOnJRxUBvXKHNTzJtaapVsaOdfZkh24JsBP7shST86dwxHHpIFNIF7VS0RohJYBvfgOQ/exec';
 
-        // 1. INISIALISASI CANVAS SIGNATURE PAD
-        let padRuangan, padBarang, padAction, padManual;
+        let pads = {};
 
-        function initSignaturePads() {
-            if (typeof SignaturePad !== 'undefined') {
-                padRuangan = new SignaturePad(document.getElementById('canvas_ruangan'));
-                padBarang = new SignaturePad(document.getElementById('canvas_barang'));
-                padAction = new SignaturePad(document.getElementById('canvas_action'));
-                padManual = new SignaturePad(document.getElementById('canvas_manual'));
-            } else {
-                setTimeout(initSignaturePads, 200); 
-            }
-        }
-        window.addEventListener('load', initSignaturePads);
+        // Init Dark Mode
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        themeToggleBtn.addEventListener('click', function() {
+            document.documentElement.classList.toggle('dark');
+        });
 
-        function resizeCanvas(padObj, canvasId) {
-            if (!padObj) return; 
-            const canvas = document.getElementById(canvasId);
-            const ratio =  Math.max(window.devicePixelRatio || 1, 1);
-            canvas.width = canvas.offsetWidth * ratio;
-            canvas.height = canvas.offsetHeight * ratio;
-            canvas.getContext("2d").scale(ratio, ratio);
-            padObj.clear();
-        }
-
-        // 2. LOGIKA NAVIGASI ANTAR HALAMAN
-        function navigateTo(screenId) {
-            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
-            document.getElementById('screen-' + screenId).classList.add('active');
-            
-            const btnHome = document.getElementById('btnHome');
-            if(screenId === 'menu') { btnHome.classList.add('hidden'); }
-            else { btnHome.classList.remove('hidden'); }
-
-            const timeNow = getFormattedTime();
-            if(screenId === 'ruangan') document.getElementById('waktu_ruangan').value = timeNow;
-            if(screenId === 'barang') document.getElementById('waktu_barang').value = timeNow;
-            if(screenId === 'maintenance-manual') {
-                document.getElementById('waktu_manual').value = timeNow;
-                resizeCanvas(padManual, 'canvas_manual');
-            }
-        }
-
-        function getFormattedTime() {
-            const d = new Date();
-            const months = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
-            return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-        }
-
-        // 3. LOGIKA KONDISIONAL TAMPIL/SEMBUNYI (Form Pengecekan)
-        function checkCompletion(type) {
-            let radios = document.querySelectorAll(`input[type="radio"].req-radio-${type}:checked`);
-            let isRusak = Array.from(radios).some(r => r.value === 'Kotor' || r.value === 'Rusak' || r.value === 'Tidak Lengkap');
-            
-            let condDiv = document.getElementById(`cond-${type}`);
-            let fotoInput = document.getElementById(`foto_${type}`);
-            let ketInput = document.getElementById(`ket_${type}`);
-
-            if (isRusak) {
-                condDiv.classList.remove('hidden');
-                fotoInput.required = true;
-                ketInput.required = true;
-            } else {
-                condDiv.classList.add('hidden');
-                fotoInput.required = false;
-                ketInput.required = false;
-            }
-
-            // Jumlah total grup radio (Ruangan: 9 grup | Barang: 3 grup)
-            let totalRadioGroups = type === 'ruangan' ? 9 : 3; 
-            let isAllRadioFilled = radios.length === totalRadioGroups;
-            let nama = document.getElementById(`petugas_${type}`).value.trim();
-            
-            let isCondFilled = true;
-            if (isRusak) {
-                if (fotoInput.files.length === 0 || ketInput.value.trim() === '') isCondFilled = false;
-            }
-
-            let ttdDiv = document.getElementById(`ttd-${type}`);
-            if (isAllRadioFilled && nama !== '' && isCondFilled && document.getElementById(`nama${type.charAt(0).toUpperCase() + type.slice(1)}`).value !== '') {
-                if (ttdDiv.classList.contains('hidden')) {
-                    ttdDiv.classList.remove('hidden');
-                    if (type === 'ruangan') resizeCanvas(padRuangan, 'canvas_ruangan');
-                    if (type === 'barang') resizeCanvas(padBarang, 'canvas_barang');
+        // Initialize Signature Pads
+        window.onload = function() {
+            ['ruangan', 'barang', 'maintenance', 'updateTicket'].forEach(type => {
+                const canvas = document.getElementById(`canvas-${type}`);
+                if(canvas) {
+                    pads[type] = new SignaturePad(canvas, { backgroundColor: 'rgb(255, 255, 255)' });
                 }
+            });
+            setupConditionals();
+        };
+
+        function setupConditionals() {
+            // Toilet Logic
+            const toiletKebersihan = document.getElementById('kebersihanToilet');
+            const toiletFungsi = document.getElementById('fungsiToilet');
+            
+            toiletKebersihan.addEventListener('change', function() {
+                if(this.value === 'Tidak Ada') {
+                    toiletFungsi.querySelector('option[value="Tidak Ada"]').classList.remove('hidden');
+                    toiletFungsi.value = 'Tidak Ada';
+                    toiletFungsi.style.pointerEvents = 'none';
+                    toiletFungsi.classList.add('bg-gray-200', 'dark:bg-gray-600');
+                } else {
+                    toiletFungsi.querySelector('option[value="Tidak Ada"]').classList.add('hidden');
+                    if(toiletFungsi.value === 'Tidak Ada') toiletFungsi.value = '';
+                    toiletFungsi.style.pointerEvents = 'auto';
+                    toiletFungsi.classList.remove('bg-gray-200', 'dark:bg-gray-600');
+                }
+            });
+
+            // Photo Logic
+            const condSelects = document.querySelectorAll('.cond-select');
+            condSelects.forEach(sel => {
+                sel.addEventListener('change', () => {
+                    let needsFoto = Array.from(condSelects).some(s => ['Kotor', 'Rusak', 'Tidak Lengkap'].includes(s.value));
+                    const cont = document.getElementById('foto-ruangan-container');
+                    const input = cont.querySelector('input');
+                    if (needsFoto) {
+                        cont.classList.remove('hidden'); input.required = true;
+                    } else {
+                        cont.classList.add('hidden'); input.required = false; input.value = '';
+                    }
+                });
+            });
+
+            const condSelectsBrg = document.querySelectorAll('.cond-select-brg');
+            condSelectsBrg.forEach(sel => {
+                sel.addEventListener('change', () => {
+                    let needsFoto = Array.from(condSelectsBrg).some(s => ['Kotor', 'Rusak', 'Tidak Lengkap'].includes(s.value));
+                    const cont = document.getElementById('foto-barang-container');
+                    const input = cont.querySelector('input');
+                    if (needsFoto) {
+                        cont.classList.remove('hidden'); input.required = true;
+                    } else {
+                        cont.classList.add('hidden'); input.required = false; input.value = '';
+                    }
+                });
+            });
+
+            // Dynamic Dropdown Maintenance Dadakan
+            const maintTarget = document.getElementById('maint-target');
+            const maintNama = document.getElementById('maint-nama');
+            const listRuangan = [
+                "Ruang Belajar 1", "Ruang Sekretariat Diklat", "Ruang Penelitian", "Ruang Penyimpanan",
+                "Ruang Ganti/Loker Laki-Laki", "Ruang Ganti/Loker Perempuan", "Ruang Diskusi",
+                "Ruang Jaga Perempuan 1", "Ruang Jaga Perempuan 2", "Ruang Jaga Laki-Laki 1",
+                "Ruang Jaga Laki-Laki 2", "Ruang LabSkill Maternal", "Ruang LabSkill BHD",
+                "Ruang Fasilitator", "Ruang Belajar 2"
+            ];
+            const listBarang = [
+                "Manikin/ Alat Pelatihan", "BHP", "ATK", "Kunci Loker", "PC/Laptop",
+                "Printer", "Proyektor + Layar", "Sound System"
+            ];
+
+            maintTarget.addEventListener('change', function() {
+                maintNama.innerHTML = '<option value="">Pilih...</option>';
+                if (this.value === 'Ruangan') {
+                    listRuangan.forEach(item => {
+                        maintNama.innerHTML += `<option value="${item}">${item}</option>`;
+                    });
+                } else if (this.value === 'Alat/Barang') {
+                    listBarang.forEach(item => {
+                        maintNama.innerHTML += `<option value="${item}">${item}</option>`;
+                    });
+                } else {
+                    maintNama.innerHTML = '<option value="">Pilih Target terlebih dahulu...</option>';
+                }
+            });
+        }
+
+        function showMenu() {
+            document.querySelectorAll('.form-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-menu').classList.add('active');
+            window.scrollTo(0,0);
+        }
+
+        function showForm(type) {
+            document.querySelectorAll('.form-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${type}`).classList.add('active');
+            resizeCanvas(type);
+            window.scrollTo(0,0);
+        }
+        
+        function switchMaintTab(tab) {
+            if(tab === 'tiket') {
+                document.getElementById('tab-tiket').className = "px-4 py-2 font-semibold text-orange-600 border-b-2 border-orange-600";
+                document.getElementById('tab-dadakan').className = "px-4 py-2 font-semibold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300";
+                document.getElementById('maint-tiket-list').classList.remove('hidden');
+                document.getElementById('maint-form-dadakan').classList.add('hidden');
             } else {
-                ttdDiv.classList.add('hidden');
+                document.getElementById('tab-dadakan').className = "px-4 py-2 font-semibold text-orange-600 border-b-2 border-orange-600";
+                document.getElementById('tab-tiket').className = "px-4 py-2 font-semibold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300";
+                document.getElementById('maint-form-dadakan').classList.remove('hidden');
+                document.getElementById('maint-tiket-list').classList.add('hidden');
+                resizeCanvas('maintenance');
             }
         }
 
-        // 4. HELPER KOMPRESI IMAGE KE BASE64 (Mencegah Gagal Koneksi)
-        function getBase64(file) {
-            return new Promise((resolve, reject) => {
-                if(!file) return resolve('');
+        async function loadMaintenance() {
+            showForm('maintenance-hub'); // This triggers resizeCanvas('maintenance-hub')
+            switchMaintTab('tiket');
+            
+            document.getElementById('tiket-loading').classList.remove('hidden');
+            document.getElementById('tiket-container').classList.add('hidden');
+            document.getElementById('tiket-empty').classList.add('hidden');
+
+            try {
+                // Fetch data from GAS URL
+                const response = await fetch(SCRIPT_URL + '?action=getTickets');
                 
+                // Cek status HTTP (ex: 200 OK)
+                if(!response.ok) {
+                    throw new Error("Gagal terhubung ke Google Apps Script (HTTP " + response.status + ")");
+                }
+                
+                // Ambil raw text dulu sebelum diparse
+                const rawText = await response.text();
+                
+                let res;
+                try {
+                    res = JSON.parse(rawText);
+                } catch (parseError) {
+                    throw new Error("Respons bukan JSON. URL Web App mungkin salah atau belum di-Deploy ulang. (Raw response: " + rawText.substring(0,50) + "...)");
+                }
+                
+                document.getElementById('tiket-loading').classList.add('hidden');
+                
+                if (res.status === 'error') {
+                    throw new Error(res.message);
+                }
+
+                const container = document.getElementById('tiket-container');
+                container.innerHTML = '';
+
+                // Cek jika array data tidak kosong
+                if(res.data && res.data.length > 0) {
+                    container.classList.remove('hidden');
+                    res.data.forEach(ticket => {
+                        const card = document.createElement('div');
+                        card.className = "bg-white dark:bg-gray-700 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-600 flex flex-col justify-between";
+                        card.innerHTML = `
+                            <div>
+                                <div class="flex justify-between items-start mb-2">
+                                    <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">Pending</span>
+                                    <span class="text-xs text-gray-500"><i class="far fa-clock mr-1"></i>${ticket.datetime}</span>
+                                </div>
+                                <h4 class="font-bold text-lg text-gray-800 dark:text-white">${ticket.target}: ${ticket.nama}</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1"><span class="font-semibold">Temuan:</span> ${ticket.keterangan}</p>
+                            </div>
+                            <button onclick='openUpdateForm(${JSON.stringify(ticket).replace(/'/g, "&#39;")})' class="mt-4 w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded text-sm font-semibold transition">
+                                Tindak Lanjuti
+                            </button>
+                        `;
+                        container.appendChild(card);
+                    });
+                } else {
+                    // Jika array kosong (tidak ada tiket pending)
+                    document.getElementById('tiket-empty').classList.remove('hidden');
+                }
+            } catch (err) {
+                document.getElementById('tiket-loading').classList.add('hidden');
+                Swal.fire({
+                    title: 'Gagal Memuat Tiket',
+                    html: `<b>Error:</b> ${err.message}<br><br>Saran: Pastikan URL <code>SCRIPT_URL</code> benar dan hasil dari <b>New Deployment</b>, serta di-set <b>Anyone</b>.`,
+                    icon: 'error'
+                });
+            }
+        }
+
+        function openUpdateForm(ticket) {
+            document.querySelectorAll('.form-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-update-tiket').classList.add('active');
+            
+            document.getElementById('update-rowId').value = ticket.row;
+            
+            const info = document.getElementById('ticket-info-panel');
+            info.innerHTML = `
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="font-semibold text-indigo-900 dark:text-indigo-200">${ticket.target}: ${ticket.nama}</span>
+                    <span class="text-indigo-700 dark:text-indigo-400">${ticket.datetime}</span>
+                </div>
+                <p class="text-sm text-indigo-800 dark:text-indigo-300"><span class="font-bold">Kendala:</span> ${ticket.keterangan}</p>
+                ${ticket.fotoBefore ? `<a href="${ticket.fotoBefore}" target="_blank" class="text-xs text-blue-600 hover:underline mt-2 inline-block"><i class="fas fa-image mr-1"></i>Lihat Foto Temuan</a>` : ''}
+            `;
+            
+            resizeCanvas('updateTicket');
+        }
+
+        function toggleSignature(type, input) {
+            const container = document.getElementById(`sig-container-${type}`);
+            if (input.value.trim().length > 0) {
+                container.classList.remove('hidden');
+                resizeCanvas(type);
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        function resizeCanvas(type) {
+            const canvas = document.getElementById(`canvas-${type}`);
+            if (!canvas) return; // FIXED: Prevent error if canvas is not found in the current view
+            
+            const ratio =  Math.max(window.devicePixelRatio || 1, 1);
+            if(canvas.offsetWidth > 0) {
+                canvas.width = canvas.offsetWidth * ratio;
+                canvas.height = canvas.offsetHeight * ratio;
+                canvas.getContext("2d").scale(ratio, ratio);
+                pads[type].clear();
+            }
+        }
+
+        function clearPad(type) {
+            if(pads[type]) pads[type].clear();
+        }
+
+        async function fileToBase64(file) {
+            if(!file) return null;
+            return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        // Kompresi ukuran gambar
-                        const MAX_WIDTH = 800; // Resolusi maksimal
-                        let canvas = document.createElement('canvas');
-                        let ctx = canvas.getContext('2d');
-
-                        if (img.width > MAX_WIDTH) {
-                            const scaleSize = MAX_WIDTH / img.width;
-                            canvas.width = MAX_WIDTH;
-                            canvas.height = img.height * scaleSize;
-                        } else {
-                            canvas.width = img.width;
-                            canvas.height = img.height;
-                        }
-
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        
-                        // Kualitas foto dikurangi menjadi 60% agar super ringan
-                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
-                        resolve(compressedBase64);
-                    };
-                    img.onerror = error => reject(error);
-                };
+                reader.onload = () => resolve({
+                    filename: file.name,
+                    mimeType: file.type,
+                    data: reader.result.split(',')[1]
+                });
                 reader.onerror = error => reject(error);
             });
         }
 
-        // 5. FUNGSI SUBMIT PENGECEKAN
-        async function submitForm(type) {
-            let typeLower = type.toLowerCase();
-            let pad = type === 'Ruangan' ? padRuangan : padBarang;
+        async function submitData(e, type) {
+            e.preventDefault();
             
-            if(!pad || pad.isEmpty()) { alert("Silakan berikan Tanda Tangan Anda!"); return; }
-
-            document.getElementById('loadingOverlay').classList.remove('hidden');
-
-            let radios = document.querySelectorAll(`input[type="radio"].req-radio-${typeLower}:checked`);
-            let isRusak = Array.from(radios).some(r => r.value === 'Kotor' || r.value === 'Rusak' || r.value === 'Tidak Lengkap');
-            let fotoFile = document.getElementById(`foto_${typeLower}`).files[0];
-            let fotoBase64 = await getBase64(fotoFile);
-
-            let payload = {
-                type: type,
-                tanggal: document.getElementById(`waktu_${typeLower}`).value,
-                petugas: document.getElementById(`petugas_${typeLower}`).value,
-                isRusak: isRusak,
-                fotoTemuan: fotoBase64,
-                keterangan: isRusak ? document.getElementById(`ket_${typeLower}`).value : "-",
-                ttd: pad.toDataURL("image/png")
-            };
-
-            if (type === 'Ruangan') {
-                payload.namaRuangan = document.getElementById('namaRuangan').value;
-                payload.kebersihanRuang = document.querySelector('input[name="kebersihanRuang"]:checked')?.value;
-                payload.kebersihanToilet = document.querySelector('input[name="kebersihanToilet"]:checked')?.value;
-                payload.kebersihanBarang = document.querySelector('input[name="kebersihanBarang"]:checked')?.value;
-                payload.fungsiAC = document.querySelector('input[name="fungsiAC"]:checked')?.value;
-                payload.fungsiPintu = document.querySelector('input[name="fungsiPintu"]:checked')?.value;
-                payload.fungsiLampu = document.querySelector('input[name="fungsiLampu"]:checked')?.value;
-                payload.fungsiToilet = document.querySelector('input[name="fungsiToilet"]:checked')?.value;
-                payload.fungsiBarang = document.querySelector('input[name="fungsiBarang"]:checked')?.value;
-                payload.kelengkapan = document.querySelector('input[name="kelengkapanRuang"]:checked')?.value;
-            } else {
-                payload.namaBarang = document.getElementById('namaBarang').value;
-                payload.kebersihan = document.querySelector('input[name="kebersihanAlat"]:checked')?.value;
-                payload.fungsi = document.querySelector('input[name="fungsiAlat"]:checked')?.value;
-                payload.kelengkapan = document.querySelector('input[name="kelengkapanAlat"]:checked')?.value;
+            if (pads[type] && pads[type].isEmpty()) {
+                Swal.fire('Perhatian', 'Tanda tangan wajib diisi!', 'warning');
+                return;
             }
 
-            postData(payload, `form${type}`);
-        }
+            document.getElementById('loading').classList.add('active');
+            const form = e.target;
+            const formData = new FormData(form);
+            let payload = { type: type, data: {} };
 
-        // 6. FUNGSI MAINTENANCE (AMBIL TIKET, EKSEKUSI & MANUAL)
-        async function loadPendingMaintenance() {
-            navigateTo('maintenance-list');
-            document.getElementById('loading-tiket').classList.remove('hidden');
-            document.getElementById('tiket-container').innerHTML = '';
+            for (let [key, value] of formData.entries()) {
+                if(key !== 'fotoBefore' && key !== 'fotoAfter') {
+                    payload.data[key] = value;
+                }
+            }
 
             try {
-                let response = await fetch(SCRIPT_URL);
-                let result = await response.json();
-                
-                document.getElementById('loading-tiket').classList.add('hidden');
-                
-                if (result.data.length === 0) {
-                    document.getElementById('tiket-container').innerHTML = '<div class="text-center p-6 text-slate-400 bg-white rounded-xl border border-dashed border-slate-300">🎉 Hore! Tidak ada tiket kerusakan.</div>';
-                    return;
+                const fileBefore = form.querySelector('input[name="fotoBefore"]');
+                if (fileBefore && fileBefore.files[0]) payload.fotoBefore = await fileToBase64(fileBefore.files[0]);
+
+                const fileAfter = form.querySelector('input[name="fotoAfter"]');
+                if (fileAfter && fileAfter.files[0]) payload.fotoAfter = await fileToBase64(fileAfter.files[0]);
+
+                if(pads[type]) {
+                    payload.signature = {
+                        filename: `ttd_${type}_${Date.now()}.png`,
+                        mimeType: 'image/png',
+                        data: pads[type].toDataURL().split(',')[1]
+                    };
                 }
 
-                result.data.forEach(item => {
-                    let card = `
-                        <div class="bg-white p-4 rounded-xl border border-red-200 shadow-sm cursor-pointer hover:bg-slate-50 transition" onclick="openActionForm('${item.row_index}', '${item.fasilitas}', '${item.tanggal}', '${item.keterangan}')">
-                            <div class="flex justify-between items-start mb-2">
-                                <h3 class="font-bold text-slate-800">${item.fasilitas}</h3>
-                                <span class="bg-red-100 text-red-600 text-[10px] px-2 py-1 rounded font-bold">${item.target}</span>
-                            </div>
-                            <p class="text-xs text-slate-500 mb-2"><i class="far fa-clock"></i> ${item.tanggal}</p>
-                            <p class="text-sm text-slate-700 bg-slate-100 p-2 rounded">"${item.keterangan}" - <i>${item.pelapor}</i></p>
-                            <button class="mt-3 w-full bg-blue-100 text-blue-700 font-bold text-sm py-2 rounded">Tindak Lanjuti <i class="fas fa-arrow-right"></i></button>
-                        </div>
-                    `;
-                    document.getElementById('tiket-container').innerHTML += card;
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
                 });
-            } catch(e) {
-                alert('Gagal mengambil data tiket.');
-                document.getElementById('loading-tiket').classList.add('hidden');
-            }
-        }
 
-        function openActionForm(rowIndex, fasilitas, tanggal, temuan) {
-            document.getElementById('act_rowIndex').value = rowIndex;
-            document.getElementById('act_fasilitas').innerText = fasilitas;
-            document.getElementById('act_tanggal').innerText = tanggal;
-            document.getElementById('act_temuan').innerText = temuan;
-            document.getElementById('waktu_action').value = getFormattedTime();
-            
-            navigateTo('maintenance-action');
-            resizeCanvas(padAction, 'canvas_action');
-        }
-
-        async function submitAction() {
-            if(!document.getElementById('formAction').checkValidity()) { alert("Lengkapi data form!"); return; }
-            if(!padAction || padAction.isEmpty()) { alert("Silakan Tanda Tangan!"); return; }
-            
-            document.getElementById('loadingOverlay').classList.remove('hidden');
-            
-            let fotoFile = document.getElementById('act_foto').files[0];
-            let fotoBase64 = await getBase64(fotoFile);
-
-            let payload = {
-                type: 'Update_Maintenance',
-                row_index: document.getElementById('act_rowIndex').value,
-                tanggal: document.getElementById('waktu_action').value,
-                namaFasilitas: document.getElementById('act_fasilitas').innerText,
-                aksi: document.getElementById('act_tindakan').value,
-                fotoAfter: fotoBase64,
-                petugas: document.getElementById('act_teknisi').value,
-                ttd: padAction.toDataURL("image/png")
-            };
-            postData(payload, 'formAction');
-        }
-
-        async function submitManual() {
-            if(!document.getElementById('formManual').checkValidity()) { alert("Lengkapi semua isian wajib!"); return; }
-            if(!padManual || padManual.isEmpty()) { alert("Tanda Tangan Teknisi wajib!"); return; }
-
-            document.getElementById('loadingOverlay').classList.remove('hidden');
-            
-            let fotoBef = await getBase64(document.getElementById('man_foto_bef').files[0]);
-            let fotoAft = await getBase64(document.getElementById('man_foto_aft').files[0]);
-
-            let payload = {
-                type: 'Manual_Maintenance',
-                tanggal: document.getElementById('waktu_manual').value,
-                target: document.getElementById('man_target').value,
-                jenisTindakan: document.getElementById('man_jenis').value,
-                namaFasilitas: document.getElementById('man_fasilitas').value,
-                aksi: document.getElementById('man_tindakan').value,
-                fotoBefore: fotoBef,
-                fotoAfter: fotoAft,
-                keterangan: "Laporan Manual",
-                petugas: document.getElementById('man_teknisi').value,
-                ttd: padManual.toDataURL("image/png")
-            };
-            postData(payload, 'formManual');
-        }
-
-// ============================================================
-        // 7. CORE FETCH API SENDER (Versi Stabil + Anti Duplikat)
-        // ============================================================
-        
-        // Fungsi pembuat ID unik untuk setiap transaksi
-        function generateRequestId() {
-            return 'REQ-' + Date.now() + '-' + Math.random().toString(36).substring(2, 10);
-        }
-
-        function postData(payload, formId) {
-            // 1. Sisipkan requestId ke dalam data yang akan dikirim
-            if (!payload.requestId) {
-                payload.requestId = generateRequestId();
-            }
-
-            // 2. Tampilkan layar loading
-            document.getElementById('loadingOverlay').classList.remove('hidden');
-
-            // 3. Kirim data secara normal
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(data => {
-                // Matikan layar loading
-                document.getElementById('loadingOverlay').classList.add('hidden');
+                const result = await response.json();
                 
-                if (data.status === 'success' || data.status === 'already_saved') {
-                    alert('Data berhasil disimpan!');
-                    
-                    // Reset form
-                    document.getElementById(formId).reset();
-                    
-                    // Reset tampilan radio button
-                    document.querySelectorAll('.radio-btn').forEach(el => el.checked = false);
-                    
-                    // Kembali ke menu
-                    navigateTo('menu');
+                document.getElementById('loading').classList.remove('active');
+
+                if (result.status === 'success') {
+                    Swal.fire('Berhasil!', 'Data pelaporan berhasil disimpan.', 'success').then(() => {
+                        form.reset();
+                        if(pads[type]) pads[type].clear();
+                        document.getElementById(`sig-container-${type}`).classList.add('hidden');
+                        
+                        if(type === 'updateTicket' || type === 'maintenance') {
+                            loadMaintenance(); // reload the list
+                        } else {
+                            showMenu();
+                        }
+                    });
                 } else {
-                    alert('Terjadi kesalahan sistem: ' + (data.message || ''));
+                    throw new Error(result.message);
                 }
-            })
-            .catch(error => {
-                // Matikan layar loading jika koneksi benar-benar terputus
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                alert('Gagal terkoneksi ke Server. Pastikan internet Anda stabil.');
-                console.error(error);
-            });
+            } catch (error) {
+                document.getElementById('loading').classList.remove('active');
+                Swal.fire('Gagal!', 'Terjadi kesalahan: ' + error.message, 'error');
+            }
         }
     </script>
 </body>
