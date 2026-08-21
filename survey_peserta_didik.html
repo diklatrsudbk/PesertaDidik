@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="id" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survey Kepuasan Peserta Didik - RSUD Bandung Kiwari</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#059669', // Emerald 600 - More professional
+                        primary_hover: '#047857',
+                        darkbg: '#0f172a', // Slate 900
+                        darkcard: '#1e293b' // Slate 800
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        
+        .modal-active { opacity: 1; pointer-events: auto; transform: scale(1); }
+        .modal-inactive { opacity: 0; pointer-events: none; transform: scale(0.95); }
+        
+        /* Smooth form transition */
+        .step-active { display: block; animation: fadeIn 0.4s ease-in-out; }
+        .step-inactive { display: none; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-darkbg dark:text-slate-200 transition-colors duration-300 min-h-screen flex flex-col">
+
+    <nav class="sticky top-0 z-50 bg-white/80 dark:bg-darkcard/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 transition-colors duration-300">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="bg-white p-1 rounded-lg shadow-sm border border-slate-100">
+                    <img src="img/rsudbk.png" alt="Logo RSUD Bandung Kiwari" class="w-20 h-10 object-contain">
+                </div>
+                <div>
+                    <h1 class="font-bold text-sm md:text-base text-slate-900 dark:text-white leading-tight">RSUD Bandung Kiwari</h1>
+                    <p class="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide uppercase">Survey Kepuasan Didik</p>
+                </div>
+            </div>
+            <button id="theme-toggle" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition text-slate-600 dark:text-slate-300">
+                <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-3xl mx-auto px-4 py-8 flex-grow w-full">
+        
+        <!-- Stepper Header -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center relative">
+                <!-- Line -->
+                <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 dark:bg-slate-700 rounded-full z-0"></div>
+                <div id="progress-bar" class="absolute left-0 top-1/2 -translate-y-1/2 w-0 h-1 bg-primary rounded-full z-0 transition-all duration-500 ease-out"></div>
+                
+                <!-- Steps -->
+                <div class="step-indicator z-10 flex flex-col items-center gap-2" data-target="1">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-primary text-white border-4 border-slate-50 dark:border-darkbg shadow-sm transition-colors" id="indicator-1">1</div>
+                    <span class="text-[10px] md:text-xs font-semibold text-primary hidden md:block">Data Diri</span>
+                </div>
+                <div class="step-indicator z-10 flex flex-col items-center gap-2" data-target="2">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400 border-4 border-slate-50 dark:border-darkbg transition-colors" id="indicator-2">2</div>
+                    <span class="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 hidden md:block">Diklat</span>
+                </div>
+                <div class="step-indicator z-10 flex flex-col items-center gap-2" data-target="3">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400 border-4 border-slate-50 dark:border-darkbg transition-colors" id="indicator-3">3</div>
+                    <span class="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 hidden md:block">Pembimbing</span>
+                </div>
+                <div class="step-indicator z-10 flex flex-col items-center gap-2" data-target="4">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400 border-4 border-slate-50 dark:border-darkbg transition-colors" id="indicator-4">4</div>
+                    <span class="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 hidden md:block">Sarpras</span>
+                </div>
+                <div class="step-indicator z-10 flex flex-col items-center gap-2" data-target="5">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400 border-4 border-slate-50 dark:border-darkbg transition-colors" id="indicator-5">5</div>
+                    <span class="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 hidden md:block">Selesai</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Wrapper -->
+        <form id="surveyForm" class="bg-white dark:bg-darkcard rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden relative">
+            
+            <!-- STEP 1: Data Diri -->
+            <div id="step-1" class="step-active p-6 md:p-10">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Informasi Peserta Didik</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Silakan lengkapi data diri dan praktik Anda terlebih dahulu.</p>
+                </div>
+
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Nama Institusi <span class="text-red-500">*</span></label>
+                        <select name="namaInstitusi" id="namaInstitusi" required class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition shadow-sm appearance-none cursor-pointer text-sm">
+                            <option value="" disabled selected>Sedang memuat data...</option>
+                        </select>
+                        <p id="error-msg" class="hidden text-xs text-red-500 mt-2 font-medium"></p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Program Studi <span class="text-red-500">*</span></label>
+                        <input type="text" name="programStudi" required placeholder="Contoh: S1 Keperawatan" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition shadow-sm text-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Stase <span class="text-red-500">*</span></label>
+                        <input type="text" name="stase" required placeholder="Contoh: Stase Anak" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition shadow-sm text-sm">
+                    </div>
+
+                    <!-- Pemisahan Tanggal Praktik -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 p-4 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-xl">
+                        <div class="md:col-span-2">
+                            <p class="text-xs font-semibold text-blue-800 dark:text-blue-300 flex items-center gap-1.5 mb-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Periode praktik minimal 1 Minggu (7 Hari).
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Tanggal Mulai <span class="text-red-500">*</span></label>
+                            <input type="date" id="tanggalMulai" required class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/50 focus:ring-2 focus:ring-primary outline-none transition shadow-sm text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Tanggal Selesai <span class="text-red-500">*</span></label>
+                            <input type="date" id="tanggalSelesai" required class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/50 focus:ring-2 focus:ring-primary outline-none transition shadow-sm text-sm">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 flex justify-end">
+                    <button type="button" onclick="goToStep(2)" class="bg-primary hover:bg-primary_hover text-white font-medium py-3 px-8 rounded-xl shadow-md shadow-emerald-500/30 transition-all flex items-center gap-2 group">
+                        Selanjutnya 
+                        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 2: Evaluasi Komkordik -->
+            <div id="step-2" class="step-inactive p-6 md:p-10">
+                <div class="mb-8 border-b border-slate-200 dark:border-slate-700 pb-4">
+                    <h2 class="text-xl md:text-2xl font-bold text-primary mb-2">Evaluasi Komkordik & Tim Diklat</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Berikan penilaian Anda secara objektif. Semua pertanyaan <span class="font-bold text-red-500">wajib diisi</span>.</p>
+                </div>
+
+                <div id="komkordik-questions" class="space-y-8"></div>
+                
+                <div class="mt-10 flex justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" onclick="goToStep(1)" class="text-slate-500 hover:text-slate-800 dark:hover:text-white font-medium py-3 px-6 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        Kembali
+                    </button>
+                    <button type="button" onclick="goToStep(3)" class="bg-primary hover:bg-primary_hover text-white font-medium py-3 px-8 rounded-xl shadow-md shadow-emerald-500/30 transition-all flex items-center gap-2 group">
+                        Selanjutnya
+                        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 3: Evaluasi CI -->
+            <div id="step-3" class="step-inactive p-6 md:p-10">
+                <div class="mb-8 border-b border-slate-200 dark:border-slate-700 pb-4">
+                    <h2 class="text-xl md:text-2xl font-bold text-primary mb-2">Evaluasi Pembimbing / CI Ruangan</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Bagaimana kualitas bimbingan klinis yang Anda dapatkan? (<span class="font-bold text-red-500">wajib diisi</span>)</p>
+                </div>
+
+                <div id="ci-questions" class="space-y-8"></div>
+                
+                <div class="mt-10 flex justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" onclick="goToStep(2)" class="text-slate-500 hover:text-slate-800 dark:hover:text-white font-medium py-3 px-6 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        Kembali
+                    </button>
+                    <button type="button" onclick="goToStep(4)" class="bg-primary hover:bg-primary_hover text-white font-medium py-3 px-8 rounded-xl shadow-md shadow-emerald-500/30 transition-all flex items-center gap-2 group">
+                        Selanjutnya
+                        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 4: Evaluasi Sarpras -->
+            <div id="step-4" class="step-inactive p-6 md:p-10">
+                <div class="mb-8 border-b border-slate-200 dark:border-slate-700 pb-4">
+                    <h2 class="text-xl md:text-2xl font-bold text-primary mb-2">Evaluasi Sarana & Prasarana</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Bagaimana fasilitas di lingkungan rumah sakit selama Anda praktik? (<span class="font-bold text-red-500">wajib diisi</span>)</p>
+                </div>
+
+                <div id="sarpras-questions" class="space-y-8"></div>
+                
+                <div class="mt-10 flex justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" onclick="goToStep(3)" class="text-slate-500 hover:text-slate-800 dark:hover:text-white font-medium py-3 px-6 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        Kembali
+                    </button>
+                    <button type="button" onclick="goToStep(5)" class="bg-primary hover:bg-primary_hover text-white font-medium py-3 px-8 rounded-xl shadow-md shadow-emerald-500/30 transition-all flex items-center gap-2 group">
+                        Selanjutnya
+                        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 5: Saran & Bukti -->
+            <div id="step-5" class="step-inactive p-6 md:p-10">
+                <div class="mb-8 border-b border-slate-200 dark:border-slate-700 pb-4 text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-primary mb-4">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Langkah Terakhir</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Silakan berikan saran serta unggah bukti dokumentasi kegiatan praktik Anda.</p>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Saran dan Kritik Membangun <span class="text-red-500">*</span></label>
+                        <textarea name="saranKritik" required rows="4" placeholder="Tuliskan masukan Anda di sini..." class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition shadow-sm text-sm resize-none"></textarea>
+                    </div>
+
+                    <div class="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-xl border border-dashed border-slate-300 dark:border-slate-600">
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Foto Dokumentasi Kegiatan <span class="text-red-500">*</span></label>
+                        <p class="text-xs text-slate-500 mb-4">Unggah bukti foto praktik Anda. Anda dapat memilih dari galeri atau langsung menggunakan kamera.</p>
+                        <input type="file" id="fotoBukti" accept="image/*" required class="block w-full text-sm text-slate-500 dark:text-slate-400
+                            file:mr-4 file:py-2.5 file:px-5
+                            file:rounded-xl file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-emerald-100 file:text-emerald-800
+                            dark:file:bg-emerald-900/40 dark:file:text-emerald-400
+                            hover:file:bg-emerald-200 transition cursor-pointer">
+                    </div>
+                </div>
+                
+                <div class="mt-10 flex flex-col-reverse md:flex-row justify-between gap-4 pt-4">
+                    <button type="button" onclick="goToStep(4)" class="w-full md:w-auto text-slate-500 hover:text-slate-800 dark:hover:text-white font-medium py-3 px-6 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        Kembali
+                    </button>
+                    <button type="submit" id="submitBtn" class="w-full md:w-auto bg-primary hover:bg-primary_hover text-white font-bold py-3 px-10 rounded-xl shadow-lg shadow-emerald-500/40 transition-all flex items-center justify-center gap-3">
+                        <span>Kirim Survey Sekarang</span>
+                        <svg id="loadingIcon" class="animate-spin h-5 w-5 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <footer class="mt-auto py-6 text-center text-sm text-slate-500 dark:text-slate-400">
+        &copy; 2026 RSUD Bandung Kiwari. Bidang Pendidikan dan Pelatihan.
+    </footer>
+
+    <!-- Modal Sukses/Error -->
+    <div id="modalResponse" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm modal-inactive transition-all duration-300">
+        <div class="bg-white dark:bg-darkcard w-11/12 max-w-sm rounded-2xl p-8 shadow-2xl relative">
+            <div class="text-center">
+                <div id="modalIcon" class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-emerald-100 dark:bg-emerald-900/30 mb-5">
+                    <svg class="h-10 w-10 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h3 id="modalTitle" class="text-xl font-bold text-slate-900 dark:text-white mb-2">Penyimpanan Berhasil!</h3>
+                <p id="modalMessage" class="text-sm text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">Terima kasih atas partisipasi Anda. Data survey dan bukti dokumentasi telah tersimpan ke sistem kami.</p>
+                <button onclick="closeModal()" class="w-full bg-primary hover:bg-primary_hover text-white font-bold py-3.5 px-4 rounded-xl transition-colors shadow-md shadow-emerald-500/30">
+                    Selesai & Muat Ulang
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // MASUKKAN URL DEPLOYMENT BARU ANDA DI SINI
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMlvcNluWBhurr4OyeBVLSHs3S1guvx-K3MQZ94e7P90zFin8FjG-HBPjI5-J5T0SjHg/exec"; 
+
+        // --- 0. AMBIL DATA INSTITUSI ---
+        document.addEventListener("DOMContentLoaded", fetchInstitusiData);
+        async function fetchInstitusiData() {
+            const institusiSelect = document.getElementById('namaInstitusi');
+            const errorMsg = document.getElementById('error-msg');
+            
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'GET', redirect: 'follow' });
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    institusiSelect.innerHTML = '<option value="" disabled selected>Pilih Institusi Anda</option>';
+                    result.data.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item;
+                        option.textContent = item;
+                        institusiSelect.appendChild(option);
+                    });
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error("Error Fetch:", error);
+                const container = institusiSelect.parentElement;
+                container.innerHTML = `
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Nama Institusi <span class="text-red-500">*</span></label>
+                    <input type="text" name="namaInstitusi" required placeholder="Ketik manual nama institusi..." class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition shadow-sm text-sm">
+                    <p class="text-[11px] text-red-500 mt-2 font-medium bg-red-50 dark:bg-red-900/20 p-2 rounded border border-red-200 dark:border-red-800/50">Gagal memuat otomatis. Silakan ketik manual.</p>
+                `;
+            }
+        }
+
+        // --- 1. VALIDASI TANGGAL (MIN 1 MINGGU) ---
+        const tglMulai = document.getElementById('tanggalMulai');
+        const tglSelesai = document.getElementById('tanggalSelesai');
+
+        tglMulai.addEventListener('change', function() {
+            if (this.value) {
+                // Set Minimal Selesai = Mulai + 7 Hari
+                let startDate = new Date(this.value);
+                startDate.setDate(startDate.getDate() + 7);
+                tglSelesai.min = startDate.toISOString().split("T")[0];
+                
+                // Pastikan nilai max dihilangkan agar bisa lebih dari seminggu
+                tglSelesai.max = "";
+                
+                // Jika user sudah isi tgl selesai tapi kurang dari batas minimal, reset valuenya
+                if(tglSelesai.value) {
+                    let endDate = new Date(tglSelesai.value);
+                    let start = new Date(this.value);
+                    let diffTime = endDate - start;
+                    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if(diffDays < 7) {
+                        tglSelesai.value = '';
+                        // Beri animasi error sedikit
+                        tglSelesai.classList.add('ring-2', 'ring-red-500');
+                        setTimeout(() => tglSelesai.classList.remove('ring-2', 'ring-red-500'), 1000);
+                    }
+                }
+            }
+        });
+        
+        // Mencegah pengetikan manual kurang dari batas (fallback)
+        tglSelesai.addEventListener('change', function() {
+            if(tglMulai.value && this.value) {
+                let endDate = new Date(this.value);
+                let start = new Date(tglMulai.value);
+                let diffTime = endDate - start;
+                let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if(diffDays < 7) {
+                    this.value = '';
+                    alert("Peringatan: Periode praktik minimal 7 hari dari tanggal mulai.");
+                }
+            } else if (!tglMulai.value) {
+                this.value = '';
+                tglMulai.focus();
+            }
+        });
+
+        // --- 2. DATA & RENDER PERTANYAAN ELEGANT ---
+        const questionsKomkordik = [
+            "Pelayanan yang diberikan dalam proses pendidikan yang diberikan Tim Diklat dan Tim Kordik RSUD Bandung Kiwari.",
+            "Partisipasi dari Instalasi Diklat dan Timkordik dalam melakukan monitoring dan supervisi bagi para peserta didik.",
+            "Sikap dan komunikasi dari Tim Diklat / Timkordik RSUD Bandung Kiwari dalam memberikan pelayanan dan koordinasi terkait rencana praktik.",
+            "Kerjasama yang diberikan selama memfasilitasi para mahasiswanya untuk melakukan praktik, khususnya di bagian sarana dan prasarana.",
+            "Kemudahan dalam pelayanan Administrasi dan Koordinasi dalam proses pendidikan sejak perencanaan hingga penarikan kembali peserta didik."
+        ];
+        const questionsCI = [
+            "Kemampuan dan penguasaan materi Pembimbing / CI dalam memberikan bimbingan klinis dan arahan kepada peserta didik.",
+            "Kehadiran dan ketersediaan waktu Pembimbing / CI untuk mendampingi, mengawasi, dan mengevaluasi peserta didik di ruangan.",
+            "Sikap, keramahan, dan komunikasi Pembimbing / CI dalam membimbing serta memberikan masukan (feedback) kepada peserta didik.",
+            "Objektivitas dan keadilan Pembimbing / CI dalam memberikan penilaian terhadap kinerja dan pencapaian kompetensi.",
+            "Kesesuaian antara target kompetensi/pembelajaran dari institusi dengan kasus dan bimbingan yang difasilitasi oleh Pembimbing / CI."
+        ];
+        const questionsSarpras = [
+            "Pemenuhan sarana prasarana dan ketersediaan alat kesehatan dari Rumah Sakit apakah sudah memadai bagi para peserta didik?",
+            "Ketersediaan sarana prasarana dan biaya terkait fasilitas tempat parkir dan juga kantin bagi peserta didik apakah memadai dan terjangkau?",
+            "Pemenuhan fasilitas pendukung seperti loker, toilet, mushola, kamar jaga, ruang diskusi dan lainnya bagi peserta didik apakah memadai?",
+            "Kemudahan mengakses sistem peminjaman dan melakukan peminjaman sarana prasarana selama proses pembelajaran?",
+            "Kemudahan mengakses sistem pendataan Peserta Didik untuk pembuatan ID Card dan kemudahan absensi digital dari ID Card?"
+        ];
+
+        const scaleOptions = ["Sangat Kurang", "Kurang", "Cukup", "Baik", "Sangat Baik"];
+
+        function renderQuestions(containerId, questions, prefix) {
+            const container = document.getElementById(containerId);
+            let html = "";
+            questions.forEach((q, index) => {
+                const qName = `${prefix}_q${index + 1}`;
+                
+                // Styled Radio Buttons (Pills)
+                let optionsHtml = `<div class="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-3 mt-4">`;
+                scaleOptions.forEach((opt) => {
+                    optionsHtml += `
+                        <label class="cursor-pointer">
+                            <input type="radio" name="${qName}" value="${opt}" required class="peer sr-only">
+                            <div class="h-full flex items-center justify-center text-center px-2 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 text-xs md:text-sm font-semibold text-slate-600 dark:text-slate-400 transition-all shadow-sm peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary peer-hover:border-primary/50 dark:peer-hover:border-primary/50">
+                                ${opt}
+                            </div>
+                        </label>
+                    `;
+                });
+                optionsHtml += `</div>`;
+
+                html += `
+                    <div class="p-5 md:p-6 bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm transition-all hover:shadow-md">
+                        <div class="flex gap-4">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-primary flex items-center justify-center font-bold text-sm">
+                                ${index + 1}
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm md:text-base font-medium text-slate-800 dark:text-slate-200 leading-relaxed">${q}</p>
+                                ${optionsHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        renderQuestions("komkordik-questions", questionsKomkordik, "komkordik");
+        renderQuestions("ci-questions", questionsCI, "ci");
+        renderQuestions("sarpras-questions", questionsSarpras, "sarpras");
+
+
+        // --- 3. STEPPER & VALIDATION LOGIC ---
+        let currentStep = 1;
+        const totalSteps = 5;
+
+        function updateStepper(step) {
+            // Update Bar
+            const bar = document.getElementById('progress-bar');
+            bar.style.width = `${((step - 1) / (totalSteps - 1)) * 100}%`;
+
+            // Update Indicator Bubbles
+            for(let i=1; i<=totalSteps; i++) {
+                const indicator = document.getElementById(`indicator-${i}`);
+                const textWrapper = indicator.nextElementSibling;
+                
+                if(i < step) {
+                    // Passed
+                    indicator.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-primary text-white border-4 border-slate-50 dark:border-darkbg transition-colors";
+                    indicator.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>`;
+                    if(textWrapper) textWrapper.className = "text-[10px] md:text-xs font-semibold text-primary hidden md:block";
+                } else if (i === step) {
+                    // Current
+                    indicator.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-primary text-white border-4 border-slate-50 dark:border-darkbg shadow-sm transition-colors ring-4 ring-emerald-100 dark:ring-emerald-900/30";
+                    indicator.innerHTML = i;
+                    if(textWrapper) textWrapper.className = "text-[10px] md:text-xs font-bold text-primary hidden md:block";
+                } else {
+                    // Future
+                    indicator.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400 border-4 border-slate-50 dark:border-darkbg transition-colors";
+                    indicator.innerHTML = i;
+                    if(textWrapper) textWrapper.className = "text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 hidden md:block";
+                }
+            }
+        }
+
+        function goToStep(targetStep) {
+            // Validasi Step Saat ini Sebelum Maju
+            if (targetStep > currentStep) {
+                const currentStepDiv = document.getElementById(`step-${currentStep}`);
+                const inputs = currentStepDiv.querySelectorAll('input, select, textarea');
+                let isValid = true;
+                
+                for (let input of inputs) {
+                    if (!input.checkValidity()) {
+                        input.reportValidity(); // Memunculkan tooltip error bawaan HTML5
+                        isValid = false;
+                        return; // Berhenti jika ada yang invalid
+                    }
+                }
+            }
+
+            // Transisi UI
+            document.getElementById(`step-${currentStep}`).classList.remove('step-active');
+            document.getElementById(`step-${currentStep}`).classList.add('step-inactive');
+            
+            document.getElementById(`step-${targetStep}`).classList.remove('step-inactive');
+            document.getElementById(`step-${targetStep}`).classList.add('step-active');
+            
+            currentStep = targetStep;
+            updateStepper(currentStep);
+            
+            // Scroll ke atas dengan halus saat ganti step
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+
+        // --- 4. DARK MODE TOGGLE ---
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const darkIcon = document.getElementById('theme-toggle-dark-icon');
+        const lightIcon = document.getElementById('theme-toggle-light-icon');
+
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            lightIcon.classList.remove('hidden');
+        } else {
+            darkIcon.classList.remove('hidden');
+        }
+
+        themeToggleBtn.addEventListener('click', function() {
+            darkIcon.classList.toggle('hidden');
+            lightIcon.classList.toggle('hidden');
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+            }
+        });
+
+        // --- 5. FORM SUBMISSION ---
+        const form = document.getElementById('surveyForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loadingIcon = document.getElementById('loadingIcon');
+        const modal = document.getElementById('modalResponse');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Cegah submit ganda
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            loadingIcon.classList.remove('hidden');
+            submitBtn.querySelector('span').textContent = "Memproses Data...";
+
+            try {
+                const formData = new FormData(form);
+                const dataObj = Object.fromEntries(formData.entries());
+
+                // MENGIRIM TANGGAL SEBAGAI 2 KOLOM TERPISAH (Sesuai dengan update GS)
+                dataObj.tanggalMulai = formatTgl(document.getElementById('tanggalMulai').value);
+                dataObj.tanggalSelesai = formatTgl(document.getElementById('tanggalSelesai').value);
+
+                // Handle Image Base64
+                const fileInput = document.getElementById('fotoBukti');
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const base64Str = await getBase64(file);
+                    dataObj.fotoBase64 = base64Str.split(',')[1];
+                    dataObj.fotoMimeType = file.type;
+                    dataObj.fotoName = file.name;
+                }
+
+                // Kirim ke Google Apps Script via POST (no-cors)
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataObj)
+                });
+
+                showModal(true);
+            } catch (error) {
+                console.error(error);
+                showModal(false);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                loadingIcon.classList.add('hidden');
+                submitBtn.querySelector('span').textContent = "Kirim Survey Sekarang";
+            }
+        });
+
+        function formatTgl(dateString) {
+            if(!dateString) return "";
+            const d = new Date(dateString);
+            const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+        }
+
+        function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function showModal(isSuccess) {
+            const title = document.getElementById('modalTitle');
+            const message = document.getElementById('modalMessage');
+            const iconWrap = document.getElementById('modalIcon');
+
+            if (!isSuccess) {
+                title.textContent = "Terjadi Kesalahan";
+                title.className = "text-xl font-bold text-red-600 dark:text-red-400 mb-2";
+                message.textContent = "Gagal mengirim data. Silakan periksa koneksi internet Anda dan coba lagi.";
+                iconWrap.className = "mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-red-100 dark:bg-red-900/30 mb-5";
+                iconWrap.innerHTML = `<svg class="h-10 w-10 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+                document.querySelector('#modalResponse button').className = "w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 px-4 rounded-xl transition-colors shadow-md shadow-red-500/30";
+            }
+
+            modal.classList.remove('modal-inactive');
+            modal.classList.add('modal-active');
+        }
+
+        function closeModal() {
+            modal.classList.remove('modal-active');
+            modal.classList.add('modal-inactive');
+            if (document.getElementById('modalTitle').textContent === "Penyimpanan Berhasil!") {
+                window.location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
