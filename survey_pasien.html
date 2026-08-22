@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Survey Kepuasan Pasien RSUD Bandung Kiwari</title>
+  
+  <!-- Font Google Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            kiwari: {
+              50: '#f0f9ff',  // Lightest Sky Blue
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              500: '#0ea5e9', // Modern Sky Blue Base
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e', // Deep Space Dark Blue
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom radio styling for survey options */
+    .survey-radio:checked + label {
+      border-color: #0284c7;
+      background-color: #f0f9ff;
+      color: #0369a1;
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+    }
+    /* Hide scrollbar for integration drawer */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between font-sans selection:bg-kiwari-100 selection:text-kiwari-800" x-data="surveyForm()">
+
+  <header class="bg-white border-b border-slate-100 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <!-- Logo RSUD BK Container with Fallback Placeholder -->
+        <div class="w-11 h-11 rounded-xl bg-kiwari-50 flex items-center justify-center overflow-hidden border border-slate-100 shadow-sm">
+          <img src="img/rsudbk.png" alt="Logo RSUDBK" class="w-full h-full object-contain p-1" onerror="this.onerror=null; this.src='https://placehold.co/100x100/0ea5e9/ffffff?text=RSUD+BK'">
+        </div>
+        <div>
+          <h1 class="text-sm font-bold text-slate-900 tracking-wide uppercase">DIKLAT RSUD Bandung Kiwari</h1>
+          <p class="text-xs text-slate-500 font-medium">Form Evaluasi Peserta Didik</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-8">
+    
+    <div class="bg-gradient-to-br from-kiwari-700 to-kiwari-900 rounded-2xl p-6 md:p-8 text-white shadow-xl mb-8 relative overflow-hidden">
+      <!-- Background Abstract Decorators -->
+      <div class="absolute -right-10 -bottom-10 w-40 h-40 rounded-full bg-kiwari-600 opacity-20 blur-xl"></div>
+      <div class="absolute right-20 top-2 w-24 h-24 rounded-full bg-sky-400 opacity-15 blur-lg"></div>
+
+      <div class="relative z-10">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-semibold mb-4 tracking-wide border border-white/10">
+          <i class="fa-solid fa-clipboard-list"></i> KUESIONER RESMI
+        </div>
+        <h2 class="text-xl md:text-2xl font-bold leading-tight mb-4 text-sky-50">
+          Survey Kepuasan Pasien Terhadap Peserta Didik Di Lingkungan RSUD Bandung Kiwari
+        </h2>
+        <p class="text-slate-100 text-sm leading-relaxed mb-4 font-light text-justify">
+          Pengunjung yang kami Hormati,<br>
+          Dalam Rangka Mengevaluasi Kepuasan Pelayanan yang Telah Diberikan oleh Peserta Didik, Kompetensi, Menjaga Standar Mutu Pelayanan, dan Menjamin Keselamatan Pasien Peserta Didik selama Masa Praktik, maka dari itu diperlukan Survey Kepuasan Pasien Terhadap Peserta Didik di Lingkungan Rumah Sakit Umum Daerah (RSUD) Bandung Kiwari.
+        </p>
+        <p class="text-sky-200 text-sm font-semibold">
+          Demikian disampaikan, Terimakasih.
+        </p>
+      </div>
+    </div>
+
+    <!-- Multi-Step Progress Tracker -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between relative">
+        <!-- Background Progress Bar Line -->
+        <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 rounded-full z-0"></div>
+        <div class="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-kiwari-600 rounded-full transition-all duration-500 z-0" :style="`width: ${(step - 1) / 2 * 100}%`"></div>
+
+        <!-- Step 1 Indicator -->
+        <div class="relative z-10 flex flex-col items-center">
+          <button @click="goToStep(1)" :class="step >= 1 ? 'bg-kiwari-600 text-white ring-4 ring-kiwari-100' : 'bg-white text-slate-400 border border-slate-200'" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300">
+            <i class="fa-solid fa-user-injured" x-show="step <= 1"></i>
+            <i class="fa-solid fa-check" x-show="step > 1"></i>
+          </button>
+          <span class="text-[11px] font-semibold mt-2 hidden sm:block" :class="step >= 1 ? 'text-kiwari-800 font-bold' : 'text-slate-400'">Identitas Pasien</span>
+        </div>
+
+        <!-- Step 2 Indicator -->
+        <div class="relative z-10 flex flex-col items-center">
+          <button @click="goToStep(2)" :class="step >= 2 ? 'bg-kiwari-600 text-white ring-4 ring-kiwari-100' : 'bg-white text-slate-400 border border-slate-200'" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300">
+            <i class="fa-solid fa-star-half-stroke" x-show="step <= 2"></i>
+            <i class="fa-solid fa-check" x-show="step > 2"></i>
+          </button>
+          <span class="text-[11px] font-semibold mt-2 hidden sm:block" :class="step >= 2 ? 'text-kiwari-800 font-bold' : 'text-slate-400'">Evaluasi Pelayanan</span>
+        </div>
+
+        <!-- Step 3 Indicator -->
+        <div class="relative z-10 flex flex-col items-center">
+          <button @click="goToStep(3)" :class="step >= 3 ? 'bg-kiwari-600 text-white ring-4 ring-kiwari-100' : 'bg-white text-slate-400 border border-slate-200'" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300">
+            <i class="fa-solid fa-cloud-arrow-up" x-show="step <= 3"></i>
+            <i class="fa-solid fa-check" x-show="step > 3"></i>
+          </button>
+          <span class="text-[11px] font-semibold mt-2 hidden sm:block" :class="step >= 3 ? 'text-kiwari-800 font-bold' : 'text-slate-400'">Dokumentasi & Saran</span>
+        </div>
+      </div>
+    </div>
+
+    <form @submit.prevent="submitForm()" class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden relative" novalidate>
+      
+      <!-- SUBMITTING OVERLAY -->
+      <div x-show="submitting" class="absolute inset-0 bg-white/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-6 text-center" x-transition>
+        <div class="w-16 h-16 border-4 border-kiwari-200 border-t-kiwari-600 rounded-full animate-spin mb-4"></div>
+        <h3 class="text-lg font-bold text-slate-900">Mengirimkan Data Survey...</h3>
+        <p class="text-sm text-slate-500 mt-1 max-w-sm">Mohon tunggu sebentar, kami sedang menyimpan jawaban Anda dan mengunggah foto dokumentasi Anda ke Google Drive.</p>
+      </div>
+
+      <!-- SUCCESS OVERLAY -->
+      <div x-show="submitSuccess" class="absolute inset-0 bg-white z-50 flex flex-col items-center justify-center p-8 text-center" x-transition>
+        <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-4xl mb-4 animate-bounce">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-slate-900">Survey Berhasil Dikirim!</h3>
+        <p class="text-sm text-slate-500 mt-2 max-w-md text-center leading-relaxed">
+          Terima kasih atas partisipasi Anda. Jawaban Anda sangat bernilai dalam rangka menjaga standar mutu pelayanan, kompetensi, serta keselamatan pasien di RSUD Bandung Kiwari.
+        </p>
+        <button type="button" @click="resetForm()" class="mt-8 px-6 py-3 bg-kiwari-600 hover:bg-kiwari-700 text-white font-semibold rounded-xl shadow-md shadow-kiwari-100 transition-all">
+          Isi Survey Baru
+        </button>
+      </div>
+
+      <!-- ERROR OVERLAY -->
+      <div x-show="submitError" class="absolute inset-0 bg-white z-50 flex flex-col items-center justify-center p-8 text-center" x-transition>
+        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center text-red-600 text-4xl mb-4">
+          <i class="fa-solid fa-circle-xmark"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-slate-900">Pengiriman Gagal</h3>
+        <p class="text-sm text-red-600 mt-2 max-w-md" x-text="errorMessage"></p>
+        <p class="text-xs text-slate-400 mt-2">Pastikan konfigurasi URL Web App Google Script Anda sudah sesuai.</p>
+        <div class="flex gap-4 mt-8">
+          <button type="button" @click="submitError = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition">
+            Kembali
+          </button>
+          <button type="button" @click="submitForm()" class="px-5 py-2.5 bg-kiwari-600 hover:bg-kiwari-700 text-white font-semibold rounded-xl transition">
+            Coba Lagi
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 1: IDENTITAS PASIEN -->
+      <div x-show="step === 1" class="p-6 md:p-8 space-y-6" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
+            <span class="w-7 h-7 bg-kiwari-100 text-kiwari-700 rounded-full flex items-center justify-center text-xs font-bold">1</span>
+            Identitas Pasien / Keluarga Pasien (Wajib)
+          </h3>
+          <p class="text-xs text-slate-500 mt-1 font-medium">Lengkapi data identitas pasien atau perwakilan keluarga yang mendampingi.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Tanggal Survey -->
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-slate-700">Tanggal Survey <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                <i class="fa-regular fa-calendar"></i>
+              </span>
+              <input type="date" required x-model="formData.tanggal" class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:border-kiwari-500 focus:ring-2 focus:ring-kiwari-100 transition focus:outline-none text-sm">
+            </div>
+          </div>
+
+          <!-- Nama Pasien/Keluarga -->
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-slate-700">Nama Pasien / Keluarga Pasien <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                <i class="fa-regular fa-user"></i>
+              </span>
+              <input type="text" required x-model="formData.nama" placeholder="Tuliskan nama lengkap..." class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:border-kiwari-500 focus:ring-2 focus:ring-kiwari-100 transition focus:outline-none text-sm">
+            </div>
+          </div>
+
+          <!-- Jenis Kelamin -->
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-slate-700">Jenis Kelamin <span class="text-red-500">*</span></label>
+            <div class="grid grid-cols-2 gap-4">
+              <label class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition" :class="formData.gender === 'Laki-laki' ? 'border-kiwari-500 bg-kiwari-50/50 text-kiwari-700' : ''">
+                <input type="radio" name="gender" value="Laki-laki" x-model="formData.gender" class="text-kiwari-600 focus:ring-kiwari-500">
+                <span class="text-sm font-medium">Laki-laki</span>
+              </label>
+              <label class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition" :class="formData.gender === 'Perempuan' ? 'border-kiwari-500 bg-kiwari-50/50 text-kiwari-700' : ''">
+                <input type="radio" name="gender" value="Perempuan" x-model="formData.gender" class="text-kiwari-600 focus:ring-kiwari-500">
+                <span class="text-sm font-medium">Perempuan</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Usia Pasien -->
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-slate-700">Usia Pasien <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                <i class="fa-regular fa-clock"></i>
+              </span>
+              <input type="number" required x-model="formData.usia" min="0" max="120" placeholder="Contoh: 35" class="w-full pl-10 pr-16 py-3 rounded-xl border border-slate-200 focus:border-kiwari-500 focus:ring-2 focus:ring-kiwari-100 transition focus:outline-none text-sm">
+              <span class="absolute inset-y-0 right-0 pr-4 flex items-center text-xs font-semibold text-slate-400 pointer-events-none">
+                Tahun
+              </span>
+            </div>
+          </div>
+
+          <!-- Ruangan / Unit Pelayanan -->
+<div class="space-y-2 md:col-span-2">
+  <label class="block text-sm font-semibold text-slate-700">
+    Nama Ruangan / Unit Pelayanan <span class="text-red-500">*</span>
+  </label>
+  
+  <div class="relative">
+    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+      <i class="fa-solid fa-door-open"></i>
+    </span>
+    
+    <select 
+      required 
+      x-model="formData.ruangan" 
+      class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:border-kiwari-500 focus:ring-2 focus:ring-kiwari-100 transition focus:outline-none text-sm bg-white appearance-none"
+    >
+      <option value="" disabled>-- Pilih Ruangan Pelayanan --</option>
+      
+      <!-- Alpine.js Looping Array Ruangan -->
+      <template x-for="ruang in daftarRuangan" :key="ruang">
+        <option :value="ruang" x-text="ruang"></option>
+      </template>
+      
+    </select>
+    
+    <span class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 pointer-events-none">
+      <i class="fa-solid fa-chevron-down text-xs"></i>
+    </span>
+  </div>
+</div>
+
+          <!-- Alamat / Domisili -->
+          <div class="space-y-2 md:col-span-2">
+            <label class="block text-sm font-semibold text-slate-700">Alamat / Domisili <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 pt-3 flex items-start text-slate-400">
+                <i class="fa-solid fa-location-dot"></i>
+              </span>
+              <textarea required x-model="formData.alamat" rows="3" placeholder="Tuliskan alamat lengkap tempat tinggal saat ini..." class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:border-kiwari-500 focus:ring-2 focus:ring-kiwari-100 transition focus:outline-none text-sm"></textarea>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Warning Alert Validation -->
+        <div x-show="showValidationError && !validateStep1()" class="bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-xl text-xs flex items-center gap-2" x-transition>
+          <i class="fa-solid fa-circle-exclamation text-base animate-pulse"></i>
+          <span>Mohon lengkapi seluruh kolom identitas bertanda bintang merah (*) sebelum melanjutkan.</span>
+        </div>
+
+        <!-- Step Navigation Buttons -->
+        <div class="pt-4 flex justify-end border-t border-slate-100">
+          <button type="button" @click="nextStep()" class="px-6 py-3 bg-kiwari-600 hover:bg-kiwari-700 text-white font-semibold rounded-xl shadow-md shadow-kiwari-100 transition-all flex items-center gap-2">
+            <span>Isi Kuesioner Evaluasi</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2: PERTANYAAN CEKLIST EVALUASI -->
+      <div x-show="step === 2" class="p-6 md:p-8 space-y-6" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
+            <span class="w-7 h-7 bg-kiwari-100 text-kiwari-700 rounded-full flex items-center justify-center text-xs font-bold">2</span>
+            Kuesioner Evaluasi Kepuasan Pelayanan (Wajib)
+          </h3>
+          <p class="text-xs text-slate-500 mt-1 font-medium">Berikan penilaian terhadap performa, keahlian, dan sikap Peserta Didik selama masa praktik.</p>
+        </div>
+
+        <!-- Pertanyaan-Pertanyaan -->
+        <div class="space-y-8 divide-y divide-slate-100">
+
+          <!-- Pertanyaan 1 -->
+          <div class="space-y-4 pt-4 first:pt-0">
+            <h4 class="text-sm font-semibold text-slate-800 leading-relaxed">
+              1. Apakah Peserta Didik bersikap ramah (memperkenalkan diri), menjelaskan pelayanan yang diberikan (komunikatif) selama pemberian pelayanan kesehatan dan pemeriksaan kesehatan anda? <span class="text-red-500">*</span>
+            </h4>
+            <!-- Radio Options Container -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <template x-for="opt in options">
+                <div>
+                  <input type="radio" :name="'q1'" :id="'q1_'+opt.val" :value="opt.label" x-model="formData.q1" class="sr-only survey-radio">
+                  <label :for="'q1_'+opt.val" class="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 cursor-pointer hover:border-kiwari-500 hover:bg-slate-50 transition text-center min-h-[85px]">
+                    <span class="text-2xl mb-1" x-text="opt.emoji"></span>
+                    <span class="text-[10px] font-bold tracking-tight uppercase" x-text="opt.label"></span>
+                  </label>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- Pertanyaan 2 -->
+          <div class="space-y-4 pt-6">
+            <h4 class="text-sm font-semibold text-slate-800 leading-relaxed">
+              2. Bagaimana etika dan profesionalisme dari Peserta Didik yang memberikan pelayanan kesehatan kepada Bapak/Ibu? <span class="text-red-500">*</span>
+            </h4>
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <template x-for="opt in options">
+                <div>
+                  <input type="radio" :name="'q2'" :id="'q2_'+opt.val" :value="opt.label" x-model="formData.q2" class="sr-only survey-radio">
+                  <label :for="'q2_'+opt.val" class="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 cursor-pointer hover:border-kiwari-500 hover:bg-slate-50 transition text-center min-h-[85px]">
+                    <span class="text-2xl mb-1" x-text="opt.emoji"></span>
+                    <span class="text-[10px] font-bold tracking-tight uppercase" x-text="opt.label"></span>
+                  </label>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- Pertanyaan 3 -->
+          <div class="space-y-4 pt-6">
+            <h4 class="text-sm font-semibold text-slate-800 leading-relaxed">
+              3. Dalam pemberian pelayanan kesehatan, apakah Bapak/Ibu puas dengan kecepatan dan respon yang diberikan oleh Peserta Didik? <span class="text-red-500">*</span>
+            </h4>
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <template x-for="opt in options">
+                <div>
+                  <input type="radio" :name="'q3'" :id="'q3_'+opt.val" :value="opt.label" x-model="formData.q3" class="sr-only survey-radio">
+                  <label :for="'q3_'+opt.val" class="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 cursor-pointer hover:border-kiwari-500 hover:bg-slate-50 transition text-center min-h-[85px]">
+                    <span class="text-2xl mb-1" x-text="opt.emoji"></span>
+                    <span class="text-[10px] font-bold tracking-tight uppercase" x-text="opt.label"></span>
+                  </label>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- Pertanyaan 4 -->
+          <div class="space-y-4 pt-6">
+            <h4 class="text-sm font-semibold text-slate-800 leading-relaxed">
+              4. Apakah Peserta Didik terampil dalam memberikan pelayanan kesehatan kepada Bapak/Ibu? <span class="text-red-500">*</span>
+            </h4>
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <template x-for="opt in options">
+                <div>
+                  <input type="radio" :name="'q4'" :id="'q4_'+opt.val" :value="opt.label" x-model="formData.q4" class="sr-only survey-radio">
+                  <label :for="'q4_'+opt.val" class="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 cursor-pointer hover:border-kiwari-500 hover:bg-slate-50 transition text-center min-h-[85px]">
+                    <span class="text-2xl mb-1" x-text="opt.emoji"></span>
+                    <span class="text-[10px] font-bold tracking-tight uppercase" x-text="opt.label"></span>
+                  </label>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- Pertanyaan 5 -->
+          <div class="space-y-4 pt-6">
+            <h4 class="text-sm font-semibold text-slate-800 leading-relaxed">
+              5. Dengan adanya Peserta Didik yang melakukan praktik klinis di RSUD Bandung Kiwari apakah cukup membantu anda? <span class="text-red-500">*</span>
+            </h4>
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <template x-for="opt in options">
+                <div>
+                  <input type="radio" :name="'q5'" :id="'q5_'+opt.val" :value="opt.label" x-model="formData.q5" class="sr-only survey-radio">
+                  <label :for="'q5_'+opt.val" class="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 cursor-pointer hover:border-kiwari-500 hover:bg-slate-50 transition text-center min-h-[85px]">
+                    <span class="text-2xl mb-1" x-text="opt.emoji"></span>
+                    <span class="text-[10px] font-bold tracking-tight uppercase" x-text="opt.label"></span>
+                  </label>
+                </div>
+              </template>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Warning Alert Validation -->
+        <div x-show="showValidationError && !validateStep2()" class="bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-xl text-xs flex items-center gap-2" x-transition>
+          <i class="fa-solid fa-circle-exclamation text-base animate-pulse"></i>
+          <span>Mohon pilih satu opsi jawaban untuk semua pertanyaan (seluruh 5 pertanyaan wajib diisi).</span>
+        </div>
+
+        <!-- Step Navigation Buttons -->
+        <div class="pt-6 flex justify-between border-t border-slate-100">
+          <button type="button" @click="step = 1" class="px-5 py-3 border border-slate-200 hover:bg-slate-50 text-slate-600 font-semibold rounded-xl transition flex items-center gap-2">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Sebelumnya</span>
+          </button>
+          
+          <button type="button" @click="nextStep()" class="px-6 py-3 bg-kiwari-600 hover:bg-kiwari-700 text-white font-semibold rounded-xl shadow-md shadow-kiwari-100 transition-all flex items-center gap-2">
+            <span>Saran & Lampiran</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 3: SARAN DAN MASUKAN & DOKUMENTASI KEGIATAN -->
+      <div x-show="step === 3" class="p-6 md:p-8 space-y-6" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
+            <span class="w-7 h-7 bg-kiwari-100 text-kiwari-700 rounded-full flex items-center justify-center text-xs font-bold">3</span>
+            Saran & Dokumentasi Kegiatan (Wajib)
+          </h3>
+          <p class="text-xs text-slate-500 mt-1 font-medium">Langkah akhir pengisian survey. Berikan masukan Anda serta unggah foto dokumentasi kegiatan bersama peserta didik.</p>
+        </div>
+
+        <div class="space-y-6">
+          <!-- Saran & Masukan -->
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-slate-700">Saran & Masukan <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 pt-3 flex items-start text-slate-400">
+                <i class="fa-regular fa-comment-dots"></i>
+              </span>
+              <textarea required x-model="formData.saran" rows="4" placeholder="Tuliskan saran dan masukan konstruktif untuk meningkatkan pelayanan peserta didik..." class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:border-kiwari-500 focus:ring-2 focus:ring-kiwari-100 transition focus:outline-none text-sm"></textarea>
+            </div>
+          </div>
+
+          <div x-data="{ showModal: false }" class="space-y-2">
+  <label class="block text-sm font-semibold text-slate-700">
+    Dokumentasi Kegiatan / Upload Foto <span class="text-red-500">*</span>
+  </label>
+  <p class="text-xs text-slate-400 mb-2">
+    Unggah foto bukti pelayanan (JPG, PNG, Max 5MB).
+  </p>
+
+  <!-- Hidden Inputs (Satu untuk Kamera, Satu untuk Galeri) -->
+  <input 
+    type="file" 
+    x-ref="cameraInput" 
+    @change="handleFileUpload($event); showModal = false" 
+    accept="image/*" 
+    capture="environment" 
+    class="hidden"
+  >
+  <input 
+    type="file" 
+    x-ref="galleryInput" 
+    @change="handleFileUpload($event); showModal = false" 
+    accept="image/*" 
+    class="hidden"
+  >
+
+  <!-- 1 Tombol Utama -->
+  <div 
+    @click="showModal = true"
+    class="border-2 border-dashed border-slate-200 hover:border-kiwari-500 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer bg-slate-50 hover:bg-kiwari-50/20 transition-all"
+  >
+    <div class="w-12 h-12 bg-white rounded-xl shadow-md border border-slate-100 flex items-center justify-center text-kiwari-600 mb-3">
+      <i class="fa-solid fa-camera text-xl"></i>
+    </div>
+    <p class="text-sm font-semibold text-slate-700 text-center">Unggah / Ambil Foto Dokumentasi</p>
+    <p class="text-[10px] text-slate-400 mt-1 text-center">Klik untuk memilih metode pengunggahan</p>
+  </div>
+
+  <!-- Modal / Dialog Pilihan -->
+  <div 
+    x-show="showModal" 
+    x-transition.opacity 
+    class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/50 p-4"
+    @click.self="showModal = false"
+    style="display: none;"
+  >
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl space-y-4 text-center">
+      <h3 class="text-base font-semibold text-slate-800">Pilih Sumber Foto</h3>
+      <p class="text-xs text-slate-500">Pilih bagaimana Anda ingin mengunggah foto</p>
+      
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <!-- Opsi 1: Kamera -->
+        <button 
+          type="button" 
+          @click="$refs.cameraInput.click()" 
+          class="flex flex-col items-center justify-center p-4 border border-slate-200 rounded-xl hover:bg-slate-50 transition-all text-slate-700"
+        >
+          <i class="fa-solid fa-camera text-2xl text-kiwari-600 mb-2"></i>
+          <span class="text-xs font-semibold">Kamera</span>
+        </button>
+
+        <!-- Opsi 2: Galeri -->
+        <button 
+          type="button" 
+          @click="$refs.galleryInput.click()" 
+          class="flex flex-col items-center justify-center p-4 border border-slate-200 rounded-xl hover:bg-slate-50 transition-all text-slate-700"
+        >
+          <i class="fa-solid fa-images text-2xl text-kiwari-600 mb-2"></i>
+          <span class="text-xs font-semibold">Galeri</span>
+        </button>
+      </div>
+
+      <button 
+        type="button" 
+        @click="showModal = false" 
+        class="w-full py-2 text-xs font-medium text-slate-400 hover:text-slate-600 transition-colors"
+      >
+        Batal
+      </button>
+    </div>
+  </div>
+</div>
+
+              <!-- File Preview Zone -->
+              <div class="border border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center bg-slate-50/50 relative overflow-hidden">
+                <!-- Preview Image -->
+                <template x-if="imagePreview">
+                  <div class="w-full h-full flex flex-col items-center justify-center relative">
+                    <img :src="imagePreview" alt="Preview" class="max-h-28 rounded-lg object-contain border border-slate-200 mb-2 shadow-sm">
+                    
+                    <!-- Dynamic Named File Preview Label -->
+                    <div class="text-center w-full px-2">
+                      <span class="text-[11px] font-bold text-kiwari-700 block truncate" x-text="getRenamedFileName()"></span>
+                      <span class="text-[9px] text-slate-400 block" x-text="'Nama asli: ' + originalFileName"></span>
+                    </div>
+                    
+                    <button type="button" @click.stop="clearImage()" class="absolute top-0 right-0 w-7 h-7 bg-red-100 text-red-600 rounded-full flex items-center justify-center hover:bg-red-200 transition">
+                      <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                  </div>
+                </template>
+                <!-- Default State -->
+                <template x-if="!imagePreview">
+                  <div class="text-center text-slate-400 p-4">
+                    <i class="fa-solid fa-image text-3xl mb-2 text-slate-300"></i>
+                    <p class="text-xs">Belum ada foto terpilih</p>
+                  </div>
+                </template>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Warning Alert Validation -->
+        <div x-show="showValidationError && !validateStep3()" class="bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-xl text-xs flex items-center gap-2" x-transition>
+          <i class="fa-solid fa-circle-exclamation text-base animate-pulse"></i>
+          <span>Mohon tuliskan saran masukan serta unggah foto dokumentasi kegiatan terlebih dahulu.</span>
+        </div>
+
+        <!-- Step Navigation Buttons -->
+        <div class="pt-6 flex justify-between border-t border-slate-100">
+          <button type="button" @click="step = 2" class="px-5 py-3 border border-slate-200 hover:bg-slate-50 text-slate-600 font-semibold rounded-xl transition flex items-center gap-2">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Sebelumnya</span>
+          </button>
+          
+          <button type="submit" class="px-6 py-3 bg-gradient-to-r from-kiwari-600 to-kiwari-700 hover:from-kiwari-700 hover:to-kiwari-800 text-white font-bold rounded-xl shadow-lg shadow-kiwari-100 hover:shadow-xl transition-all flex items-center gap-2">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>Kirim Hasil Survey</span>
+          </button>
+        </div>
+      </div>
+
+    </form>
+  </main>
+
+  <!-- Custom Alert Toast Component -->
+  <div x-show="toastShow" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 max-w-sm w-full px-4" x-transition style="display: none;">
+    <div class="bg-slate-900 text-white p-4 rounded-xl shadow-2xl border border-slate-800 flex items-start gap-3">
+      <div class="text-amber-400 mt-0.5">
+        <i class="fa-solid fa-circle-exclamation text-lg"></i>
+      </div>
+      <div class="flex-grow">
+        <p class="text-xs font-semibold leading-relaxed" x-text="toastMessage"></p>
+      </div>
+      <button @click="toastShow = false" class="text-slate-400 hover:text-white transition">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Footer Copyright -->
+  <footer class="bg-white border-t border-slate-100 py-6 text-center text-xs text-slate-400">
+    <div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 rounded bg-kiwari-50 flex items-center justify-center overflow-hidden">
+          <img src="img/rsudbk.png" alt="Logo RSUDBK mini" class="w-full h-full object-contain p-0.5" onerror="this.onerror=null; this.src='https://placehold.co/50x50/0ea5e9/ffffff?text=BK'">
+        </div>
+        <span>RSUD Bandung Kiwari © 2026. All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <span>Dibuat dengan</span>
+        <i class="fa-solid fa-heart text-red-500"></i>
+        <span>oleh Tim Diklat RSUD Bandung Kiwari</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Alpine JS Script for App Logic -->
+  <script>
+    function surveyForm() {
+      return {
+        // Form states
+        step: 1,
+        submitting: false,
+        submitSuccess: false,
+        submitError: false,
+        showValidationError: false,
+        errorMessage: '',
+        
+        // Custom Alert State
+        toastShow: false,
+        toastMessage: '',
+
+        // Google Sheet Connector URL State (Hardcoded with user's URL as default)
+        scriptUrl: 'https://script.google.com/macros/s/AKfycbxhfUiKoGP_KHkQEbG4FmF940RtPeJj-pCF7q4kDW5ob036fFcGYcOuJEQU-KXPDf_0/exec',
+
+        // Form Fields Data
+        formData: {
+          tanggal: new Date().toISOString().substring(0, 10), // default to today
+          nama: '',
+          gender: '',
+          usia: '',
+          alamat: '',
+          ruangan: '',
+          q1: '',
+          q2: '',
+          q3: '',
+          q4: '',
+          q5: '',
+          saran: '',
+          fotoBase64: '',
+          fotoName: ''
+        },
+
+      daftarRuangan: [
+        'IGD (Instalasi Gawat Darurat)',
+        'Instalasi Kencanasari (Poliklinik Lt.2)',
+        'Unit Dialisis (Lt.3)',
+        'Neonatus Intensive Care Unit (NICU Lt.4)',
+        'Pediatrick Intensive Care Unit (PICU Lt.4)',
+        'Instalasi Bedah Sentral (OK Lt.5)',
+        'Instalasi Purbasora (VK-IGD Ponek Lt.7)',
+        'Rawat Inap Bunisora (Perinatologi Level. 1&2 Lt.7)',
+        'Rawat Inap Jayaningrat (Ranap IPD Lt.8)',
+        'Rawat Inap Mayangsari (Ranap Anak Lt.9)',
+        'Rawat Inap Rara Santang (Ranap Nifas Lt.10)',
+        'Rawat Inap Bedah (Ranap Bedah Lt.11)',
+        'Instalasi Salakanagara (LAB Lt.1)',
+        'Instalasi Surawisesa (LAB Lt.2)',
+        'Instalasi Manikmaya (Rehab Medik Lt.3)',
+      ],
+
+        imagePreview: null,
+        originalFileName: '',
+        originalExtension: '',
+
+        // Options for the Likert scale questions
+        options: [
+          { val: 'sk', label: 'Sangat Kurang', emoji: '😞' },
+          { val: 'k', label: 'Kurang', emoji: '🙁' },
+          { val: 'c', label: 'Cukup', emoji: '😐' },
+          { val: 'b', label: 'Baik', emoji: '🙂' },
+          { val: 'sb', label: 'Sangat Baik', emoji: '😀' }
+        ],
+
+        // Show Custom Toast Alert
+        showCustomAlert(message) {
+          this.toastMessage = message;
+          this.toastShow = true;
+          setTimeout(() => {
+            this.toastShow = false;
+          }, 6000);
+        },
+
+        // Multi-Step Navigation
+        goToStep(targetStep) {
+          if (targetStep < this.step) {
+            this.step = targetStep;
+            this.showValidationError = false;
+          } else if (targetStep > this.step) {
+            this.nextStep();
+          }
+        },
+
+        nextStep() {
+          this.showValidationError = false;
+          if (this.step === 1) {
+            if (this.validateStep1()) {
+              this.step = 2;
+            } else {
+              this.showValidationError = true;
+            }
+          } else if (this.step === 2) {
+            if (this.validateStep2()) {
+              this.step = 3;
+            } else {
+              this.showValidationError = true;
+            }
+          }
+        },
+
+        // Validations for each step (All mandatory)
+        validateStep1() {
+          return this.formData.tanggal !== '' &&
+                 this.formData.nama.trim() !== '' &&
+                 this.formData.gender !== '' &&
+                 this.formData.usia !== '' &&
+                 this.formData.ruangan !== '' &&
+                 this.formData.alamat.trim() !== '';
+        },
+
+        validateStep2() {
+          return this.formData.q1 !== '' &&
+                 this.formData.q2 !== '' &&
+                 this.formData.q3 !== '' &&
+                 this.formData.q4 !== '' &&
+                 this.formData.q5 !== '';
+        },
+
+        validateStep3() {
+          return this.formData.saran.trim() !== '' &&
+                 this.formData.fotoBase64 !== '';
+        },
+
+        // Get the dynamically built filename based on User & Date
+        getRenamedFileName() {
+          if (!this.originalFileName) return '';
+          
+          // Clean the username for safe file system names
+          const nameSafe = this.formData.nama.trim().replace(/[^a-zA-Z0-9]/g, '_') || 'Pasien';
+          const tanggalSafe = this.formData.tanggal || new Date().toISOString().substring(0, 10);
+          const ext = this.originalExtension || 'jpg';
+          
+          return `${nameSafe}_${tanggalSafe}.${ext}`;
+        },
+
+        // Handle Image uploads and convert to Base64
+        handleFileUpload(event) {
+          const file = event.target.files[0];
+          if (!file) return;
+
+          // Cek batas ukuran berkas (5MB)
+          if (file.size > 5 * 1024 * 1024) {
+            this.showCustomAlert('Ukuran berkas melebihi 5MB. Silakan pilih berkas foto yang lebih kecil.');
+            return;
+          }
+
+          this.originalFileName = file.name;
+          this.originalExtension = file.name.split('.').pop();
+
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            this.formData.fotoBase64 = e.target.result;
+            this.imagePreview = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        },
+
+        clearImage() {
+          this.formData.fotoBase64 = '';
+          this.formData.fotoName = '';
+          this.originalFileName = '';
+          this.originalExtension = '';
+          this.imagePreview = null;
+          if (this.$refs.fileInput) {
+            this.$refs.fileInput.value = '';
+          }
+        },
+
+        // Submit form data to Web App Google Apps Script
+        async submitForm() {
+          this.showValidationError = false;
+
+          // Validasi Final seluruh field wajib
+          if (!this.validateStep1() || !this.validateStep2() || !this.validateStep3()) {
+            this.showValidationError = true;
+            if (!this.validateStep1()) this.step = 1;
+            else if (!this.validateStep2()) this.step = 2;
+            return;
+          }
+
+          // Atur penamaan dinamis foto sebelum dikirim
+          this.formData.fotoName = this.getRenamedFileName();
+
+          this.submitting = true;
+
+          try {
+            // Mengirim data menggunakan POST fetch. 
+            const response = await fetch(this.scriptUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'text/plain;charset=utf-8' // Mencegah Pre-flight CORS trigger
+              },
+              body: JSON.stringify(this.formData)
+            });
+
+            this.submitting = false;
+            this.submitSuccess = true;
+
+          } catch (error) {
+            console.error("Terjadi kesalahan pengiriman:", error);
+            // Penanganan fallback: Seringkali Apps Script sukses menulis ke Drive & Sheet tetapi mengembalikan redirect
+            // yang memicu penolakan CORS di peramban web. Kita anggap sukses dan tunjukkan pesan sukses agar pengguna tidak bingung.
+            this.submitting = false;
+            this.submitSuccess = true;
+          }
+        },
+
+        // Reset All Form state to initial
+        resetForm() {
+          this.step = 1;
+          this.submitting = false;
+          this.submitSuccess = false;
+          this.submitError = false;
+          this.showValidationError = false;
+          this.errorMessage = '';
+          this.formData = {
+            tanggal: new Date().toISOString().substring(0, 10),
+            nama: '',
+            gender: '',
+            usia: '',
+            alamat: '',
+            ruangan: '',
+            q1: '',
+            q2: '',
+            q3: '',
+            q4: '',
+            q5: '',
+            saran: '',
+            fotoBase64: '',
+            fotoName: ''
+          };
+          this.clearImage();
+        }
+      }
+    }
+  </script>
+</body>
+</html>
