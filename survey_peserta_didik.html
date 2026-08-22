@@ -583,93 +583,129 @@
         const modal = document.getElementById('modalResponse');
 
         form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            // Cegah submit ganda
-            submitBtn.disabled = true;
-            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
-            loadingIcon.classList.remove('hidden');
-            submitBtn.querySelector('span').textContent = "Memproses Data...";
+    e.preventDefault();
+    
+    const submitBtnSpan = submitBtn.querySelector('span');
+    
+    // Cegah submit ganda dan tampilkan efek loading
+    submitBtn.disabled = true;
+    submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+    loadingIcon.classList.remove('hidden');
+    if (submitBtnSpan) submitBtnSpan.textContent = "Memproses Data...";
 
-            try {
-                const formData = new FormData(form);
-                const dataObj = Object.fromEntries(formData.entries());
+    try {
+        const formData = new FormData(form);
+        const dataObj = Object.fromEntries(formData.entries());
 
-                // MENGIRIM TANGGAL SEBAGAI 2 KOLOM TERPISAH (Sesuai dengan update GS)
-                dataObj.tanggalMulai = formatTgl(document.getElementById('tanggalMulai').value);
-                dataObj.tanggalSelesai = formatTgl(document.getElementById('tanggalSelesai').value);
+        // MENGIRIM TANGGAL SEBAGAI 2 KOLOM TERPISAH (Sesuai dengan update GS)
+        // Diperbaiki dengan pengecekan DOM untuk mencegah error
+        const elTglMulai = document.getElementById('tanggalMulai');
+        const elTglSelesai = document.getElementById('tanggalSelesai');
+        
+        dataObj.tanggalMulai = formatTgl(elTglMulai ? elTglMulai.value : "");
+        dataObj.tanggalSelesai = formatTgl(elTglSelesai ? elTglSelesai.value : "");
 
-                // Handle Image Base64
-                const fileInput = document.getElementById('fotoBukti');
-                if (fileInput.files.length > 0) {
-                    const file = fileInput.files[0];
-                    const base64Str = await getBase64(file);
-                    dataObj.fotoBase64 = base64Str.split(',')[1];
-                    dataObj.fotoMimeType = file.type;
-                    dataObj.fotoName = file.name;
-                }
+        // Handle Image Base64
+        const fileInput = document.getElementById('fotoBukti');
+        if (fileInput && fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const base64Str = await getBase64(file);
+            dataObj.fotoBase64 = base64Str.split(',')[1];
+            dataObj.fotoMimeType = file.type;
+            dataObj.fotoName = file.name;
+        }
 
-                // Kirim ke Google Apps Script via POST (no-cors)
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dataObj)
-                });
-
-                showModal(true);
-            } catch (error) {
-                console.error(error);
-                showModal(false);
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
-                loadingIcon.classList.add('hidden');
-                submitBtn.querySelector('span').textContent = "Kirim Survey Sekarang";
-            }
+        // Kirim ke Google Apps Script via POST (TANPA no-cors)
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 
+                // Gunakan text/plain agar tidak diblokir oleh sistem preflight CORS
+                'Content-Type': 'text/plain;charset=utf-8' 
+            },
+            body: JSON.stringify(dataObj)
         });
 
-        function formatTgl(dateString) {
-            if(!dateString) return "";
-            const d = new Date(dateString);
-            const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-            return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+        // Cek koneksi server
+        if (!response.ok) {
+            throw new Error(`Koneksi server bermasalah (Status: ${response.status})`);
         }
 
-        function getBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
+        // Tangkap balasan JSON dari Code.gs
+        const result = await response.json();
+
+        // Validasi status dari Code.gs
+        if (result.status === "success") {
+            showModal(true); // Data benar-benar tersimpan
+        } else {
+            throw new Error(result.message || "Gagal menyimpan data di Spreadsheet.");
         }
 
-        function showModal(isSuccess) {
-            const title = document.getElementById('modalTitle');
-            const message = document.getElementById('modalMessage');
-            const iconWrap = document.getElementById('modalIcon');
+    } catch (error) {
+        console.error("Kesalahan pengiriman:", error);
+        showModal(false); // Munculkan modal error
+    } finally {
+        // Kembalikan tombol ke keadaan semula
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+        loadingIcon.classList.add('hidden');
+        if (submitBtnSpan) submitBtnSpan.textContent = "Kirim Survey Sekarang";
+    }
+});
 
-            if (!isSuccess) {
-                title.textContent = "Terjadi Kesalahan";
-                title.className = "text-xl font-bold text-red-600 dark:text-red-400 mb-2";
-                message.textContent = "Gagal mengirim data. Silakan periksa koneksi internet Anda dan coba lagi.";
-                iconWrap.className = "mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-red-100 dark:bg-red-900/30 mb-5";
-                iconWrap.innerHTML = `<svg class="h-10 w-10 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
-                document.querySelector('#modalResponse button').className = "w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 px-4 rounded-xl transition-colors shadow-md shadow-red-500/30";
-            }
+function formatTgl(dateString) {
+    if(!dateString) return "";
+    
+    const d = new Date(dateString);
+    // Mencegah error "NaN" jika format tanggal salah/kosong
+    if (isNaN(d.getTime())) return dateString; 
+    
+    const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
 
-            modal.classList.remove('modal-inactive');
-            modal.classList.add('modal-active');
-        }
+function getBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+}
 
-        function closeModal() {
-            modal.classList.remove('modal-active');
-            modal.classList.add('modal-inactive');
-            if (document.getElementById('modalTitle').textContent === "Penyimpanan Berhasil!") {
-                window.location.reload();
-            }
-        }
+function showModal(isSuccess) {
+    const title = document.getElementById('modalTitle');
+    const message = document.getElementById('modalMessage');
+    const iconWrap = document.getElementById('modalIcon');
+    const btn = document.querySelector('#modalResponse button');
+
+    if (!isSuccess) {
+        title.textContent = "Terjadi Kesalahan";
+        title.className = "text-xl font-bold text-red-600 dark:text-red-400 mb-2";
+        message.textContent = "Gagal mengirim data. Silakan periksa koneksi internet Anda dan coba lagi.";
+        iconWrap.className = "mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-red-100 dark:bg-red-900/30 mb-5";
+        iconWrap.innerHTML = `<svg class="h-10 w-10 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+        if (btn) btn.className = "w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 px-4 rounded-xl transition-colors shadow-md shadow-red-500/30";
+    } else {
+        // Penting: Reset modal kembali ke mode sukses
+        title.textContent = "Penyimpanan Berhasil!";
+        title.className = "text-xl font-bold text-green-600 dark:text-green-400 mb-2";
+        message.textContent = "Data Anda telah berhasil dikirim dan disimpan.";
+        iconWrap.className = "mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 dark:bg-green-900/30 mb-5";
+        iconWrap.innerHTML = `<svg class="h-10 w-10 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+        if (btn) btn.className = "w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 px-4 rounded-xl transition-colors shadow-md shadow-green-500/30";
+    }
+
+    modal.classList.remove('modal-inactive');
+    modal.classList.add('modal-active');
+}
+
+function closeModal() {
+    modal.classList.remove('modal-active');
+    modal.classList.add('modal-inactive');
+    if (document.getElementById('modalTitle').textContent === "Penyimpanan Berhasil!") {
+        window.location.reload();
+    }
+}
     </script>
 </body>
 </html>
