@@ -3,1776 +3,304 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin Diklat - RSUD Bandung Kiwari</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: { primary: '#0ea5e9', secondary: '#10b981', darkbg: '#111827', darkcard: '#1f2937' },
-                    fontFamily: { sans: ['Inter', 'sans-serif'] }
-                }
+    <title>Form Biodata Peserta Didik</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Poppins', sans-serif;
+        }
+
+        body{
+            background:#f5f7fb;
+            min-height:100vh;
+            color:#333;
+        }
+
+        [x-cloak]{
+            display:none !important;
+        }
+
+        /* Header */
+        header{
+            background:#ffffff;
+            box-shadow:0 2px 10px rgba(0,0,0,.05);
+            position:sticky;
+            top:0;
+            z-index:100;
+        }
+
+        .navbar{
+            max-width:1200px;
+            margin:auto;
+            padding:15px 20px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+
+        .logo{
+            color:#714B67;
+            font-weight: 700;
+        }
+
+        .menu{
+            display:flex;
+            gap:20px;
+        }
+
+        .menu a{
+            text-decoration:none;
+            color:#444;
+            font-weight:500;
+            transition:.3s;
+        }
+
+        .menu a:hover{
+            color:#714B67;
+        }
+
+        /* Hero */
+        .hero{
+            max-width:900px;
+            margin:0 auto;
+            padding:60px 20px;
+            text-align:center;
+        }
+
+        .hero-logo{
+            display:block;
+            width:180px;
+            margin:0 auto 25px;
+        }
+
+        .hero h1{
+            font-size:48px;
+            font-weight:700;
+            color:#714B67;
+            margin-bottom:8px;
+        }
+
+        .hero h2{
+            font-size:24px;
+            font-weight:600;
+            color:#334155;
+            margin-bottom:20px;
+        }
+
+        .hero p{
+            max-width:700px;
+            margin:0 auto;
+            color:#64748b;
+            line-height:1.8;
+        }
+
+        /* Cards */
+        .menu-section{
+            max-width:1200px;
+            margin:auto;
+            padding:40px 20px 70px;
+        }
+
+        /* Diubah menjadi responsive grid (max 4 kolom jika layar lebar) */
+        .cards{
+            display:grid;
+            grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
+            gap:25px;
+        }
+
+        .card{
+            background:#fff;
+            border-radius:20px;
+            padding:30px;
+            text-decoration:none;
+            color:#333;
+            box-shadow:0 8px 30px rgba(0,0,0,.06);
+            transition:.3s;
+            border:1px solid #e2e8f0;
+        }
+
+        .card:hover{
+            transform:translateY(-5px);
+            box-shadow:0 15px 35px rgba(0,0,0,.1);
+        }
+
+        .icon{
+            font-size:48px;
+            margin-bottom:15px;
+        }
+
+        .card h3{
+            margin-bottom:10px;
+            color:#1e293b;
+        }
+
+        .card p{
+            color:#64748b;
+            font-size:14px;
+            line-height:1.6;
+        }
+
+        footer{
+            text-align:center;
+            padding:25px;
+            color:#94a3b8;
+            font-size:14px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+        .mb-6 {
+            margin-bottom: 24px;
+        }
+
+        /* Mobile */
+        @media(max-width:768px){
+            .navbar{
+                flex-direction:column;
+                gap:15px;
+            }
+
+            .menu{
+                flex-wrap:wrap;
+                justify-content:center;
+            }
+
+            .hero{
+                padding:40px 20px;
+            }
+
+            .hero-logo{
+                width:120px;
+            }
+
+            .hero h1{
+                font-size:34px;
+            }
+
+            .hero h2{
+                font-size:18px;
             }
         }
-    </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .dark ::-webkit-scrollbar-thumb { background: #475569; }
-        .nav-item.active { background-color: rgba(14, 165, 233, 0.1); color: #0ea5e9; border-right: 3px solid #0ea5e9; font-weight: 600; }
-        .dark .nav-item.active { background-color: rgba(14, 165, 233, 0.2); }
-        .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .loader-spinner { border-top-color: #0ea5e9; animation: spinner 1.5s linear infinite; }
-        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #sidebar { transition: all 0.3s ease-in-out; }
-        .sidebar-collapsed { margin-left: -16rem; }
-        #mainContent { transition: all 0.3s ease-in-out; }
-        .content-expanded { margin-left: 0 !important; }
+
+        .modal-backdrop{
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,.5);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:20px;
+            z-index:9999;
+        }
+
+        .modal-box{
+            background:#fff;
+            width:100%;
+            max-width:420px;
+            border-radius:24px;
+            padding:30px;
+            box-shadow:0 20px 60px rgba(0,0,0,.2);
+        }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 dark:bg-darkbg dark:text-gray-100 transition-colors duration-300">
+<body x-data="appData()">
 
-    <div id="loginScreen" class="fixed inset-0 z-[100] bg-gray-50 dark:bg-darkbg flex flex-col items-center justify-center p-4">
-        <div class="bg-white dark:bg-darkcard p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100 dark:border-gray-800">
-            <div class="text-center mb-8">
-                <img src="img/rsudbk.png" alt="Logo RSUD BK" class="h-16 mx-auto mb-4 object-contain" onerror="this.src='https://placehold.co/200x80/ffffff/0ea5e9?text=RSUD+BK'">
-                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Admin Diklat</h2>
-                <p class="text-sm text-gray-500 mt-1">Silakan masuk ke akun Anda</p>
+    <section class="hero">
+        <img src="img/rsudbk.png" alt="RSUDBK" class="hero-logo">
+        <h1>RSUDBK</h1>
+        <h2>Sistem Sarana dan Prasarana Diklat</h2>
+        <p>
+            Sistem pengelolaan data Sarana dan Prasarana , Peserta Didik yang terintegrasi dengan
+            Google Spreadsheet dan Google Drive untuk memudahkan proses
+            pendaftaran, pengarsipan dokumen, dan monitoring.
+        </p>
+    </section>
+
+    <section class="menu-section">
+        <div class="cards">
+            <div class="card" @click="showLogin=true" style="cursor:pointer">             
+                <div class="icon">📊</div>
+                <h3>Dashboard</h3>
+                <p>Lihat ringkasan data peserta didik dan statistik pendaftaran.</p>
             </div>
-            <form onsubmit="handleLogin(event)" class="space-y-5">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-user text-gray-400"></i></div>
-                        <input type="text" id="username" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Masukkan username" required>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-lock text-gray-400"></i></div>
-                        <input type="password" id="password" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="••••••••" required>
-                    </div>
-                </div>
-                <button type="submit" id="btnLogin" class="w-full bg-primary hover:bg-blue-600 text-white font-medium py-2.5 rounded-lg transition-colors flex justify-center items-center">
-                    <span>Masuk Dashboard</span>
-                </button>
-            </form>
+
+            <a href="input_pesertadidik.html" class="card">
+                <div class="icon">📝</div>
+                <h3>Input Data Peserta Didik</h3>
+                <p>Tambahkan data peserta didik baru beserta dokumen pendukung.</p>
+            </a>
+
+            <a href="input_pesertadidik.html" class="card">
+                <div class="icon">👥</div>
+                <h3>Data Peserta Didik</h3>
+                <p>Kelola, cari, dan lihat seluruh data peserta didik yang telah tersimpan.</p>
+            </a>
+
+            <a href="peminjaman_menu.html" class="card">
+                <div class="icon">📋</div>
+                <h3>Peminjaman</h3>
+                <p>Ajukan request peminjaman fasilitas atau dokumen peserta didik di sini.</p>
+            </a>
         </div>
-    </div>
+    </section>
 
-    <div id="mobileOverlay" class="fixed inset-0 bg-gray-900/50 z-20 hidden backdrop-blur-sm" onclick="toggleSidebar()"></div>
+    <footer>
+        © 2026 Form Sarana dan Prasarana Diklat RSUDBK. All rights reserved.
+    </footer>
 
-    <!-- Sidebar -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-darkcard shadow-xl flex flex-col transform -translate-x-full lg:translate-x-0">
-        <div class="flex items-center justify-between h-16 border-b dark:border-gray-700 px-4">
-            <img src="img/rsudbk.png" alt="Logo" class="h-10 w-auto object-contain" onerror="this.src='https://placehold.co/120x40/ffffff/0ea5e9?text=RSUD+BK'">
-            <button onclick="toggleSidebar()" class="lg:hidden text-gray-500 hover:text-primary"><i class="fas fa-times text-xl"></i></button>
-        </div>
-        
-        <div class="overflow-y-auto flex-1 py-4 px-3 space-y-1">
-            <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-2">Menu Utama</p>
-            <a href="#" onclick="loadContent('dashboard', this)" class="nav-item active flex items-center px-4 py-2.5 rounded-lg transition-colors text-sm hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fas fa-home w-6 text-center"></i> <span>Dashboard</span></a>
-            
-            <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6">Data Utama</p>
-            <a href="#" onclick="loadContent('pd', this)" class="nav-item flex items-center px-4 py-2.5 rounded-lg transition-colors text-sm hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fas fa-user-graduate w-6 text-center"></i> <span>Peserta Didik</span></a>
-            <a href="#" onclick="loadContent('pl', this)" class="nav-item flex items-center px-4 py-2.5 rounded-lg transition-colors text-sm hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fas fa-users-cog w-6 text-center"></i> <span>Peserta Pelatihan</span></a>
-            <a href="#" onclick="loadContent('dh', this)" class="nav-item flex items-center px-4 py-2.5 rounded-lg transition-colors text-sm hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fas fa-clipboard-list w-6 text-center"></i> <span>Daftar Hadir</span></a>
+    <div x-show="showLogin" x-cloak x-transition class="modal-backdrop">
+        <div @click.away="showLogin=false" class="modal-box">
+            <div class="text-center mb-6">
+                <div style="font-size:60px;">🔐</div>
+                <h2 style="margin-top:10px;font-size:24px;font-weight:700;">Login Dashboard</h2>
+                <p style="margin-top:8px;color:#64748b;">Masukkan akun administrator</p>
+            </div>
 
-            <div class="space-y-1">
-                <button onclick="toggleSubmenu('survey-sub')" class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <div class="flex items-center"><i class="fas fa-star w-6 text-center"></i> <span>Data Survey</span></div><i class="fas fa-chevron-down text-xs"></i>
+            <div style="margin-bottom:16px;">
+                <label style="display:block;margin-bottom:8px;font-weight:600;">Username</label>
+                <input type="text" x-model="username" placeholder="Masukkan username" style="width:100%; padding:14px; border:1px solid #ddd; border-radius:12px;">
+            </div>
+
+            <div style="margin-bottom:24px;">
+                <label style="display:block;margin-bottom:8px;font-weight:600;">Password</label>
+                <input type="password" x-model="password" placeholder="Masukkan password" style="width:100%; padding:14px; border:1px solid #ddd; border-radius:12px;">
+            </div>
+
+            <div style="display:flex;gap:12px;">
+                <button @click="showLogin=false" style="flex:1; padding:14px; border:none; border-radius:12px; background:#e2e8f0; cursor:pointer;">
+                    Batal
                 </button>
-                <div id="survey-sub" class="hidden pl-8 space-y-1">
-                    <a href="#" onclick="loadContent('survey_pd', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Kepuasan ke PD</a>
-                    <a href="#" onclick="loadContent('survey_residen', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Kepuasan ke Residen</a>
-                </div>
-            </div>
-
-            <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6">Fasilitas & Pemeliharaan</p>
-            <div class="space-y-1">
-                <button onclick="toggleSubmenu('pinjam-sub')" class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <div class="flex items-center"><i class="fas fa-handshake w-6 text-center"></i> <span>Data Peminjaman</span></div><i class="fas fa-chevron-down text-xs"></i>
+                <button @click="loginDashboard()" style="flex:1; padding:14px; border:none; border-radius:12px; background:#714B67; color:white; font-weight:600; cursor:pointer;">
+                    Masuk
                 </button>
-                <div id="pinjam-sub" class="hidden pl-8 space-y-1">
-                    <a href="#" onclick="loadContent('pinjam_kunci', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Peminjaman Kunci</a>
-                    <a href="#" onclick="loadContent('pinjam_barang', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Peminjaman Barang</a>
-                    <a href="#" onclick="loadContent('pinjam_ruangan', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Peminjaman Ruangan</a>
-                </div>
-            </div>
-
-            <div class="space-y-1">
-                <button onclick="toggleSubmenu('sarpras-sub')" class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <div class="flex items-center"><i class="fas fa-boxes w-6 text-center"></i> <span>Data Sarpras</span></div><i class="fas fa-chevron-down text-xs"></i>
-                </button>
-                <div id="sarpras-sub" class="hidden pl-8 space-y-1">
-                    <a href="#" onclick="loadContent('sarpras_kunci', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Kunci Loker</a>
-                    <a href="#" onclick="loadContent('sarpras_barang', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Barang</a>
-                    <a href="#" onclick="loadContent('sarpras_ruangan', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Ruangan</a>
-                    <a href="#" onclick="loadContent('sarpras_atk', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Data ATK</a>
-                    <a href="#" onclick="loadContent('sarpras_bhp', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Data BHP</a>
-                </div>
-            </div>
-            
-            <div class="space-y-1">
-                <button onclick="toggleSubmenu('check-sub')" class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <div class="flex items-center"><i class="fas fa-clipboard-check w-6 text-center"></i> <span>Checklist & MTC</span></div><i class="fas fa-chevron-down text-xs"></i>
-                </button>
-                <div id="check-sub" class="hidden pl-8 space-y-1">
-                    <a href="#" onclick="loadContent('check_ruangan', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Checklist Ruangan</a>
-                    <a href="#" onclick="loadContent('check_barang', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Checklist Barang</a>
-                    <a href="#" onclick="loadContent('check_maintenance', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Data Maintenance</a>
-                </div>
-            </div>
-
-            <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6">Sistem</p>
-            <div class="space-y-1 mb-8">
-                <button onclick="toggleSubmenu('setting-sub')" class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <div class="flex items-center"><i class="fas fa-cogs w-6 text-center"></i> <span>Pengaturan</span></div><i class="fas fa-chevron-down text-xs"></i>
-                </button>
-                <div id="setting-sub" class="hidden pl-8 space-y-1">
-                    <a href="#" onclick="loadContent('set_pd', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Peserta Didik</a>
-                    <a href="#" onclick="loadContent('set_pl', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Peserta Pelatihan</a>
-                    <a href="#" onclick="loadContent('set_dh', this)" class="nav-item block px-4 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Daftar Hadir</a>
-                </div>
-            </div>
-        </div>
-        <div class="p-4 border-t dark:border-gray-700 text-center text-xs text-gray-500">&copy; 2026 Diklat RSUD BK</div>
-    </aside>
-
-    <div id="mainContent" class="lg:ml-64 min-h-screen flex flex-col bg-gray-50 dark:bg-darkbg">
-        <header class="h-16 bg-white dark:bg-darkcard shadow-sm flex items-center justify-between px-4 lg:px-8 z-10 sticky top-0">
-            <div class="flex items-center">
-                <button onclick="toggleSidebar()" class="text-gray-500 hover:text-primary focus:outline-none mr-4 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
-                <h2 class="text-xl font-bold text-gray-800 dark:text-white capitalize truncate" id="headerTitle">Dashboard</h2>
-            </div>
-            <div class="flex items-center space-x-3">
-                <button onclick="toggleTheme()" class="text-gray-500 hover:text-primary transition-colors p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <i class="fas fa-moon text-lg" id="themeIcon"></i>
-                </button>
-                <div class="flex items-center space-x-2 cursor-pointer border-l pl-3 dark:border-gray-700" onclick="logout()">
-                    <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm"><i class="fas fa-power-off"></i></div>
-                    <span class="text-sm font-medium hidden md:block text-red-500 hover:text-red-700">Logout</span>
-                </div>
-            </div>
-        </header>
-
-        <main class="flex-1 p-4 lg:p-8 relative">
-            <div id="loader" class="hidden absolute inset-0 bg-white/60 dark:bg-darkbg/60 z-20 flex flex-col items-center pt-20 backdrop-blur-sm">
-                <div class="w-10 h-10 border-4 border-gray-200 rounded-full loader-spinner mb-3"></div>
-                <p class="text-primary text-sm font-medium">Memuat Data...</p>
-            </div>
-            <div id="contentContainer" class="w-full mx-auto space-y-6">
-                <!-- Konten dinamis -->
-            </div>
-        </main>
-    </div>
-
-    <!-- Custom Dialog/Modal -->
-    <div id="customModal" class="fixed inset-0 bg-black/60 z-[110] hidden flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
-        <div class="bg-white dark:bg-darkcard w-11/12 max-w-lg rounded-xl shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
-            <div class="px-6 py-4 border-b dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 rounded-t-xl">
-                <h3 id="modalTitle" class="text-lg font-bold text-gray-800 dark:text-white">Form</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fas fa-times text-xl"></i></button>
-            </div>
-            <div id="modalBody" class="p-6 text-gray-600 dark:text-gray-300 overflow-y-auto">
             </div>
         </div>
     </div>
 
     <script>
-        // PASTIKAN API URL INI SAMA DENGAN MILIK ANDA
-        const API_URL = "https://script.google.com/macros/s/AKfycbxLVbaFA2ycKxm0JU-sxkr1Tg6NQ1-arej3FRbhcQm63AWRwEX92W9hOtXLGzdj8IGsLg/exec";
-        
-        let currentMenu = 'dashboard';
-        let chartsInstance = [];
-        let requestToken = 0; 
-        
-        // Helper toggle checkbox references
-        let currentToggleCheckbox = null;
-
-        /* ====================================================
-           FUNGSI API & CRUD UMUM
-           ==================================================== */
-        
-        async function fetchAPI(action, params = {}) {
-            let url = `${API_URL}?action=${action}`;
-            for (const key in params) {
-                if(params[key]) url += `&${key}=${encodeURIComponent(params[key])}`;
-            }
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error("Koneksi jaringan bermasalah");
-                return await response.json();
-            } catch (error) {
-                console.error("Fetch API Error:", error);
-                return { error: true, message: error.message };
-            }
-        }
-
-        async function fetchPostAPI(payload) {
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
-                return await response.json();
-            } catch (error) {
-                console.error("Fetch POST Error:", error);
-                return { error: true, message: error.message };
-            }
-        }
-
-        async function confirmDelete(menuId, sheetName, rowIndex, fileUrl = "") {
-            if(!confirm("Apakah Anda yakin ingin menghapus data ini?")) return;
-            
-            customAlert("Sedang menghapus data...", "info");
-            const result = await fetchPostAPI({ action: 'crud', menuId, sheetName, operation: 'delete', rowIndex, oldFileUrl: fileUrl });
-            
-            closeModal();
-            if(result.success) {
-                customAlert(result.message, "success");
-                loadContent(menuId, null, sheetName); 
-            } else {
-                customAlert(result.message || "Gagal menghapus data", "error");
-            }
-        }
-
-        /* ====================================================
-           SISTEM LOGIN & UI HELPER
-           ==================================================== */
-        function checkAuth() {
-            if (localStorage.getItem('isLoggedIn') === 'true') {
-                document.getElementById('loginScreen').classList.add('hidden');
-                loadContent('dashboard');
-            } else {
-                document.getElementById('loginScreen').classList.remove('hidden');
-            }
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btnLogin');
-            const u = document.getElementById('username').value;
-            const p = document.getElementById('password').value;
-            
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
-            
-            setTimeout(() => {
-                if(u === 'admin' && p === 'admin123') {
-                    localStorage.setItem('isLoggedIn', 'true');
-                    document.getElementById('loginScreen').classList.add('hidden');
-                    loadContent('dashboard');
-                } else {
-                    customAlert("Username atau Password salah!", "error");
-                    btn.innerHTML = `<span>Masuk Dashboard</span>`;
-                }
-            }, 800);
-        }
-
-        function logout() {
-            localStorage.removeItem('isLoggedIn');
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-        }
-
-        function showModal(title, htmlContent) {
-            const modal = document.getElementById('customModal');
-            document.getElementById('modalTitle').innerText = title;
-            document.getElementById('modalBody').innerHTML = htmlContent;
-            modal.classList.remove('hidden');
-            setTimeout(() => { modal.classList.remove('opacity-0'); modal.querySelector('div').classList.remove('scale-95'); }, 10);
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('customModal');
-            modal.classList.add('opacity-0');
-            modal.querySelector('div').classList.add('scale-95');
-            setTimeout(() => modal.classList.add('hidden'), 300);
-        }
-
-        function customAlert(message, type = 'info') {
-            let icon = '<i class="fas fa-info-circle text-blue-500 text-4xl mb-4"></i>';
-            if(type === 'error') icon = '<i class="fas fa-times-circle text-red-500 text-4xl mb-4"></i>';
-            if(type === 'success') icon = '<i class="fas fa-check-circle text-green-500 text-4xl mb-4"></i>';
-            const html = `<div class="text-center flex flex-col items-center">${icon}<p class="text-base">${message}</p><button onclick="closeModal()" class="mt-6 w-full bg-primary text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition">Tutup</button></div>`;
-            showModal(type === 'error' ? 'Pemberitahuan' : 'Informasi', html);
-        }
-
-        function initTheme() {
-            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-                document.getElementById('themeIcon').classList.replace('fa-moon', 'fa-sun');
-            } else {
-                document.documentElement.classList.remove('dark');
-                document.getElementById('themeIcon').classList.replace('fa-sun', 'fa-moon');
-            }
-        }
-
-        function toggleTheme() {
-            const isDark = document.documentElement.classList.toggle('dark');
-            const icon = document.getElementById('themeIcon');
-            if (isDark) { localStorage.theme = 'dark'; icon.classList.replace('fa-moon', 'fa-sun'); } 
-            else { localStorage.theme = 'light'; icon.classList.replace('fa-sun', 'fa-moon'); }
-            if(currentMenu === 'dashboard') loadContent('dashboard'); 
-        }
-
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('mainContent');
-            const overlay = document.getElementById('mobileOverlay');
-            
-            if (window.innerWidth >= 1024) {
-                sidebar.classList.toggle('sidebar-collapsed');
-                mainContent.classList.toggle('content-expanded');
-            } else {
-                sidebar.classList.toggle('-translate-x-full');
-                overlay.classList.toggle('hidden');
-            }
-        }
-
-        function toggleSubmenu(id) {
-            const el = document.getElementById(id);
-            el.classList.toggle('hidden');
-            const icon = el.previousElementSibling.querySelector('.fa-chevron-down');
-            if(icon) icon.classList.toggle('rotate-180');
-        }
-
-        function applyFilters() {
-            const searchVal = document.getElementById('searchInput') ? document.getElementById('searchInput').value.toLowerCase() : '';
-            const institusiVal = document.getElementById('filterInstitusi') ? document.getElementById('filterInstitusi').value.toLowerCase() : '';
-            const jenjangVal = document.getElementById('filterJenjang') ? document.getElementById('filterJenjang').value.toLowerCase() : '';
-            const statusVal = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value.toLowerCase() : '';
-
-            const rows = document.querySelectorAll('#dataTable tbody tr');
-            let visibleCount = 0;
-
-            rows.forEach(row => {
-                if(row.cells.length === 1 && row.textContent.toLowerCase().includes("kosong")) return; 
-                
-                const textSearch = (row.getAttribute('data-search') || row.textContent).toLowerCase();
-                const textInstitusi = (row.getAttribute('data-institusi') || '').toLowerCase();
-                const textJenjang = (row.getAttribute('data-jenjang') || '').toLowerCase();
-                const textStatus = (row.getAttribute('data-status') || '').toLowerCase();
-
-                const matchSearch = textSearch.includes(searchVal);
-                const matchInstitusi = institusiVal === '' || textInstitusi === institusiVal;
-                const matchJenjang = jenjangVal === '' || textJenjang === jenjangVal;
-                const matchStatus = statusVal === '' || textStatus === statusVal;
-
-                if(matchSearch && matchInstitusi && matchJenjang && matchStatus) {
-                    row.style.display = "";
-                    visibleCount++;
-                } else {
-                    row.style.display = "none";
-                }
-            });
-
-            const countEl = document.getElementById('totalDataCount');
-            if(countEl) countEl.innerText = visibleCount;
-        }
-
-        async function loadContent(menuId, navElement = null, sheetFilter = '') {
-    requestToken++;
-    const myToken = requestToken;
-
-    currentMenu = menuId;
-    const loader = document.getElementById('loader');
-    const container = document.getElementById('contentContainer');
-    
-    if(navElement) {
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        navElement.classList.add('active');
-        document.getElementById('headerTitle').innerText = navElement.innerText;
-    }
-
-    if(window.innerWidth < 1024) {
-        document.getElementById('sidebar').classList.add('-translate-x-full');
-        document.getElementById('mobileOverlay').classList.add('hidden');
-    }
-
-    loader.classList.remove('hidden');
-    chartsInstance.forEach(chart => chart.destroy());
-    chartsInstance = [];
-
-    try {
-        let res;
-        if (menuId === 'dashboard') {
-            const yFilter = document.getElementById('dashYearFilter');
-            const targetYear = yFilter ? yFilter.value : new Date().getFullYear().toString();
-            res = await fetchAPI('getDashboard', { year: targetYear });
-        } 
-        // -------------------------------------------------------------------------
-        // PERBAIKAN DI SINI: Masukkan 'survey_' agar membaca sheetFilter
-        // -------------------------------------------------------------------------
-        else if (['pd', 'pl', 'dh'].includes(menuId) || menuId.startsWith('survey_')) {
-            res = await fetchAPI('getMenuData', { menuId: menuId, sheetName: sheetFilter });
-        }
-        else if (menuId.startsWith('pinjam_') || menuId.startsWith('sarpras_') || menuId.startsWith('set_') || menuId.startsWith('check_')) {
-            res = await fetchAPI('getMenuData', { menuId: menuId });
-        }
-
-        if (myToken !== requestToken) return;
-
-        if (res && res.error) throw new Error(res.message);
-
-        if (menuId === 'dashboard') {
-            renderDashboard(res);
-        }
-        else if (['pd', 'pl', 'dh'].includes(menuId)) {
-            renderMainDataView(menuId, res, res.sheetList || [], res.activeSheet || sheetFilter);
-        }
-        else if (menuId.startsWith('pinjam_')) renderPeminjamanView(menuId, res);
-        else if (menuId.startsWith('sarpras_')) renderSarprasView(menuId, res);
-        else if (menuId.startsWith('survey_')) renderSurveyView(menuId, res);
-        else if (menuId.startsWith('set_')) renderPengaturanView(menuId, res);
-        else if (menuId.startsWith('check_')) renderChecklistView(menuId, res);
-        else {
-            container.innerHTML = `<div class="p-8 text-center bg-white rounded-xl shadow"><h3>Fitur belum tersedia</h3></div>`;
-        }
-    } catch (error) {
-        if (myToken !== requestToken) return; 
-        console.error(error);
-        container.innerHTML = `<div class="p-8 text-center text-red-500 bg-white dark:bg-darkcard rounded-xl shadow"><i class="fas fa-exclamation-triangle text-3xl mb-3"></i><p>Gagal memuat data. Periksa koneksi Apps Script Anda.</p></div>`;
-    } finally {
-        if (myToken === requestToken) {
-            loader.classList.add('hidden');
-        }
-    }
-}
-
-        // =========================================================
-        // DASHBOARD SUPER LENGKAP V2 (DENGAN 6 TAB + SURVEY CHART)
-        // =========================================================
-        
-        window.switchDashTab = function(tabId) {
-            document.querySelectorAll('.dash-tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(tabId).classList.remove('hidden');
-
-            document.querySelectorAll('.dash-tab-btn').forEach(el => {
-                el.classList.remove('border-primary', 'text-primary');
-                el.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
-            });
-            const activeBtn = document.getElementById('btn-' + tabId);
-            activeBtn.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
-            activeBtn.classList.add('border-primary', 'text-primary');
-        };
-
-        // Sub-Tab khusus dalam Tab Survey
-        window.switchSurveySubTab = function(subTabId) {
-            document.querySelectorAll('.survey-sub-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(subTabId).classList.remove('hidden');
-            
-            document.querySelectorAll('.survey-sub-btn').forEach(el => {
-                el.classList.remove('bg-primary', 'text-white');
-                el.classList.add('bg-gray-100', 'text-gray-600', 'dark:bg-gray-800', 'dark:text-gray-300');
-            });
-            const activeBtn = document.getElementById('btn-' + subTabId);
-            activeBtn.classList.remove('bg-gray-100', 'text-gray-600', 'dark:bg-gray-800', 'dark:text-gray-300');
-            activeBtn.classList.add('bg-primary', 'text-white');
-        };
-
-        function renderDashboard(data) {
-            const container = document.getElementById('contentContainer');
-            // Menarik data survey_pd dari server
-            const { pd, pl, pinjam, sarpras, survey_pd, year, years } = data;
-            const textColor = document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#374151';
-            const colors = ['#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f43f5e', '#84cc16', '#3b82f6', '#06b6d4'];
-            const ratingColors = ['#10b981', '#84cc16', '#facc15', '#f97316', '#ef4444']; // Sangat Baik (Hijau) -> Sangat Kurang (Merah)
-
-            let yearOptions = `<option value="ALL" ${year === 'ALL' ? 'selected' : ''}>Semua Tahun</option>`;
-            if (years && years.length > 0) {
-                years.forEach(y => { yearOptions += `<option value="${y}" ${year === y ? 'selected' : ''}>${y}</option>`; });
-            } else {
-                yearOptions += `<option value="${year}" selected>${year}</option>`;
-            }
-
-            const stokRuangan = Math.max(0, (sarpras?.ruangan || 0) - (pinjam?.ruangan || 0));
-
-            container.innerHTML = `
-                <div class="flex flex-col sm:flex-row justify-between items-center bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6 gap-3">
-                    <h2 class="font-bold text-gray-700 dark:text-gray-200">Executive Summary</h2>
-                    <div class="flex items-center space-x-2">
-                        <label class="text-sm text-gray-500 font-medium">Filter Tahun:</label>
-                        <select id="dashYearFilter" onchange="loadContent('dashboard')" class="bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-primary focus:border-primary block p-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white font-bold cursor-pointer outline-none">
-                            ${yearOptions}
-                        </select>
-                    </div>
-                </div>
-
-                <!-- KARTU SUMMARY LAMA TETAP ADA -->
-                <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 mb-8">
-                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-blue-100 flex flex-col justify-center text-center">
-                        <h4 class="text-[11px] text-gray-500 uppercase font-bold mb-1">Peserta Didik</h4>
-                        <p class="text-2xl font-black text-blue-600">${pd?.total || 0}</p>
-                    </div>
-                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-green-100 flex flex-col justify-center text-center">
-                        <h4 class="text-[11px] text-gray-500 uppercase font-bold mb-1">Pelatihan</h4>
-                        <p class="text-2xl font-black text-green-600">${pl?.total || 0}</p>
-                    </div>
-                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-yellow-100 flex flex-col justify-center text-center">
-                        <h4 class="text-[11px] text-gray-500 uppercase font-bold mb-1">Total Barang</h4>
-                        <p class="text-2xl font-black text-yellow-600">${sarpras?.barang || 0}</p>
-                    </div>
-                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-purple-100 flex flex-col justify-center text-center">
-                        <h4 class="text-[11px] text-gray-500 uppercase font-bold mb-1">Total Ruangan</h4>
-                        <p class="text-2xl font-black text-purple-600">${sarpras?.ruangan || 0}</p>
-                    </div>
-                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-cyan-100 flex flex-col justify-center text-center">
-                        <h4 class="text-[11px] text-gray-500 uppercase font-bold mb-1">Loker Pria</h4>
-                        <p class="text-2xl font-black text-cyan-600">${sarpras?.kunciPerempuan?.total || 0}</p>
-                    </div>
-                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-pink-100 flex flex-col justify-center text-center">
-                        <h4 class="text-[11px] text-gray-500 uppercase font-bold mb-1">Loker Wanita</h4>
-                        <p class="text-2xl font-black text-pink-600">${sarpras?.kunciLaki?.total || 0}</p>
-                    </div>
-                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-center text-center">
-                        <h4 class="text-[11px] text-gray-500 uppercase font-bold mb-1">Total ATK</h4>
-                        <p class="text-2xl font-black text-gray-700">${sarpras?.atk || 0}</p>
-                    </div>
-                </div>
-
-                <!-- MENU 6 TAB UTAMA -->
-                <div class="flex overflow-x-auto border-b border-gray-200 dark:border-gray-700 mb-6 scrollbar-hide">
-                    <button onclick="switchDashTab('tab-pd')" id="btn-tab-pd" class="dash-tab-btn px-4 py-3 font-bold border-b-2 border-primary text-primary whitespace-nowrap outline-none transition">Peserta Didik</button>
-                    <button onclick="switchDashTab('tab-pl')" id="btn-tab-pl" class="dash-tab-btn px-4 py-3 font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap outline-none transition">Peserta Pelatihan</button>
-                    <button onclick="switchDashTab('tab-survey')" id="btn-tab-survey" class="dash-tab-btn px-4 py-3 font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap outline-none transition">Data Survey</button>
-                    <button onclick="switchDashTab('tab-pinjam')" id="btn-tab-pinjam" class="dash-tab-btn px-4 py-3 font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap outline-none transition">Peminjaman</button>
-                    <button onclick="switchDashTab('tab-sarpras')" id="btn-tab-sarpras" class="dash-tab-btn px-4 py-3 font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap outline-none transition">Data Sarpras</button>
-                    <button onclick="switchDashTab('tab-mtc')" id="btn-tab-mtc" class="dash-tab-btn px-4 py-3 font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap outline-none transition">Maintenance</button>
-                </div>
-
-                <!-- TAB 1 & 2 (PD & PL) DISINI SEPERTI BIASA -->
-                <div id="tab-pd" class="dash-tab-content">
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                        <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800"><div class="h-64 relative"><canvas id="chartPdPie"></canvas></div></div>
-                        <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 lg:col-span-2"><div class="h-64 relative"><canvas id="chartPdBarBulan"></canvas></div></div>
-                    </div>
-                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 w-full lg:w-1/2"><div class="h-64 relative"><canvas id="chartPdTriwulan"></canvas></div></div>
-                </div>
-
-                <div id="tab-pl" class="dash-tab-content hidden">
-                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 w-full"><div class="h-80 relative"><canvas id="chartPlSheet"></canvas></div></div>
-                </div>
-
-                <!-- ========================================== -->
-                <!-- KONTEN TAB 3: DATA SURVEY KEPUASAN -->
-                <!-- ========================================== -->
-                <div id="tab-survey" class="dash-tab-content hidden">
-                    <!-- SUB MENU: PESERTA DIDIK vs RESIDEN -->
-                    <div class="flex space-x-2 mb-4">
-                        <button onclick="switchSurveySubTab('sub-survey-pd')" id="btn-sub-survey-pd" class="survey-sub-btn bg-primary text-white px-4 py-2 rounded-full text-sm font-bold shadow-sm transition">Survey Peserta Didik</button>
-                        <button onclick="switchSurveySubTab('sub-survey-residen')" id="btn-sub-survey-residen" class="survey-sub-btn bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300 px-4 py-2 rounded-full text-sm font-bold shadow-sm transition">Survey Residen</button>
-                    </div>
-
-                    <!-- SUB-TAB 1: PESERTA DIDIK -->
-                    <div id="sub-survey-pd" class="survey-sub-content">
-                        <!-- Chart 1: Trendline Kepuasan -->
-                        <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
-                            <h4 class="text-sm font-bold mb-1 text-center">Trendline Rata-Rata Kepuasan Pasien per Bulan</h4>
-                            <p class="text-xs text-center text-gray-400 mb-4">(Skala 1 - 5 Bintang | Total Responden: ${survey_pd?.total || 0})</p>
-                            <div class="h-64 relative"><canvas id="chartSvPdTrend"></canvas></div>
-                        </div>
-
-                        <!-- Chart 2, 3, 4: Pie Kategori, Pie Gender, Bar Q1-Q5 -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                            <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
-                                <h4 class="text-sm font-bold text-center mb-4">Kategori Penilaian</h4>
-                                <div class="h-56 relative"><canvas id="chartSvPdPieKategori"></canvas></div>
-                            </div>
-                            <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
-                                <h4 class="text-sm font-bold text-center mb-4">Demografi Gender</h4>
-                                <div class="h-56 relative"><canvas id="chartSvPdPieGender"></canvas></div>
-                            </div>
-                            <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
-                                <h4 class="text-sm font-bold text-center mb-4">Rata-Rata Skor Q1 - Q5</h4>
-                                <div class="h-56 relative"><canvas id="chartSvPdBarQ"></canvas></div>
-                            </div>
-                        </div>
-
-                        <!-- Chart 5: Ruangan -->
-                        <div class="bg-white dark:bg-darkcard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 w-full">
-                            <h4 class="text-sm font-bold mb-1 text-center">Tingkat Survey per Ruangan</h4>
-                            <p class="text-xs text-center text-gray-400 mb-4">Sebaran Pasien Berdasarkan Ruangan Perawatan</p>
-                            <div class="h-72 relative"><canvas id="chartSvPdBarRuangan"></canvas></div>
-                        </div>
-                    </div>
-
-                    <!-- SUB-TAB 2: RESIDEN (Placeholder Sementara) -->
-                    <div id="sub-survey-residen" class="survey-sub-content hidden">
-                        <div class="bg-gray-50 dark:bg-gray-800 p-10 rounded-xl text-center border-2 border-dashed border-gray-200 dark:border-gray-700">
-                            <i class="fas fa-tools text-4xl text-gray-300 mb-3"></i>
-                            <h4 class="text-lg font-bold text-gray-500">Grafik Survey Residen</h4>
-                            <p class="text-sm text-gray-400">Sedang dalam tahap pengembangan.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- KONTEN TAB 4-6 SEMENTARA KOSONG -->
-                <div id="tab-pinjam" class="dash-tab-content hidden"><div class="p-8 text-center text-gray-400 font-bold">Grafik Peminjaman Siap Diisi</div></div>
-                <div id="tab-sarpras" class="dash-tab-content hidden"><div class="p-8 text-center text-gray-400 font-bold">Grafik Sarpras Siap Diisi</div></div>
-                <div id="tab-mtc" class="dash-tab-content hidden"><div class="p-8 text-center text-gray-400 font-bold">Grafik Maintenance Siap Diisi</div></div>
-                `;
-
-            // ==========================================
-            // RENDER GRAFIK LAMA (PD & PL)
-            // ==========================================
-            if(document.getElementById('chartPdPie') && pd) {
-                const pieLabels = (pd.jenjangTop10 && pd.jenjangTop10.labels.length) ? pd.jenjangTop10.labels : ['Belum Ada Data'];
-                const pieData = (pd.jenjangTop10 && pd.jenjangTop10.data.length) ? pd.jenjangTop10.data : [1];
-                chartsInstance.push(new Chart(document.getElementById('chartPdPie'), { type: 'pie', data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: colors }] }, options: { responsive: true, maintainAspectRatio: false, plugins:{ legend:{ position: 'right', labels: {color: textColor, font: {size: 10}} } } } }));
-            }
-            if(document.getElementById('chartPdBarBulan') && pd) {
-                const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
-                const datasets = (pd.jenisList && pd.jenisList.length > 0) ? pd.jenisList.map((jenis, i) => { return { label: jenis, data: monthLabels.map((_, m) => (pd.perBulan[m] && pd.perBulan[m][jenis]) ? pd.perBulan[m][jenis] : 0), backgroundColor: colors[i % colors.length] }; }) : [];
-                chartsInstance.push(new Chart(document.getElementById('chartPdBarBulan'), { type: 'bar', data: { labels: monthLabels, datasets: datasets }, options: { responsive: true, maintainAspectRatio: false, scales: { x:{stacked:true}, y:{stacked:true, ticks:{color:textColor}} }, plugins:{ legend:{ labels:{color:textColor} } } } }));
-            }
-            if(document.getElementById('chartPdTriwulan') && pd) {
-                chartsInstance.push(new Chart(document.getElementById('chartPdTriwulan'), { type: 'bar', data: { labels: ['Q1', 'Q2', 'Q3', 'Q4'], datasets: [{ data: pd.perTriwulan || [0,0,0,0], backgroundColor: '#0ea5e9', borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins:{ legend:{ display:false } } } }));
-            }
-            if(document.getElementById('chartPlSheet') && pl) {
-                const plLabels = (pl.labels && pl.labels.length) ? pl.labels : ['Belum Ada Data'];
-                const plData = (pl.data && pl.data.length) ? pl.data : [0];
-                chartsInstance.push(new Chart(document.getElementById('chartPlSheet'), { type: 'bar', data: { labels: plLabels, datasets: [{ data: plData, backgroundColor: '#10b981', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins:{ legend:{ display:false } } } }));
-            }
-
-            // ==========================================
-            // RENDER GRAFIK BARU (SURVEY PESERTA DIDIK)
-            // ==========================================
-            if(survey_pd && survey_pd.total > 0) {
-                // Tooltip cerdas untuk menghitung Persentase (%) di Pie Chart
-                const pieTooltipOptions = {
-                    callbacks: {
-                        label: function(ctx) {
-                            let total = ctx.dataset.data.reduce((a,b)=>a+b, 0);
-                            let pct = total > 0 ? ((ctx.raw/total)*100).toFixed(1) : 0;
-                            return ' ' + ctx.label + ': ' + ctx.raw + ' (' + pct + '%)';
-                        }
+        // Satukan state Alpine ke dalam satu fungsi bersih
+        function appData() {
+            return {
+                showLogin: false,
+                username: '',
+                password: '',
+                loginDashboard() {
+                    if (this.username === 'admin' && this.password === 'admin') {
+                        sessionStorage.setItem('dashboardLogin', 'true');
+                        window.location.href = 'dashboard.html';
+                    } else {
+                        alert('Username atau Password salah');
                     }
-                };
-
-                // 1. Trendline Rata-Rata
-                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
-                chartsInstance.push(new Chart(document.getElementById('chartSvPdTrend'), {
-                    type: 'line',
-                    data: { labels: monthNames, datasets: [{ label: 'Rata-Rata Rating (Max 5.0)', data: survey_pd.trendBulan, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', borderWidth: 3, pointBackgroundColor: '#f59e0b', fill: true, tension: 0.3 }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 5, ticks: {color: textColor} }, x: {ticks: {color: textColor}} }, plugins: { legend: { display: false } } }
-                }));
-
-                // 2. Pie Chart Kategori (Sangat Baik - Sangat Kurang)
-                const katLabels = ['Sangat Baik', 'Baik', 'Cukup', 'Kurang', 'Sangat Kurang'];
-                const katData = [survey_pd.kategori['Sangat Baik'], survey_pd.kategori['Baik'], survey_pd.kategori['Cukup'], survey_pd.kategori['Kurang'], survey_pd.kategori['Sangat Kurang']];
-                chartsInstance.push(new Chart(document.getElementById('chartSvPdPieKategori'), {
-                    type: 'doughnut',
-                    data: { labels: katLabels, datasets: [{ data: katData, backgroundColor: ratingColors }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins:{ legend:{ position: 'bottom', labels: {color: textColor, boxWidth:10} }, tooltip: pieTooltipOptions } }
-                }));
-
-                // 3. Pie Chart Gender
-                const genderLabels = Object.keys(survey_pd.gender);
-                const genderData = Object.values(survey_pd.gender);
-                chartsInstance.push(new Chart(document.getElementById('chartSvPdPieGender'), {
-                    type: 'pie',
-                    data: { labels: genderLabels, datasets: [{ data: genderData, backgroundColor: ['#3b82f6', '#ec4899', '#8b5cf6'] }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins:{ legend:{ position: 'bottom', labels: {color: textColor} }, tooltip: pieTooltipOptions } }
-                }));
-
-                // 4. Bar Chart Q1 - Q5
-                chartsInstance.push(new Chart(document.getElementById('chartSvPdBarQ'), {
-                    type: 'bar',
-                    data: { labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Q5'], datasets: [{ data: survey_pd.qAvg, backgroundColor: '#8b5cf6', borderRadius: 4 }] },
-                    options: { 
-                        responsive: true, maintainAspectRatio: false, 
-                        plugins:{ legend:{ display:false }, 
-                        tooltip: { callbacks: { label: function(ctx){ let pct = (ctx.raw / 5 * 100).toFixed(1); return ' Rata-rata: ' + ctx.raw + ' (' + pct + '%)'; } } } }, 
-                        scales: { y: { min: 0, max: 5, ticks:{color:textColor} } } 
-                    }
-                }));
-
-                // 5. Bar Chart Ruangan
-                const sortedRuang = Object.entries(survey_pd.ruangan).sort((a,b)=>b[1]-a[1]).slice(0, 10); // Ambil Top 10
-                chartsInstance.push(new Chart(document.getElementById('chartSvPdBarRuangan'), {
-                    type: 'bar',
-                    data: { labels: sortedRuang.map(r=>r[0]), datasets: [{ data: sortedRuang.map(r=>r[1]), backgroundColor: '#14b8a6', borderRadius: 4 }] },
-                    options: { 
-                        responsive: true, maintainAspectRatio: false, 
-                        plugins:{ legend:{ display:false },
-                        tooltip: { callbacks: { label: function(ctx){ let pct = ((ctx.raw/survey_pd.total)*100).toFixed(1); return ' ' + ctx.raw + ' Survey (' + pct + '%)'; } } } }, 
-                        scales: { x: { ticks:{color:textColor} }, y: { ticks:{color:textColor} } } 
-                    }
-                }));
-            }
-        }
-
-        function renderMainDataView(menuId, response, sheetList, activeSheet) {
-            const container = document.getElementById('contentContainer');
-            const { data, sheetId, sheetGid } = response;
-            
-            let addLink = "#"; let printLink = "#"; let searchPlaceholder = "Search..."; 
-            if(menuId === 'pd') { addLink = "input_pesertadidik.html"; printLink = "print_IDCard.html"; searchPlaceholder = "Cari Nama/NIM..."; } 
-            else if (menuId === 'pl') { addLink = "input_pesertapelatihan.html"; printLink = "print_IDCard.html"; searchPlaceholder = "Cari Nama/NIK..."; } 
-            else if (menuId === 'dh') { addLink = "input_daftarhadir.html"; printLink = "print_daftarhadir.html"; searchPlaceholder = "Cari Nama..."; }
-
-            let gsheetLink = `https://docs.google.com/spreadsheets/d/${sheetId}/edit`;
-            if (sheetGid !== undefined) gsheetLink += `#gid=${sheetGid}`;
-
-            let sheetOptions = '<option value="">-- Pilih Lembar Kerja --</option>';
-            if(Array.isArray(sheetList)) {
-                sheetList.forEach(name => { sheetOptions += `<option value="${name}" ${name === activeSheet ? 'selected' : ''}>${name}</option>`; });
-            }
-
-            let extraFilters = '';
-            if (menuId === 'pd' && data && data.length > 0) {
-                const institusiSet = [...new Set(data.map(r => r[9]).filter(Boolean))].sort();
-                const jenjangSet = [...new Set(data.map(r => `${r[12]||''} ${r[10]||''}`.trim()).filter(Boolean))].sort();
-                
-                extraFilters += `<select id="filterInstitusi" onchange="applyFilters()" class="bg-white border border-gray-300 text-sm rounded-lg p-2 dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none min-w-[140px]"><option value="">Semua Institusi</option>`;
-                institusiSet.forEach(i => extraFilters += `<option value="${i}">${i}</option>`);
-                extraFilters += `</select>`;
-                
-                extraFilters += `<select id="filterJenjang" onchange="applyFilters()" class="bg-white border border-gray-300 text-sm rounded-lg p-2 dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none min-w-[140px]"><option value="">Sem. Jurusan/Jenjang</option>`;
-                jenjangSet.forEach(j => extraFilters += `<option value="${j}">${j}</option>`);
-                extraFilters += `</select>`;
-            }
-
-            let html = `
-                <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col overflow-hidden">
-                    <div class="p-4 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 flex flex-col xl:flex-row gap-3 items-center justify-between">
-                        <div class="flex flex-wrap w-full xl:w-auto gap-2">
-                            <select onchange="loadContent('${menuId}', null, this.value)" class="bg-white border border-gray-300 text-sm rounded-lg p-2 dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none min-w-[150px]">
-                                ${sheetOptions}
-                            </select>
-                            ${extraFilters}
-                            <div class="relative w-full sm:w-auto">
-                                <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-                                <input type="text" id="searchInput" onkeyup="applyFilters()" placeholder="${searchPlaceholder}" class="w-full sm:w-48 pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none">
-                            </div>
-                        </div>
-                        <div class="flex flex-wrap gap-2 w-full xl:w-auto justify-end">
-                            <button onclick="loadContent('${menuId}', null, '${activeSheet}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition dark:bg-gray-700 dark:text-gray-200" title="Reload"><i class="fas fa-sync-alt"></i></button>
-                            <a href="${gsheetLink}" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm transition" title="Buka Spreadsheet"><i class="fas fa-file-excel"></i></a>
-                            <a href="${printLink}" target="_blank" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm transition whitespace-nowrap"><i class="fas fa-print"></i> Print</a>
-                            <a href="${addLink}" target="_blank" class="bg-primary hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm transition flex items-center whitespace-nowrap"><i class="fas fa-plus mr-1"></i> Add</a>
-                        </div>
-                    </div>
-                    
-                    <div class="table-container p-0">
-                        <table id="dataTable" class="w-full text-sm text-left whitespace-nowrap">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
-                                <tr>
-            `;
-
-            if (menuId === 'pd') html += `<th class="px-4 py-3">No</th><th class="px-4 py-3">Bagian</th><th class="px-4 py-3">Nama Peserta</th><th class="px-4 py-3">Institusi</th><th class="px-4 py-3">Jenjang & Jurusan</th><th class="px-4 py-3">Periode</th><th class="px-4 py-3 text-center">Aksi</th>`;
-            else if (menuId === 'pl') html += `<th class="px-4 py-3">No</th><th class="px-4 py-3">Nama Peserta</th><th class="px-4 py-3">Profesi</th><th class="px-4 py-3">Akun SatuSehat</th><th class="px-4 py-3 text-center">Aksi</th>`;
-            else if (menuId === 'dh') html += `<th class="px-4 py-3">No</th><th class="px-4 py-3">Nama</th><th class="px-4 py-3">Bagian/Ruangan</th><th class="px-4 py-3 text-center">Tanda Tangan</th><th class="px-4 py-3 text-center">Aksi</th>`;
-
-            html += `</tr></thead><tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-600 dark:text-gray-300">`;
-
-            let rowCount = 0;
-            if (!data || data.length === 0 || (data.length===1 && data[0][0] && String(data[0][0]).toLowerCase().includes("kosong"))) {
-                 html += `<tr><td colspan="10" class="px-4 py-8 text-center text-gray-400 italic">Belum ada data.</td></tr>`;
-            } else {
-                rowCount = data.length;
-                data.forEach((row, i) => {
-                    const rowIndex = i + 2; 
-                    let searchStr = "", instStr = "", jenjStr = "";
-                    if(menuId === 'pd') { searchStr = `${row[0]||''} ${row[1]||''}`; instStr = row[9]||''; jenjStr = `${row[12]||''} ${row[10]||''}`.trim(); }
-                    else if (menuId === 'pl') { searchStr = `${row[2]||''} ${row[3]||''}`; }
-                    else if (menuId === 'dh') { searchStr = `${row[2]||''}`; }
-
-                    html += `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition" data-search="${searchStr}" data-institusi="${instStr}" data-jenjang="${jenjStr}">`;
-                    
-                    if(menuId === 'pd') {
-                        html += `<td class="px-4 py-3">${i+1}</td><td class="px-4 py-3">${row[22]||'-'}</td><td class="px-4 py-3 font-medium">${row[0]||'-'}</td><td class="px-4 py-3">${row[9]||'-'}</td><td class="px-4 py-3">${row[12]||''} ${row[10]||''}</td><td class="px-4 py-3">${row[17]||''} s/d ${row[18]||''}</td>`;
-                    } else if (menuId === 'pl') {
-                        html += `<td class="px-4 py-3">${i+1}</td><td class="px-4 py-3 font-medium">${row[2]||'-'}</td><td class="px-4 py-3">${row[14]||'-'}</td><td class="px-4 py-3">${row[23]||'-'}</td>`;
-                    } else if (menuId === 'dh') {
-                        let linkTTD = (row[5] && String(row[5]).includes('http')) ? `<a href="${row[5]}" target="_blank" class="text-primary hover:underline"><i class="fas fa-external-link-alt"></i> Lihat</a>` : '-';
-                        html += `<td class="px-4 py-3">${row[0]||i+1}</td><td class="px-4 py-3 font-medium">${row[2]||'-'}</td><td class="px-4 py-3">${row[3]||'-'}</td><td class="px-4 py-3 text-center">${linkTTD}</td>`;
-                    }
-                    html += `<td class="px-4 py-3 text-center">
-                                <button onclick="customAlert('Fitur Detail Segera Hadir', 'info')" class="text-gray-400 hover:text-primary px-1" title="Detail"><i class="fas fa-list"></i></button>
-                                <button onclick="customAlert('Silakan edit langsung via Spreadsheet', 'info')" class="text-gray-400 hover:text-blue-500 px-1" title="Edit"><i class="fas fa-edit"></i></button>
-                                <button onclick="confirmDelete('${menuId}', '${activeSheet}', ${rowIndex})" class="text-gray-400 hover:text-red-500 px-1" title="Delete"><i class="fas fa-trash"></i></button>
-                             </td></tr>`;
-                });
-            }
-            html += `</tbody></table></div>
-                <div class="px-4 py-3 border-t dark:border-gray-700 text-xs text-gray-500 bg-gray-50/50 dark:bg-gray-800/30 flex justify-between items-center">
-                    <span>Menampilkan <strong id="totalDataCount">${rowCount}</strong> baris data</span>
-                </div>
-            </div>`;
-            container.innerHTML = html;
-        }
-
-        function renderPeminjamanView(menuId, response) {
-            const container = document.getElementById('contentContainer');
-            const { data, sheetId } = response;
-            
-            let addLink = menuId === 'pinjam_kunci' ? 'peminjaman_kunci.html' : (menuId === 'pinjam_ruangan' ? 'peminjaman_ruangan.html' : 'peminjaman_barang.html');
-            
-            let extraFilters = '';
-            if (data && data.length > 0) {
-                let statusIndex = 5; 
-                if(menuId === 'pinjam_ruangan') statusIndex = 6;
-                const statusSet = [...new Set(data.map(r => r[statusIndex]).filter(Boolean))].sort();
-                
-                extraFilters += `<select id="filterStatus" onchange="applyFilters()" class="bg-white border border-gray-300 text-sm rounded-lg p-2 dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none min-w-[140px]"><option value="">Semua Status</option>`;
-                statusSet.forEach(s => extraFilters += `<option value="${s}">${s}</option>`);
-                extraFilters += `</select>`;
-            }
-
-            let html = `
-                <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col overflow-hidden">
-                    <div class="p-4 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 flex flex-col sm:flex-row gap-3 justify-between items-center">
-                        <div class="flex flex-wrap w-full sm:w-auto gap-2">
-                            ${extraFilters}
-                            <div class="relative w-full sm:w-auto">
-                                <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-                                <input type="text" id="searchInput" onkeyup="applyFilters()" placeholder="Cari Data..." class="w-full sm:w-48 pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none">
-                            </div>
-                        </div>
-                        <div class="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
-                            <button onclick="loadContent('${menuId}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition"><i class="fas fa-sync-alt"></i></button>
-                            <a href="https://docs.google.com/spreadsheets/d/${sheetId}/edit" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm transition" title="Buka Spreadsheet"><i class="fas fa-file-excel"></i></a>
-                            <a href="${addLink}" target="_blank" class="bg-primary hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm transition flex items-center"><i class="fas fa-plus mr-1"></i> Add</a>
-                        </div>
-                    </div>
-                    <div class="table-container p-0">
-                        <table id="dataTable" class="w-full text-sm text-left whitespace-nowrap">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
-                                <tr>
-            `;
-            
-            if (menuId === 'pinjam_kunci') html += `<th class="px-4 py-3">No</th><th class="px-4 py-3">Tanggal</th><th class="px-4 py-3">Nama Peminjam</th><th class="px-4 py-3">No Kunci</th><th class="px-4 py-3">Waktu</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-center">Aksi</th>`;
-            else if (menuId === 'pinjam_ruangan') html += `<th class="px-4 py-3">No</th><th class="px-4 py-3">Tanggal</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Unit</th><th class="px-4 py-3">Nama Peminjam</th><th class="px-4 py-3">Ruangan</th><th class="px-4 py-3">Jml Peserta</th><th class="px-4 py-3 text-center">Aksi</th>`;
-            else html += `<th class="px-4 py-3">No</th><th class="px-4 py-3">Tanggal</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Unit</th><th class="px-4 py-3">Nama Peminjam</th><th class="px-4 py-3">Barang</th><th class="px-4 py-3">Qty</th><th class="px-4 py-3 text-center">Aksi</th>`;
-            
-            html += `</tr></thead><tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-600 dark:text-gray-300">`;
-
-            let rowCount = 0;
-            if (!data || data.length === 0) {
-                 html += `<tr><td colspan="9" class="px-4 py-8 text-center text-gray-400 italic">Data Kosong.</td></tr>`;
-            } else {
-                rowCount = data.length;
-                data.forEach((row, i) => {
-                    let searchStr = "", statusStr = "";
-                    if(menuId === 'pinjam_kunci') { searchStr = `${row[7]||''} ${row[3]||''}`; statusStr = row[5]||''; }
-                    else if(menuId === 'pinjam_ruangan') { searchStr = `${row[9]||''} ${row[7]||''}`; statusStr = row[6]||''; }
-                    else { searchStr = `${row[8]||''} ${row[6]||''}`; statusStr = row[5]||''; }
-
-                    html += `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50" data-search="${searchStr}" data-status="${statusStr}">`;
-                    
-                    if (menuId === 'pinjam_kunci') {
-                         html += `<td class="px-4 py-3">${i+1}</td><td class="px-4 py-3">${row[2]||'-'}</td><td class="px-4 py-3 font-medium">${row[7]||'-'}</td><td class="px-4 py-3">${row[3]||'-'}</td><td class="px-4 py-3">${row[11]||'-'} s/d ${row[12]||'-'}</td><td class="px-4 py-3">${formatStatus(row[5])}</td>`;
-                    } else if (menuId === 'pinjam_ruangan') {
-                         html += `<td class="px-4 py-3">${i+1}</td><td class="px-4 py-3">${row[2]||'-'}</td><td class="px-4 py-3">${formatStatus(row[6])}</td><td class="px-4 py-3">${row[7]||'-'}</td><td class="px-4 py-3 font-medium">${row[9]||'-'}</td><td class="px-4 py-3">${row[5]||'-'}</td><td class="px-4 py-3">${row[4]||'-'}</td>`;
-                    } else { 
-                         html += `<td class="px-4 py-3">${i+1}</td><td class="px-4 py-3">${row[2]||'-'}</td><td class="px-4 py-3">${formatStatus(row[5])}</td><td class="px-4 py-3">${row[6]||'-'}</td><td class="px-4 py-3 font-medium">${row[8]||'-'}</td><td class="px-4 py-3">${row[3]||'-'}</td><td class="px-4 py-3">${row[4]||'-'}</td>`;
-                    }
-                    html += `<td class="px-4 py-3 text-center">
-                                <button class="text-gray-400 hover:text-primary"><i class="fas fa-ellipsis-v"></i></button>
-                             </td></tr>`;
-                });
-            }
-            html += `</tbody></table></div>
-                <div class="px-4 py-3 border-t dark:border-gray-700 text-xs text-gray-500 bg-gray-50/50 dark:bg-gray-800/30 flex justify-between items-center">
-                    <span>Menampilkan <strong id="totalDataCount">${rowCount}</strong> baris data</span>
-                </div>
-            </div>`;
-            container.innerHTML = html;
-        }
-
-        // =========================================================================
-        // VIEW: CHECKLIST, MAINTENANCE & SURVEY (DENGAN FILTER SHEET)
-        // =========================================================================
-        function renderChecklistView(menuId, response) {
-            const container = document.getElementById('contentContainer');
-            const { data, sheetId, sheetList, activeSheet } = response;
-            let rowCount = data ? data.length : 0;
-            
-            let title = "";
-            let theadHtml = "";
-            let printLink = ""; 
-            
-            // 1. TENTUKAN HEADER TABEL (Kolom Kelengkapan Ditambahkan)
-            if (menuId === 'check_ruangan') {
-                title = "Checklist Ruangan";
-                printLink = "print_ruangan.html";
-                theadHtml = `<tr><th class="px-4 py-3">No</th><th class="px-4 py-3">Waktu</th><th class="px-4 py-3">Nama Ruangan</th><th class="px-4 py-3">Keb. Ruang</th><th class="px-4 py-3">Keb. Toilet</th><th class="px-4 py-3">Keb. Alat</th><th class="px-4 py-3">Fungsi AC</th><th class="px-4 py-3">Fungsi Pintu</th><th class="px-4 py-3">Fungsi Lampu</th><th class="px-4 py-3">Fungsi Toilet</th><th class="px-4 py-3">Fungsi Alat</th><th class="px-4 py-3 text-center">Foto Temuan</th><th class="px-4 py-3">Kelengkapan</th><th class="px-4 py-3">Ket</th><th class="px-4 py-3">Petugas</th><th class="px-4 py-3 text-center">TTD</th><th class="px-4 py-3 text-center">Aksi</th></tr>`;
-            } else if (menuId === 'check_barang') {
-                title = "Checklist Barang";
-                printLink = "print_barang.html";
-                theadHtml = `<tr><th class="px-4 py-3">No</th><th class="px-4 py-3">Waktu</th><th class="px-4 py-3">Nama Alat/Barang</th><th class="px-4 py-3">Kebersihan</th><th class="px-4 py-3">Fungsi</th><th class="px-4 py-3 text-center">Foto Temuan</th><th class="px-4 py-3">Kelengkapan</th><th class="px-4 py-3">Ket</th><th class="px-4 py-3">Petugas</th><th class="px-4 py-3 text-center">TTD</th><th class="px-4 py-3 text-center">Aksi</th></tr>`;
-            } else if (menuId === 'survey_pd') {
-                title = "Data Survey Kepuasan";
-                theadHtml = `<tr><th class="px-4 py-3">No</th><th class="px-4 py-3">Waktu</th><th class="px-4 py-3">Nama Pasien</th><th class="px-4 py-3">Demografi</th><th class="px-4 py-3">Ruangan</th><th class="px-4 py-3 text-center">Q1</th><th class="px-4 py-3 text-center">Q2</th><th class="px-4 py-3 text-center">Q3</th><th class="px-4 py-3 text-center">Q4</th><th class="px-4 py-3 text-center">Q5</th><th class="px-4 py-3">Kritik & Saran</th><th class="px-4 py-3 text-center">Drive Link</th><th class="px-4 py-3 text-center">Aksi</th></tr>`;
-            } else {
-                title = "Data Maintenance";
-                printLink = "print_maintenance.html";
-                theadHtml = `<tr><th class="px-4 py-3">No</th><th class="px-4 py-3">Waktu</th><th class="px-4 py-3">Target MTC</th><th class="px-4 py-3">Jenis Tindakan</th><th class="px-4 py-3">Nama Fasilitas/Alat</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Tindakan</th><th class="px-4 py-3 text-center">Foto Before</th><th class="px-4 py-3 text-center">Foto After</th><th class="px-4 py-3">Ket</th><th class="px-4 py-3">Petugas</th><th class="px-4 py-3 text-center">TTD</th><th class="px-4 py-3 text-center">Aksi</th></tr>`;
-            }
-
-            let sheetDropdownHtml = '';
-            if (sheetList && sheetList.length > 0 && menuId === 'survey_pd') {
-                sheetDropdownHtml = `
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm font-semibold text-gray-600 dark:text-gray-300 hidden sm:block">Pilih Tahun:</span>
-                        <select onchange="loadContent('${menuId}', null, this.value)" class="bg-white border border-gray-300 text-gray-700 rounded-lg text-sm px-3 py-2 focus:ring-primary outline-none cursor-pointer dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm font-bold">
-                            ${sheetList.map(s => `<option value="${s}" ${s === activeSheet ? 'selected' : ''}>Data Tahun ${s}</option>`).join('')}
-                        </select>
-                    </div>
-                `;
-            }
-
-            let html = `
-                <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-                    <div class="p-4 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 flex flex-col sm:flex-row justify-between items-center gap-3">
-                        <div class="flex items-center gap-3 w-full sm:w-auto">
-                            <h3 class="text-lg font-bold capitalize hidden sm:block whitespace-nowrap">${title}</h3>
-                            ${sheetDropdownHtml}
-                            <div class="relative w-full sm:w-auto">
-                                <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-                                <input type="text" id="searchInput" onkeyup="applyFilters()" placeholder="Cari Data..." class="w-full sm:w-48 pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none">
-                            </div>
-                        </div>
-                        <div class="flex space-x-2 w-full sm:w-auto justify-end">
-                            <button onclick="loadContent('${menuId}', null, '${activeSheet}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition"><i class="fas fa-sync-alt"></i></button>
-                            <a href="https://docs.google.com/spreadsheets/d/${sheetId}/edit" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm" title="Buka Spreadsheet"><i class="fas fa-file-excel"></i></a>
-                            ${printLink ? `<a href="${printLink}" target="_blank" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm transition flex items-center whitespace-nowrap"><i class="fas fa-print mr-1"></i> Print</a>` : ''}
-                            ${menuId !== 'survey_pd' ? `<a href="maintenance.html" target="_blank" class="bg-primary hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center"><i class="fas fa-plus mr-1"></i> Add Baru</a>` : ''}
-                        </div>
-                    </div>
-                    <div class="table-container p-0">
-                        <table id="dataTable" class="w-full text-sm text-left whitespace-nowrap">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
-                                ${theadHtml}
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-600 dark:text-gray-300">
-                                ${(!data || data.length === 0) ? `<tr><td colspan="17" class="p-8 text-center font-bold text-gray-400 italic">Data Kosong</td></tr>` : data.map((row, i) => {
-                                    
-                                    let searchStr = (row[1]||'') + ' ' + (row[2]||'');
-                                    let tr = `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50" data-search="${searchStr}">`;
-                                    
-                                    tr += `<td class="px-4 py-3">${i+1}</td>`;
-                                    tr += `<td class="px-4 py-3 text-xs whitespace-normal w-32"><span class="font-bold">${row[1]||'-'}</span><br/><span class="text-gray-500">${row[0]||'-'}</span></td>`;
-                                    
-                                    // 2. PEMETAAN KOLOM (Index bergeser +1 setelah foto)
-                                    if (menuId === 'check_ruangan') {
-                                        tr += `<td class="px-4 py-3 font-medium">${row[2]||'-'}</td>`;
-                                        tr += `<td class="px-4 py-3">${row[3]||'-'}</td><td class="px-4 py-3">${row[4]||'-'}</td><td class="px-4 py-3">${row[5]||'-'}</td>`;
-                                        tr += `<td class="px-4 py-3">${row[6]||'-'}</td><td class="px-4 py-3">${row[7]||'-'}</td><td class="px-4 py-3">${row[8]||'-'}</td><td class="px-4 py-3">${row[9]||'-'}</td><td class="px-4 py-3">${row[10]||'-'}</td>`;
-                                        let foto = (row[11] && String(row[11]).includes('http')) ? `<a href="${row[11]}" target="_blank" class="text-yellow-500 hover:underline" title="Lihat Foto"><i class="fas fa-image"></i></a>` : '-';
-                                        tr += `<td class="px-4 py-3 text-center">${foto}</td>`;
-                                        tr += `<td class="px-4 py-3 font-semibold">${row[12]||'-'}</td>`; // Kelengkapan
-                                        tr += `<td class="px-4 py-3 truncate max-w-xs" title="${row[13]||''}">${row[13]||'-'}</td>`;
-                                        tr += `<td class="px-4 py-3">${row[14]||'-'}</td>`;
-                                        let ttd = (row[15] && String(row[15]).includes('http')) ? `<a href="${row[15]}" target="_blank" class="text-blue-500 hover:underline"><i class="fas fa-signature"></i></a>` : '-';
-                                        tr += `<td class="px-4 py-3 text-center">${ttd}</td>`;
-
-                                    } else if (menuId === 'check_barang') {
-                                        tr += `<td class="px-4 py-3 font-medium">${row[2]||'-'}</td>`;
-                                        tr += `<td class="px-4 py-3">${row[3]||'-'}</td><td class="px-4 py-3">${row[4]||'-'}</td>`;
-                                        let foto = (row[5] && String(row[5]).includes('http')) ? `<a href="${row[5]}" target="_blank" class="text-yellow-500 hover:underline" title="Lihat Foto"><i class="fas fa-image"></i></a>` : '-';
-                                        tr += `<td class="px-4 py-3 text-center">${foto}</td>`;
-                                        tr += `<td class="px-4 py-3 font-semibold">${row[6]||'-'}</td>`; // Kelengkapan
-                                        tr += `<td class="px-4 py-3 truncate max-w-xs" title="${row[7]||''}">${row[7]||'-'}</td>`;
-                                        tr += `<td class="px-4 py-3">${row[8]||'-'}</td>`;
-                                        let ttd = (row[9] && String(row[9]).includes('http')) ? `<a href="${row[9]}" target="_blank" class="text-blue-500 hover:underline"><i class="fas fa-signature"></i></a>` : '-';
-                                        tr += `<td class="px-4 py-3 text-center">${ttd}</td>`;
-
-                                    } else if (menuId === 'survey_pd') {
-                                        // (Survey tetap sama)
-                                    } else {
-                                        // Maintenance (Tetap sama)
-                                    }
-                                    
-                                    tr += `<td class="px-4 py-3 text-center">
-                                        <button onclick="confirmDelete('${menuId}', '${activeSheet}', ${i + 2})" class="text-red-500 hover:text-red-700" title="Hapus Data"><i class="fas fa-trash"></i></button>
-                                    </td></tr>`;
-                                    return tr;
-                                }).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="px-4 py-3 border-t dark:border-gray-700 text-xs text-gray-500 bg-gray-50/50 dark:bg-gray-800/30 flex justify-between items-center">
-                        <span>Menampilkan <strong id="totalDataCount">${rowCount}</strong> baris data</span>
-                    </div>
-                </div>`;
-            container.innerHTML = html;
-        }
-
-        // =========================================================================
-        // VIEW: SURVEY KEPUASAN (DENGAN FILTER SHEET/TAHUN)
-        // =========================================================================
-        function renderSurveyView(menuId, response) {
-            const container = document.getElementById('contentContainer');
-            const { data, sheetId, sheetList, activeSheet } = response;
-            let rowCount = data ? data.length : 0;
-            
-            const title = menuId === 'survey_pd' ? 'Survey Kepuasan Pasien ke Peserta Didik' : 'Survey Kepuasan Pasien ke Residen';
-            const printLink = "print_survey.html"; 
-            
-            // LOGIKA PEMBUATAN DROPDOWN SHEET TAHUN
-            let sheetDropdownHtml = '';
-            if (sheetList && sheetList.length > 0) {
-                sheetDropdownHtml = `
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm font-semibold text-gray-600 dark:text-gray-300 hidden sm:block">Pilih Tahun:</span>
-                        <select onchange="loadContent('${menuId}', null, this.value)" class="bg-white border border-gray-300 text-gray-700 rounded-lg text-sm px-3 py-2 focus:ring-primary outline-none cursor-pointer dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm font-bold">
-                            ${sheetList.map(s => `<option value="${s}" ${s === activeSheet ? 'selected' : ''}>Data Tahun ${s}</option>`).join('')}
-                        </select>
-                    </div>
-                `;
-            }
-
-            let html = `
-                <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-                    <div class="p-4 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 flex flex-col sm:flex-row justify-between items-center gap-3">
-                        <div class="flex items-center gap-3 w-full sm:w-auto">
-                            <h3 class="text-lg font-bold hidden sm:block whitespace-nowrap">${title}</h3>
-                            
-                            <!-- Dropdown Filter Tahun Disisipkan di Sini -->
-                            ${sheetDropdownHtml}
-
-                            <div class="relative w-full sm:w-auto">
-                                <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-                                <input type="text" id="searchInput" onkeyup="applyFilters()" placeholder="Cari Nama/Tanggal..." class="w-full sm:w-48 pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none">
-                            </div>
-                        </div>
-                        <div class="flex space-x-2 w-full sm:w-auto justify-end">
-                            <button onclick="loadContent('${menuId}', '${activeSheet}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition"><i class="fas fa-sync-alt"></i></button>
-                            <a href="https://docs.google.com/spreadsheets/d/${sheetId}/edit" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm" title="Buka Spreadsheet"><i class="fas fa-file-excel"></i></a>
-                            <a href="${printLink}" target="_blank" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm transition flex items-center whitespace-nowrap"><i class="fas fa-print mr-1"></i> Print Laporan</a>
-                        </div>
-                    </div>
-                    <div class="table-container p-0">
-                        <table id="dataTable" class="w-full text-sm text-left whitespace-nowrap">
-                             <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
-                                <tr>
-                                    <th class="px-4 py-3">No</th>
-                                    <th class="px-4 py-3">Tanggal Survey</th>
-                                    <th class="px-4 py-3">Nama Pasien</th>
-                                    <th class="px-4 py-3">Demografi</th>
-                                    <th class="px-4 py-3">Ruangan</th>
-                                    <th class="px-4 py-3 text-center" title="Pertanyaan 1">Q1</th>
-                                    <th class="px-4 py-3 text-center" title="Pertanyaan 2">Q2</th>
-                                    <th class="px-4 py-3 text-center" title="Pertanyaan 3">Q3</th>
-                                    <th class="px-4 py-3 text-center" title="Pertanyaan 4">Q4</th>
-                                    <th class="px-4 py-3 text-center" title="Pertanyaan 5">Q5</th>
-                                    <th class="px-4 py-3">Kritik & Saran</th>
-                                    <th class="px-4 py-3 text-center">Drive Link</th>
-                                    <th class="px-4 py-3 text-center">Aksi</th>
-                                </tr>
-                             </thead>
-                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-600 dark:text-gray-300">
-                                 ${(!data || data.length === 0) ? `<tr><td colspan="13" class="p-8 text-center font-bold text-gray-400 italic">Data Kosong / Belum Ada Survey di Tahun Ini</td></tr>` : data.map((row, i) => {
-                                    
-                                    const searchStr = `${row[1]||''} ${row[2]||''}`;
-                                    
-                                    // Row data index: 
-                                    // 0:Timestamp, 1:Tanggal, 2:Nama, 3:Gender, 4:Usia, 5:Alamat, 6:Ruangan, 7-11:Q1-Q5, 12:Saran, 13:Drive_Link
-
-                                    let tr = `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50" data-search="${searchStr}">`;
-                                    
-                                    tr += `<td class="px-4 py-3">${i+1}</td>`;
-                                    tr += `<td class="px-4 py-3 text-xs whitespace-normal w-32"><span class="font-bold">${row[1]||'-'}</span><br/><span class="text-gray-500">${row[0]||'-'}</span></td>`;
-                                    tr += `<td class="px-4 py-3 font-bold text-gray-900 dark:text-white">${row[2]||'-'}</td>`;
-                                    
-                                    // Demografi Digabung
-                                    tr += `<td class="px-4 py-3 text-xs whitespace-normal w-48">
-                                            <span class="font-bold">${row[3]||'-'}</span>, ${row[4]||'-'} Thn<br>
-                                            <span class="text-gray-500">${row[5]||'-'}</span>
-                                           </td>`;
-                                           
-                                    tr += `<td class="px-4 py-3 font-bold text-blue-600">${row[6]||'-'}</td>`; 
-                                    
-                                    // Pengecekan Warna Q1-Q5 berbasis Teks
-                                    for(let q=7; q<=11; q++) {
-                                        let val = row[q] || '-';
-                                        let valStr = String(val).trim().toLowerCase();
-                                        
-                                        let colorClass = "text-gray-500";
-                                        if (valStr === 'sangat baik' || valStr === 'baik') colorClass = "text-green-600";
-                                        else if (valStr === 'cukup') colorClass = "text-yellow-600";
-                                        else if (valStr === 'kurang' || valStr === 'sangat kurang') colorClass = "text-red-600";
-                                        
-                                        // text-xs digunakan agar tulisan 'Sangat Baik' tidak kepanjangan di tabel
-                                        tr += `<td class="px-4 py-3 text-center font-bold text-xs whitespace-nowrap ${colorClass}">${val}</td>`;
-                                    }
-                                    
-                                    // Saran & Link
-                                    tr += `<td class="px-4 py-3 min-w-[200px] whitespace-normal italic text-gray-600 leading-tight" title="${row[12]||''}">${row[12]||'-'}</td>`; 
-                                    let link = (row[13] && String(row[13]).includes('http')) ? `<a href="${row[13]}" target="_blank" class="bg-blue-50 text-blue-500 hover:bg-blue-100 px-3 py-1.5 rounded-full text-xs font-bold transition"><i class="fas fa-external-link-alt"></i> Buka</a>` : '-';
-                                    tr += `<td class="px-4 py-3 text-center">${link}</td>`;
-
-                                    // Aksi
-                                    tr += `<td class="px-4 py-3 text-center">
-                                        <button onclick="confirmDelete('${menuId}', '${activeSheet}', ${i + 2})" class="text-gray-400 hover:text-red-500 px-1" title="Delete"><i class="fas fa-trash"></i></button>
-                                    </td></tr>`;
-                                    
-                                    return tr;
-                                 }).join('')}
-                             </tbody>
-                        </table>
-                    </div>
-                    <div class="px-4 py-3 border-t dark:border-gray-700 text-xs text-gray-500 bg-gray-50/50 dark:bg-gray-800/30 flex justify-between items-center">
-                        <span>Menampilkan <strong id="totalDataCount">${rowCount}</strong> baris data</span>
-                    </div>
-                </div>`;
-            container.innerHTML = html;
-        }
-
-        function renderSarprasView(menuId, response) {
-            const container = document.getElementById('contentContainer');
-            const { data, sheetId } = response;
-            let rowCount = data ? data.length : 0;
-            
-            let theadHtml = '';
-            if (menuId === 'sarpras_kunci') {
-                theadHtml = `<tr><th class="px-4 py-3">No</th><th class="px-4 py-3">Kode Kunci</th><th class="px-4 py-3">Nomor</th><th class="px-4 py-3">Jenis/Loker</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-center">Aksi</th></tr>`;
-            } else if (menuId === 'sarpras_ruangan') {
-                theadHtml = `<tr><th class="px-4 py-3">No</th><th class="px-4 py-3">Kode Ruangan</th><th class="px-4 py-3">Nama Ruangan</th><th class="px-4 py-3">Lokasi</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-center">Aksi</th></tr>`;
-            } else {
-                theadHtml = `<tr><th class="px-4 py-3">No</th><th class="px-4 py-3">Kode</th><th class="px-4 py-3">Nama Item</th><th class="px-4 py-3">Qty</th><th class="px-4 py-3">Satuan</th><th class="px-4 py-3">Penempatan</th><th class="px-4 py-3 text-center">Foto</th><th class="px-4 py-3 text-center">Aksi</th></tr>`;
-            }
-
-            let html = `
-                <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-                    <div class="p-4 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 flex flex-col sm:flex-row justify-between items-center gap-3">
-                        <div class="flex items-center gap-3 w-full sm:w-auto">
-                            <h3 class="text-lg font-bold capitalize hidden sm:block whitespace-nowrap">Data ${menuId.split('_')[1]}</h3>
-                            <div class="relative w-full sm:w-auto">
-                                <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-                                <input type="text" id="searchInput" onkeyup="applyFilters()" placeholder="Cari Data..." class="w-full sm:w-48 pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none">
-                            </div>
-                        </div>
-                        <div class="flex space-x-2 w-full sm:w-auto justify-end">
-                            <button onclick="loadContent('${menuId}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition"><i class="fas fa-sync-alt"></i></button>
-                            <a href="https://docs.google.com/spreadsheets/d/${sheetId}/edit" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm" title="Buka Spreadsheet"><i class="fas fa-file-excel"></i></a>
-                            <button onclick="showDialogForm('${menuId}', 'add')" class="bg-primary hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center"><i class="fas fa-plus mr-1"></i> Add Baru</button>
-                        </div>
-                    </div>
-                    <div class="table-container p-0">
-                        <table id="dataTable" class="w-full text-sm text-left whitespace-nowrap">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
-                                ${theadHtml}
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-600 dark:text-gray-300">
-                                ${(!data || data.length === 0) ? `<tr><td colspan="8" class="p-8 text-center italic">Data Kosong</td></tr>` : data.map((row, i) => {
-                                    
-                                    const encodedRow = encodeURIComponent(JSON.stringify(row)); 
-                                    let searchStr = (row[1]||'') + ' ' + (row[2]||'');
-                                    let rowHtml = `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50" data-search="${searchStr}">`;
-                                    
-                                    if (menuId === 'sarpras_kunci') {
-                                        rowHtml += `<td class="px-4 py-3">${row[0]||i+1}</td><td class="px-4 py-3 font-medium">${row[1]||'-'}</td><td class="px-4 py-3">${row[2]||'-'}</td><td class="px-4 py-3">${row[3]||'-'}</td><td class="px-4 py-3">${formatStatus(row[4])}</td>`;
-                                    } else if (menuId === 'sarpras_ruangan') {
-                                        rowHtml += `<td class="px-4 py-3">${row[0]||i+1}</td><td class="px-4 py-3 font-medium">${row[1]||'-'}</td><td class="px-4 py-3">${row[2]||'-'}</td><td class="px-4 py-3">${row[3]||'-'}</td><td class="px-4 py-3">${formatStatus(row[4])}</td>`;
-                                    } else {
-                                        let imgLink = row[6] && String(row[6]).includes('http') ? `<a href="${row[6]}" target="_blank" class="text-blue-500 hover:underline"><i class="fas fa-image"></i> Lihat</a>` : '-';
-                                        rowHtml += `<td class="px-4 py-3">${row[0]||i+1}</td><td class="px-4 py-3 font-medium">${row[1]||'-'}</td><td class="px-4 py-3">${row[2]||'-'}</td><td class="px-4 py-3">${row[3]||'0'}</td><td class="px-4 py-3">${row[4]||'-'}</td><td class="px-4 py-3">${row[5]||'-'}</td><td class="px-4 py-3 text-center">${imgLink}</td>`;
-                                    }
-
-                                    const fileUrl = (menuId !== 'sarpras_kunci' && menuId !== 'sarpras_ruangan' && row[6]) ? row[6] : "";
-                                    rowHtml += `<td class="px-4 py-3 text-center">
-                                        <button onclick="editSarpras('${menuId}', ${i + 2}, '${encodedRow}')" class="text-blue-500 hover:text-blue-700 px-2" title="Edit Data"><i class="fas fa-edit"></i></button>
-                                        <button onclick="confirmDelete('${menuId}', null, ${i + 2}, '${fileUrl}')" class="text-red-500 hover:text-red-700 px-2" title="Hapus Data"><i class="fas fa-trash"></i></button>
-                                    </td></tr>`;
-                                    return rowHtml;
-                                }).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="px-4 py-3 border-t dark:border-gray-700 text-xs text-gray-500 bg-gray-50/50 dark:bg-gray-800/30 flex justify-between items-center">
-                        <span>Menampilkan <strong id="totalDataCount">${rowCount}</strong> baris data</span>
-                    </div>
-                </div>`;
-            container.innerHTML = html;
-        }
-
-        // ==================================================
-        // FUNGSI UPDATE STATUS PENGATURAN & VALIDASI DIALOG TOGGLE
-        // ==================================================
-        function handleToggleStatus(menuId, rowIndex, encodedRow, checkboxEl) {
-            const isChecked = checkboxEl.checked;
-            const rowData = JSON.parse(decodeURIComponent(encodedRow));
-            
-            if (isChecked) {
-                showDialogSettingTime(menuId, rowIndex, encodedRow, checkboxEl);
-            } else {
-                toggleStatusSettingExecute(menuId, rowIndex, rowData, 'CLOSE', checkboxEl);
-            }
-        }
-
-        function showDialogSettingTime(menuId, rowIndex, encodedRow, checkboxEl) {
-            const rowData = JSON.parse(decodeURIComponent(encodedRow));
-            
-            let tzoffset = (new Date()).getTimezoneOffset() * 60000;
-            let localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 16);
-            
-            let idxMulai = menuId === 'set_dh' ? 7 : 4;
-            let idxSelesai = menuId === 'set_dh' ? 8 : 5;
-            
-            let curMulai = rowData[idxMulai] || "";
-            let curSelesai = rowData[idxSelesai] || "";
-            
-            const html = `
-                <div class="space-y-4">
-                    <p class="text-sm text-gray-500 mb-2">Silakan tentukan Waktu Mulai dan Selesai sebelum mengaktifkan status OPEN.</p>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div><label class="block text-sm font-medium mb-1">Mulai</label>
-                             <input type="datetime-local" id="toggleMulai" value="${curMulai}" min="${localISOTime}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 outline-none" required></div>
-                        <div><label class="block text-sm font-medium mb-1">Selesai</label>
-                             <input type="datetime-local" id="toggleSelesai" value="${curSelesai}" min="${localISOTime}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 outline-none" required></div>
-                    </div>
-                </div>
-                <div class="mt-6 flex justify-end space-x-3">
-                    <button onclick="cancelToggleStatus()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 dark:bg-gray-700 dark:text-white transition">Batal</button>
-                    <button onclick="submitToggleTime('${menuId}', ${rowIndex}, '${encodedRow}')" class="px-4 py-2 bg-primary text-white rounded hover:bg-blue-600 transition flex items-center">Simpan & OPEN</button>
-                </div>
-            `;
-            
-            window._currentToggleCheckbox = checkboxEl;
-            showModal("Atur Waktu OPEN", html);
-        }
-
-        function cancelToggleStatus() {
-            if (window._currentToggleCheckbox) {
-                window._currentToggleCheckbox.checked = false; 
-                window._currentToggleCheckbox = null;
-            }
-            closeModal();
-        }
-
-        async function submitToggleTime(menuId, rowIndex, encodedRow) {
-            const elMulai = document.getElementById('toggleMulai');
-            const elSelesai = document.getElementById('toggleSelesai');
-            
-            if(!elMulai.value || !elSelesai.value) {
-                alert("Waktu Mulai dan Selesai wajib diisi!");
-                if(!elMulai.value) elMulai.focus();
-                else elSelesai.focus();
-                return;
-            }
-            
-            const startDate = new Date(elMulai.value);
-            const endDate = new Date(elSelesai.value);
-            const now = new Date();
-            
-            if (startDate < (now - 60000)) { 
-                alert("Waktu Mulai tidak boleh kurang dari waktu saat ini!");
-                elMulai.focus();
-                return;
-            }
-            if (endDate < startDate) {
-                alert("Waktu Selesai tidak boleh mendahului Waktu Mulai!");
-                elSelesai.focus();
-                return;
-            }
-            
-            const rowData = JSON.parse(decodeURIComponent(encodedRow));
-            let idxMulai = menuId === 'set_dh' ? 7 : 4;
-            let idxSelesai = menuId === 'set_dh' ? 8 : 5;
-            
-            rowData[idxMulai] = elMulai.value;
-            rowData[idxSelesai] = elSelesai.value;
-            
-            closeModal();
-            toggleStatusSettingExecute(menuId, rowIndex, rowData, 'OPEN', window._currentToggleCheckbox);
-        }
-
-        async function toggleStatusSettingExecute(menuId, rowIndex, rowData, newStatus, checkboxEl) {
-            let statusIndex = menuId === 'set_dh' ? 9 : 6;
-            rowData[statusIndex] = newStatus;
-            
-            if(checkboxEl) checkboxEl.disabled = true;
-            
-            const payload = { action: 'crud', menuId: menuId, operation: 'edit', rowIndex: rowIndex, rowData: rowData };
-            const result = await fetchPostAPI(payload);
-            
-            if(checkboxEl) checkboxEl.disabled = false;
-            
-            if(result.success) {
-                loadContent(menuId); 
-            } else {
-                alert("Gagal mengubah status: " + (result.message || "Unknown error"));
-                if(checkboxEl) checkboxEl.checked = (newStatus !== 'OPEN'); 
-            }
-            window._currentToggleCheckbox = null;
-        }
-
-        function renderPengaturanView(menuId, response) {
-            const container = document.getElementById('contentContainer');
-            const { data, sheetId } = response;
-            let rowCount = data ? data.length : 0;
-            
-            const title = menuId === 'set_pd' ? 'Pengaturan Peserta Didik' : (menuId === 'set_pl' ? 'Pengaturan Peserta Pelatihan' : 'Pengaturan Daftar Hadir');
-            
-            let theadHtml = `<tr><th class="px-4 py-3">No</th><th class="px-4 py-3">Nama Sheet</th><th class="px-4 py-3">Nama Acara</th>`;
-            if (menuId === 'set_dh') {
-                theadHtml += `<th class="px-4 py-3">Pimpinan</th><th class="px-4 py-3">Tempat</th><th class="px-4 py-3">Waktu</th><th class="px-4 py-3 text-center">Status</th><th class="px-4 py-3 text-center">Aksi</th></tr>`;
-            } else {
-                theadHtml += `<th class="px-4 py-3">Tempat</th><th class="px-4 py-3">Waktu</th><th class="px-4 py-3 text-center">Status</th><th class="px-4 py-3 text-center">Aksi</th></tr>`;
-            }
-
-            let html = `
-                <div class="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-                    <div class="p-4 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 flex flex-col sm:flex-row justify-between items-center gap-3">
-                        <div class="flex items-center gap-3 w-full sm:w-auto">
-                            <h3 class="text-lg font-bold hidden sm:block whitespace-nowrap">${title}</h3>
-                        </div>
-                        <div class="flex space-x-2 w-full sm:w-auto justify-end">
-                            <button onclick="loadContent('${menuId}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition"><i class="fas fa-sync-alt"></i></button>
-                            <a href="https://docs.google.com/spreadsheets/d/${sheetId}/edit" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm" title="Buka Spreadsheet"><i class="fas fa-file-excel"></i></a>
-                            <button onclick="showDialogForm('${menuId}')" class="bg-primary hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center"><i class="fas fa-plus mr-1"></i> Add Baru</button>
-                        </div>
-                    </div>
-                    <div class="table-container p-0">
-                        <table class="w-full text-sm text-left whitespace-nowrap">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
-                                ${theadHtml}
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-600 dark:text-gray-300">
-                                ${(!data || data.length === 0) ? `<tr><td colspan="8" class="p-8 text-center italic">Data Kosong</td></tr>` : data.map((row, i) => {
-                                    
-                                    const encodedRow = encodeURIComponent(JSON.stringify(row));
-                                    let nmSheet = row[1]||'-', nmAcara = row[2]||'-', tempat = "", mulai = "", selesai = "", pimpinan = "";
-                                    let statusIndex = menuId === 'set_dh' ? 9 : 6;
-                                    let currentStatus = (row[statusIndex] || "").toString().toUpperCase();
-
-                                    if(menuId === 'set_dh') {
-                                        pimpinan = row[3]||'-'; tempat = row[6]||'-'; mulai = row[7]; selesai = row[8];
-                                    } else {
-                                        tempat = row[3]||'-'; mulai = row[4]; selesai = row[5];
-                                    }
-
-                                    let isAktif = (currentStatus === 'OPEN');
-                                    let badgeHtml = "";
-
-                                    if(currentStatus === 'OPEN') {
-                                        badgeHtml = `<span class="px-2 py-1 text-[10px] font-bold rounded bg-green-100 text-green-700">OPEN</span>`;
-                                    } else if (currentStatus === 'CLOSE') {
-                                        badgeHtml = `<span class="px-2 py-1 text-[10px] font-bold rounded bg-red-100 text-red-700">CLOSE</span>`;
-                                    } else {
-                                        badgeHtml = `<span class="px-2 py-1 text-[10px] font-bold rounded bg-yellow-100 text-yellow-700">${currentStatus || 'TERJADWAL'}</span>`;
-                                    }
-
-                                    let tr = `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                        <td class="px-4 py-3">${i+1}</td>
-                                        <td class="px-4 py-3 font-bold text-primary">${nmSheet}</td>
-                                        <td class="px-4 py-3">${nmAcara}</td>`;
-                                    
-                                    if(menuId === 'set_dh') tr += `<td class="px-4 py-3">${pimpinan}</td>`;
-                                    
-                                    tr += `<td class="px-4 py-3">${tempat}</td>
-                                        <td class="px-4 py-3 text-xs">${mulai} <br/>s/d<br/> ${selesai}</td>
-                                        <td class="px-4 py-3 text-center">${badgeHtml}</td>
-                                        <td class="px-4 py-3 text-center">
-                                            <div class="flex items-center justify-center space-x-3">
-                                                <label class="relative inline-flex items-center cursor-pointer" title="Ubah Status (OPEN/CLOSE)">
-                                                    <input type="checkbox" class="sr-only peer" ${isAktif ? 'checked' : ''} onchange="handleToggleStatus('${menuId}', ${i + 2}, '${encodedRow}', this)">
-                                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
-                                                </label>
-                                                <button onclick="confirmDelete('${menuId}', null, ${i + 2})" class="text-red-500 hover:text-red-700" title="Hapus"><i class="fas fa-trash"></i></button>
-                                            </div>
-                                        </td>
-                                    </tr>`;
-                                    return tr;
-                                }).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>`;
-            container.innerHTML = html;
-        }
-
-        function editSarpras(menuId, rowIndex, encodedRow) {
-            const rowData = JSON.parse(decodeURIComponent(encodedRow));
-            showDialogForm(menuId, 'edit', rowIndex, rowData);
-        }
-
-        function showDialogForm(type, opType = 'add', rowIndex = -1, rowData = []) {
-            let title = opType === 'edit' ? "Edit Data" : "Tambah Data";
-            let fieldsHtml = "";
-            let btnText = opType === 'edit' ? "Update Data" : "Simpan Data";
-
-            const val = (idx) => (rowData && rowData[idx] !== undefined) ? rowData[idx] : "";
-
-            let tzoffset = (new Date()).getTimezoneOffset() * 60000;
-            let localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 16);
-
-            if (type === 'sarpras_kunci') {
-                title = opType === 'edit' ? "Edit Kunci Loker" : "Tambah Kunci Loker";
-                fieldsHtml = `
-                    <div class="space-y-4">
-                        <input type="hidden" id="formType" value="${type}">
-                        <div><label class="block text-sm font-medium mb-1">Kode Kunci</label>
-                             <input type="text" id="sarKode" value="${val(1)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
-                        <div><label class="block text-sm font-medium mb-1">Nomor Kunci</label>
-                             <input type="text" id="sarNomor" value="${val(2)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
-                        <div><label class="block text-sm font-medium mb-1">Loker (P/L)</label>
-                            <select id="sarLoker" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none">
-                                <option value="P" ${val(3) === 'P' ? 'selected' : ''}>Pria (P)</option>
-                                <option value="L" ${val(3) === 'L' ? 'selected' : ''}>Wanita (L/W)</option>
-                            </select>
-                        </div>
-                    </div>
-                `;
-            } 
-            else if (type === 'sarpras_ruangan') {
-                title = opType === 'edit' ? "Edit Ruangan" : "Tambah Ruangan";
-                fieldsHtml = `
-                    <div class="space-y-4">
-                        <input type="hidden" id="formType" value="${type}">
-                        <div><label class="block text-sm font-medium mb-1">Kode Ruangan</label>
-                             <input type="text" id="sarKode" value="${val(1)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
-                        <div><label class="block text-sm font-medium mb-1">Nama Ruangan</label>
-                             <input type="text" id="sarNama" value="${val(2)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
-                        <div><label class="block text-sm font-medium mb-1">Lokasi</label>
-                             <input type="text" id="sarLokasi" value="${val(3)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
-                    </div>
-                `;
-            } 
-            else if (['sarpras_barang', 'sarpras_atk', 'sarpras_bhp'].includes(type)) {
-                let labelKode = type === 'sarpras_barang' ? "Kode Barang" : (type === 'sarpras_atk' ? "Kode ATK" : "Kode BHP");
-                let labelNama = type === 'sarpras_barang' ? "Nama Barang" : (type === 'sarpras_atk' ? "Nama Item" : "Nama BHP");
-                title = opType === 'edit' ? `Edit ${labelNama}` : `Tambah ${labelNama}`;
-                
-                const satuanOpts = ['Buah', 'Pcs', 'Pak', 'Dus', 'Set', 'Botol', 'Rim', 'Unit', 'Lusin'].map(s => `<option value="${s}" ${val(4) === s ? 'selected' : ''}>${s}</option>`).join('');
-                
-                fieldsHtml = `
-                    <div class="space-y-4">
-                        <input type="hidden" id="formType" value="${type}">
-                        <input type="hidden" id="oldFileUrl" value="${val(6)}">
-                        <div><label class="block text-sm font-medium mb-1">${labelKode}</label>
-                             <input type="text" id="sarKode" value="${val(1)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
-                        <div><label class="block text-sm font-medium mb-1">${labelNama}</label>
-                             <input type="text" id="sarNama" value="${val(2)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div><label class="block text-sm font-medium mb-1">Jumlah</label>
-                                 <input type="number" id="sarQty" value="${val(3)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
-                            <div><label class="block text-sm font-medium mb-1">Satuan</label>
-                                 <select id="sarSatuan" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none">${satuanOpts}</select></div>
-                        </div>
-                        <div><label class="block text-sm font-medium mb-1">Penempatan</label>
-                             <input type="text" id="sarPenempatan" value="${val(5)}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:ring-primary outline-none" required></div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium mb-1">Foto Item (Opsional) ${opType==='edit' ? '<br><span class="text-xs text-blue-500">Abaikan jika tidak ingin mengganti foto lama</span>' : ''}</label>
-                            <div class="flex gap-2 mb-2">
-                                <button type="button" onclick="document.getElementById('sarFotoCam').click()" class="flex-1 py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-600 transition shadow-sm"><i class="fas fa-camera text-primary"></i> Kamera</button>
-                                <button type="button" onclick="document.getElementById('sarFotoGal').click()" class="flex-1 py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-600 transition shadow-sm"><i class="fas fa-images text-secondary"></i> Galeri</button>
-                            </div>
-                            <input type="file" id="sarFotoCam" accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(this, 'sarFotoGal')">
-                            <input type="file" id="sarFotoGal" accept="image/*" class="hidden" onchange="handleFileSelect(this, 'sarFotoCam')">
-                            
-                            <div id="fotoPreviewContainer" class="hidden mt-2 relative inline-block">
-                                <img id="fotoPreview" src="" class="h-24 w-24 object-cover rounded-lg border border-gray-300 shadow-sm">
-                                <button type="button" onclick="clearPhoto()" class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md"><i class="fas fa-times"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } 
-            else if (type.startsWith('set_')) {
-                title = "Pengaturan Baru";
-                btnText = "Simpan Pengaturan";
-                let tplOptions = '<option value="TEMPLATE_DHPD">Daftar Hadir PD</option><option value="TEMPLATE_DHPL">Daftar Hadir PL</option><option value="TEMPLATE_DH">Daftar Hadir Karyawan</option>';
-                
-                fieldsHtml = `
-                    <div class="space-y-4">
-                        <input type="hidden" id="formType" value="${type}">
-                        ${type === 'set_dh' ? `<div><label class="block text-sm font-medium mb-1">Pilih Template</label><select id="setTpl" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 outline-none">${tplOptions}</select></div>` : ''}
-                        
-                        <div><label class="block text-sm font-medium mb-1">Nama Sheet Baru (Tanpa Spasi)</label>
-                             <input type="text" id="setSheet" placeholder="Contoh: PD_JAN_2026" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 outline-none"></div>
-                        <div><label class="block text-sm font-medium mb-1">Nama Acara</label>
-                             <input type="text" id="setAcara" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 outline-none"></div>
-                        <div><label class="block text-sm font-medium mb-1">Tempat</label>
-                             <input type="text" id="setTempat" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 outline-none"></div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div><label class="block text-sm font-medium mb-1">Mulai</label>
-                                 <input type="datetime-local" id="setMulai" min="${localISOTime}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 outline-none"></div>
-                            <div><label class="block text-sm font-medium mb-1">Selesai</label>
-                                 <input type="datetime-local" id="setSelesai" min="${localISOTime}" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 outline-none"></div>
-                        </div>
-                        
-                        ${type === 'set_dh' ? `
-                        <div class="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600">
-                            <label class="flex items-center space-x-2 text-sm font-medium mb-2 cursor-pointer">
-                                <input type="checkbox" id="chkPimpinan" onchange="document.getElementById('ttdPanel').classList.toggle('hidden')"> 
-                                <span>Pakai Tanda Tangan Pimpinan?</span>
-                            </label>
-                            <div id="ttdPanel" class="hidden space-y-3 mt-2">
-                                <input type="text" id="setPimpinan" placeholder="Nama Pimpinan" class="w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 outline-none">
-                                <input type="text" id="setJabatan" placeholder="Jabatan" class="w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 outline-none">
-                                <input type="text" id="setNip" placeholder="NIP" class="w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 outline-none">
-                            </div>
-                        </div>` : ''}
-                    </div>
-                `;
-            }
-
-            const submitFunction = type.startsWith('set_') ? 'submitSettingForm()' : `submitDialogForm('${opType}', ${rowIndex})`;
-
-            const html = `
-                ${fieldsHtml}
-                <div class="mt-6 flex justify-end space-x-3">
-                    <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 dark:bg-gray-700 dark:text-white transition">Batal</button>
-                    <button onclick="${submitFunction}" id="btnSubmitForm" class="px-4 py-2 bg-primary text-white rounded hover:bg-blue-600 transition flex items-center">${btnText}</button>
-                </div>
-            `;
-            showModal(title, html);
-        }
-
-        /* ====================================================
-           UI HELPER & IMAGE COMPRESSION 
-           ==================================================== */
-        function handleFileSelect(input, otherInputId) {
-            document.getElementById(otherInputId).value = ""; 
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('fotoPreview').src = e.target.result;
-                    document.getElementById('fotoPreviewContainer').classList.remove('hidden');
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        function clearPhoto() {
-            document.getElementById('sarFotoCam').value = "";
-            document.getElementById('sarFotoGal').value = "";
-            document.getElementById('fotoPreviewContainer').classList.add('hidden');
-            document.getElementById('fotoPreview').src = "";
-        }
-
-        function compressImage(file, maxSize = 800) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-
-                        if (width > height) {
-                            if (width > maxSize) { height *= maxSize / width; width = maxSize; }
-                        } else {
-                            if (height > maxSize) { width *= maxSize / height; height = maxSize; }
-                        }
-                        
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
-                        const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
-                        resolve(dataUrl.split(',')[1]); 
-                    };
-                    img.onerror = error => reject(error);
-                };
-                reader.onerror = error => reject(error);
-            });
-        }
-
-        /* ====================================================
-           SUBMIT DATA CRUD (KHUSUS SARPRAS & PENGATURAN)
-           ==================================================== */
-        async function submitDialogForm(opType = 'add', rowIdx = -1) {
-            const type = document.getElementById('formType').value;
-            const btn = document.getElementById('btnSubmitForm');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
-            btn.disabled = true;
-
-            let payload = {};
-
-            try {
-                if (type.startsWith('sarpras_')) {
-                    let finalRowData = [];
-                    let fileData = null;
-                    let fileName = "";
-                    let oldFileUrl = "";
-
-                    // PERBAIKAN VALIDASI: Alert standard agar tidak menutup dialog, ditambah .focus()
-                    if (type === 'sarpras_kunci') {
-                        const code = document.getElementById('sarKode');
-                        const nomor = document.getElementById('sarNomor');
-                        const loker = document.getElementById('sarLoker').value;
-                        if(!code.value || !nomor.value) {
-                            alert("Kode dan Nomor Kunci wajib diisi!");
-                            if(!code.value) code.focus(); else nomor.focus();
-                            btn.innerHTML = opType === 'edit' ? 'Update Data' : 'Simpan Data';
-                            btn.disabled = false;
-                            return;
-                        }
-                        finalRowData = ["", code.value, nomor.value, loker, "Tersedia"]; 
-                    } 
-                    else if (type === 'sarpras_ruangan') {
-                        const code = document.getElementById('sarKode');
-                        const nama = document.getElementById('sarNama');
-                        const lokasi = document.getElementById('sarLokasi').value;
-                        if(!code.value || !nama.value) {
-                            alert("Kode dan Nama Ruangan wajib diisi!");
-                            if(!code.value) code.focus(); else nama.focus();
-                            btn.innerHTML = opType === 'edit' ? 'Update Data' : 'Simpan Data';
-                            btn.disabled = false;
-                            return;
-                        }
-                        finalRowData = ["", code.value, nama.value, lokasi, "Tersedia"];
-                    } 
-                    else if (['sarpras_barang', 'sarpras_atk', 'sarpras_bhp'].includes(type)) {
-                        const code = document.getElementById('sarKode');
-                        const nama = document.getElementById('sarNama');
-                        const qty = document.getElementById('sarQty').value || 0;
-                        const satuan = document.getElementById('sarSatuan').value;
-                        const penempatan = document.getElementById('sarPenempatan').value;
-                        
-                        if(!code.value || !nama.value) {
-                            alert("Kode dan Nama wajib diisi!");
-                            if(!code.value) code.focus(); else nama.focus();
-                            btn.innerHTML = opType === 'edit' ? 'Update Data' : 'Simpan Data';
-                            btn.disabled = false;
-                            return;
-                        }
-
-                        oldFileUrl = document.getElementById('oldFileUrl') ? document.getElementById('oldFileUrl').value : "";
-                        finalRowData = ["", code.value, nama.value, qty, satuan, penempatan, oldFileUrl];
-
-                        const camInput = document.getElementById('sarFotoCam');
-                        const galInput = document.getElementById('sarFotoGal');
-                        const activeInput = (camInput && camInput.files.length > 0) ? camInput : (galInput && galInput.files.length > 0 ? galInput : null);
-                        
-                        if (activeInput) {
-                            const file = activeInput.files[0];
-                            fileData = await compressImage(file);
-                            fileName = file.name || 'foto.jpg';
-                        }
-                    }
-
-                    payload = { 
-                        action: 'crud', menuId: type, operation: opType, rowIndex: rowIdx, 
-                        rowData: finalRowData, fileData: fileData, fileName: fileName, oldFileUrl: oldFileUrl 
-                    };
-                }
-
-                const result = await fetchPostAPI(payload);
-                
-                if(result.success) {
-                    closeModal();
-                    customAlert(result.message, "success");
-                    loadContent(type); 
-                } else {
-                    alert(result.message || "Gagal menyimpan data!");
-                    btn.innerHTML = opType === 'edit' ? 'Update Data' : 'Simpan Data';
-                    btn.disabled = false;
-                }
-
-            } catch(e) {
-                btn.innerHTML = opType === 'edit' ? 'Update Data' : 'Simpan Data';
-                btn.disabled = false;
-                alert(e.message);
-            }
-        }
-
-        async function submitSettingForm() {
-            const type = document.getElementById('formType').value;
-            const setSheet = document.getElementById('setSheet');
-            const setAcara = document.getElementById('setAcara');
-            const setMulai = document.getElementById('setMulai');
-            const setSelesai = document.getElementById('setSelesai');
-
-            // PERBAIKAN VALIDASI PENGATURAN: Tidak akan tertutup bila error
-            if (!setSheet.value || !setAcara.value || !setMulai.value || !setSelesai.value) {
-                alert("Harap isi semua kolom wajib (Nama Sheet, Acara, Mulai, Selesai)!");
-                if (!setSheet.value) setSheet.focus();
-                else if (!setAcara.value) setAcara.focus();
-                else if (!setMulai.value) setMulai.focus();
-                else setSelesai.focus();
-                return;
-            }
-
-            const now = new Date();
-            const startDate = new Date(setMulai.value);
-            const endDate = new Date(setSelesai.value);
-
-            if (startDate < (now - 60000)) { 
-                alert("Waktu Mulai tidak boleh kurang dari waktu saat ini!");
-                setMulai.focus();
-                return;
-            }
-            if (endDate < startDate) {
-                alert("Waktu Selesai tidak boleh mendahului Waktu Mulai!");
-                setSelesai.focus();
-                return;
-            }
-
-            const btn = document.getElementById('btnSubmitForm');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Meng-copy Template...';
-            btn.disabled = true;
-
-            let payload = {
-                action: 'addSetting',
-                menuId: type,
-                namaSheet: setSheet.value.toUpperCase().replace(/\s+/g, '_'),
-                namaAcara: setAcara.value,
-                tempat: document.getElementById('setTempat').value || "-",
-                waktuMulai: setMulai.value,
-                waktuSelesai: setSelesai.value
-            };
-
-            if (type === 'set_dh') {
-                payload.templateName = document.getElementById('setTpl').value;
-                if(document.getElementById('chkPimpinan').checked) {
-                    payload.pimpinan = document.getElementById('setPimpinan').value;
-                    payload.jabatan = document.getElementById('setJabatan').value;
-                    payload.nip = document.getElementById('setNip').value;
                 }
             }
-
-            try {
-                const result = await fetchPostAPI(payload);
-                if(result.success) {
-                    closeModal();
-                    customAlert(result.message, "success");
-                    loadContent(type); 
-                } else {
-                    alert("Gagal: " + result.message);
-                    btn.innerHTML = 'Simpan Pengaturan';
-                    btn.disabled = false;
-                }
-            } catch(e) {
-                alert("Terjadi Kesalahan: " + e.message);
-                btn.innerHTML = 'Simpan Pengaturan';
-                btn.disabled = false;
-            }
         }
-
-        function formatStatus(status) {
-            if(!status) return `<span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600">-</span>`;
-            let s = status.toString().trim().toLowerCase();
-            if(['approved', 'open', 'aktif', 'tersedia', 'selesai'].includes(s)) return `<span class="px-2 py-1 text-[10px] uppercase font-bold rounded bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400">${status}</span>`;
-            if(['rejected', 'close', 'cancel'].includes(s)) return `<span class="px-2 py-1 text-[10px] uppercase font-bold rounded bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400">${status}</span>`;
-            return `<span class="px-2 py-1 text-[10px] uppercase font-bold rounded bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400">${status}</span>`;
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            initTheme();
-            checkAuth(); 
-        });
     </script>
 </body>
 </html>
