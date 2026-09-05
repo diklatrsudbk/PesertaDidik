@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Inventaris Sarpras - RSUD Bandung Kiwari</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Animasi kustom untuk modal */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-overlay { animation: fadeIn 0.2s ease-out forwards; }
+        .modal-content { animation: slideUp 0.3s ease-out forwards; }
+        
+        /* Hilangkan panah pada input number */
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans text-slate-800 selection:bg-blue-200 selection:text-blue-900">
+    <!-- Background Pattern -->
+    <div class="fixed inset-0 z-[-1] opacity-[0.03] pointer-events-none" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23000000\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+    
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="font-bold text-[#714B67] text-lg">Sistem Inventaris Sarpras Diklat</div>
+            <a href="../index.html" class="text-sm font-semibold text-slate-500 hover:text-slate-800 transition">← Kembali ke Beranda</a>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-10">
+        <div class="text-center mb-12">
+            <img src="img/rsudbk.png" alt="Logo RSUD BK" class="h-16 md:h-24 w-auto mx-auto mb-3 object-contain">
+            <h2 class="text-3xl font-bold text-slate-800 mb-3">Selamat Datang</h2>
+            <p class="text-slate-500 max-w-xl mx-auto text-lg">Pilih menu layanan di bawah ini untuk memulai pencatatan data sarana dan prasarana.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            
+            <!-- Menu Ruangan -->
+            <button onclick="openForm('ruangan')" class="group relative bg-white rounded-3xl p-8 text-left shadow-sm hover:shadow-xl hover:shadow-blue-500/10 border border-slate-100 hover:border-blue-200 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-bl-full -z-10 transition-transform duration-500 group-hover:scale-125"></div>
+                <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/30 text-white transform group-hover:-rotate-3 transition-transform duration-300">
+                    <i class="fas fa-door-open text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">Data Ruangan</h3>
+                <p class="text-sm text-slate-500">Pencatatan inventaris & lokasi ruangan.</p>
+            </button>
+
+            <!-- Menu Barang -->
+            <button onclick="openForm('barang')" class="group relative bg-white rounded-3xl p-8 text-left shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 border border-slate-100 hover:border-emerald-200 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50/50 rounded-bl-full -z-10 transition-transform duration-500 group-hover:scale-125"></div>
+                <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/30 text-white transform group-hover:-rotate-3 transition-transform duration-300">
+                    <i class="fas fa-boxes text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">Data Barang</h3>
+                <p class="text-sm text-slate-500">Pendataan sarana barang operasional.</p>
+            </button>
+
+            <!-- Menu Kunci -->
+            <button onclick="openForm('kunci')" class="group relative bg-white rounded-3xl p-8 text-left shadow-sm hover:shadow-xl hover:shadow-amber-500/10 border border-slate-100 hover:border-amber-200 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-amber-50/50 rounded-bl-full -z-10 transition-transform duration-500 group-hover:scale-125"></div>
+                <div class="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-amber-500/30 text-white transform group-hover:-rotate-3 transition-transform duration-300">
+                    <i class="fas fa-key text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">Data Kunci Loker</h3>
+                <p class="text-sm text-slate-500">Manajemen akses dan kunci loker manual.</p>
+            </button>
+
+            <!-- Menu ATK -->
+            <button onclick="openForm('atk')" class="group relative bg-white rounded-3xl p-8 text-left shadow-sm hover:shadow-xl hover:shadow-purple-500/10 border border-slate-100 hover:border-purple-200 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-purple-50/50 rounded-bl-full -z-10 transition-transform duration-500 group-hover:scale-125"></div>
+                <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-purple-500/30 text-white transform group-hover:-rotate-3 transition-transform duration-300">
+                    <i class="fas fa-paperclip text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">Data ATK</h3>
+                <p class="text-sm text-slate-500">Pencatatan Alat Tulis Kantor (ATK).</p>
+            </button>
+
+            <!-- Menu BHP -->
+            <button onclick="openForm('bhp')" class="group relative bg-white rounded-3xl p-8 text-left shadow-sm hover:shadow-xl hover:shadow-rose-500/10 border border-slate-100 hover:border-rose-200 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-rose-50/50 rounded-bl-full -z-10 transition-transform duration-500 group-hover:scale-125"></div>
+                <div class="w-14 h-14 bg-gradient-to-br from-rose-500 to-rose-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-rose-500/30 text-white transform group-hover:-rotate-3 transition-transform duration-300">
+                    <i class="fas fa-medkit text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">Data BHP</h3>
+                <p class="text-sm text-slate-500">Pendataan Barang Habis Pakai medis.</p>
+            </button>
+
+            <!-- Menu Cinderamata -->
+            <button onclick="openForm('cinderamata')" class="group relative bg-white rounded-3xl p-8 text-left shadow-sm hover:shadow-xl hover:shadow-teal-500/10 border border-slate-100 hover:border-teal-200 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-teal-50/50 rounded-bl-full -z-10 transition-transform duration-500 group-hover:scale-125"></div>
+                <div class="w-14 h-14 bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-teal-500/30 text-white transform group-hover:-rotate-3 transition-transform duration-300">
+                    <i class="fas fa-gift text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">Data Cinderamata</h3>
+                <p class="text-sm text-slate-500">Penerimaan cinderamata mahasiswa.</p>
+            </button>
+        </div>
+    </main>
+
+    <!-- MODAL OVERLAY -->
+    <div id="form-modal-overlay" class="fixed inset-0 bg-slate-900/60 z-40 hidden flex items-center justify-center p-4 backdrop-blur-sm modal-overlay">
+        
+        <!-- MODAL CONTENT -->
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col modal-content relative overflow-hidden border border-slate-100">
+            
+            <!-- Modal Header -->
+            <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white/95 backdrop-blur-sm z-10">
+                <h3 id="modal-title" class="text-xl font-bold text-slate-800">Form Input</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-rose-500 transition-colors bg-slate-50 hover:bg-rose-50 rounded-full w-9 h-9 flex items-center justify-center">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body (Bisa di-scroll) -->
+            <div class="p-6 overflow-y-auto">
+                
+                <!-- FORM RUANGAN -->
+                <form id="form-ruangan" onsubmit="submitData(event, 'ruangan')" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Ruangan</label>
+                        <input type="text" name="nama_ruangan" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Lokasi</label>
+                        <input type="text" name="lokasi" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Foto Ruangan (Maks 2MB)</label>
+                        <input type="file" id="file_ruangan" name="foto" accept="image/*" class="hidden" onchange="previewImg(event, 'ruangan')">
+                        <div class="flex gap-2 mb-2">
+                            <button type="button" onclick="triggerFile('ruangan', true)" class="flex-1 bg-blue-50 text-blue-600 border border-blue-200 py-2 rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center gap-2">
+                                <i class="fas fa-camera"></i> Kamera
+                            </button>
+                            <button type="button" onclick="triggerFile('ruangan', false)" class="flex-1 bg-gray-50 text-gray-600 border border-gray-200 py-2 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-2">
+                                <i class="fas fa-folder-open"></i> Galeri
+                            </button>
+                        </div>
+                        <div id="preview_container_ruangan" class="hidden mt-2 relative inline-block">
+                            <img id="preview_img_ruangan" class="h-32 rounded-lg border object-cover">
+                            <button type="button" onclick="removeImg('ruangan')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                                <i class="fas fa-times text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 mt-6 shadow-md transition-all">Simpan Data Ruangan</button>
+                </form>
+
+                <!-- FORM BARANG -->
+                <form id="form-barang" onsubmit="submitData(event, 'barang')" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Barang</label>
+                        <input type="text" name="nama_barang" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-shadow">
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="w-1/2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Qty</label>
+                            <input type="number" name="qty" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Satuan</label>
+                            <select name="satuan" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none bg-white">
+                                <option value="">Pilih Satuan</option>
+                                <option value="Unit">Unit</option>
+                                <option value="Buah">Buah</option>
+                                <option value="Set">Set</option>
+                                <option value="Dus">Dus</option>
+                                <option value="Pak">Pak</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Penempatan</label>
+                        <input type="text" name="penempatan" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Foto Barang (Maks 2MB)</label>
+                        <input type="file" id="file_barang" name="foto" accept="image/*" class="hidden" onchange="previewImg(event, 'barang')">
+                        <div class="flex gap-2 mb-2">
+                            <button type="button" onclick="triggerFile('barang', true)" class="flex-1 bg-green-50 text-green-600 border border-green-200 py-2 rounded-lg hover:bg-green-100 flex items-center justify-center gap-2">
+                                <i class="fas fa-camera"></i> Kamera
+                            </button>
+                            <button type="button" onclick="triggerFile('barang', false)" class="flex-1 bg-gray-50 text-gray-600 border border-gray-200 py-2 rounded-lg hover:bg-gray-100 flex items-center justify-center gap-2">
+                                <i class="fas fa-folder-open"></i> Galeri
+                            </button>
+                        </div>
+                        <div id="preview_container_barang" class="hidden mt-2 relative inline-block">
+                            <img id="preview_img_barang" class="h-32 rounded-lg border object-cover">
+                            <button type="button" onclick="removeImg('barang')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"><i class="fas fa-times text-xs"></i></button>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 mt-6 shadow-md transition-all">Simpan Data Barang</button>
+                </form>
+
+                <!-- FORM KUNCI -->
+                <form id="form-kunci" onsubmit="submitData(event, 'kunci')" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kode Kunci</label>
+                        <input type="text" name="code" placeholder="Misal: K001" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none transition-shadow uppercase">
+                        <p class="text-xs text-gray-500 mt-1">Ketikkan kode kunci yang tercetak di fisik kunci.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Kunci / Loker</label>
+                        <input type="number" name="nomor" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none transition-shadow">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Jenis (Peruntukan Loker)</label>
+                        <select name="jenis" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none bg-white transition-shadow">
+                            <option value="">Pilih Jenis</option>
+                            <option value="L">Laki-Laki (L)</option>
+                            <option value="P">Perempuan (P)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-yellow-500 text-white font-bold py-3 rounded-lg hover:bg-yellow-600 mt-6 shadow-md transition-all">Simpan Data Kunci</button>
+                </form>
+
+                <!-- FORM ATK -->
+                <form id="form-atk" onsubmit="submitData(event, 'atk')" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Item ATK</label>
+                        <input type="text" name="nama_item" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-shadow">
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="w-1/2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Qty</label>
+                            <input type="number" name="qty" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none">
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Satuan</label>
+                            <select name="satuan" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none bg-white">
+                                <option value="">Pilih Satuan</option>
+                                <option value="Unit">Unit</option>
+                                <option value="Buah">Buah</option>
+                                <option value="Set">Set</option>
+                                <option value="Dus">Dus</option>
+                                <option value="Pak">Pak</option>
+                                <option value="Lembar">Lembar</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Penempatan</label>
+                        <input type="text" name="penempatan" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Foto ATK (Maks 2MB)</label>
+                        <input type="file" id="file_atk" name="foto" accept="image/*" class="hidden" onchange="previewImg(event, 'atk')">
+                        <div class="flex gap-2 mb-2">
+                            <button type="button" onclick="triggerFile('atk', true)" class="flex-1 bg-purple-50 text-purple-600 border border-purple-200 py-2 rounded-lg hover:bg-purple-100 flex items-center justify-center gap-2">
+                                <i class="fas fa-camera"></i> Kamera
+                            </button>
+                            <button type="button" onclick="triggerFile('atk', false)" class="flex-1 bg-gray-50 text-gray-600 border border-gray-200 py-2 rounded-lg hover:bg-gray-100 flex items-center justify-center gap-2">
+                                <i class="fas fa-folder-open"></i> Galeri
+                            </button>
+                        </div>
+                        <div id="preview_container_atk" class="hidden mt-2 relative inline-block">
+                            <img id="preview_img_atk" class="h-32 rounded-lg border object-cover">
+                            <button type="button" onclick="removeImg('atk')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"><i class="fas fa-times text-xs"></i></button>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-purple-700 mt-6 shadow-md transition-all">Simpan Data ATK</button>
+                </form>
+
+                <!-- FORM BHP -->
+                <form id="form-bhp" onsubmit="submitData(event, 'bhp')" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama BHP</label>
+                        <input type="text" name="nama_bhp" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-shadow">
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="w-1/2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Qty</label>
+                            <input type="number" name="qty" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none">
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Satuan</label>
+                            <select name="satuan" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none bg-white">
+                                <option value="">Pilih Satuan</option>
+                                <option value="Unit">Unit</option>
+                                <option value="Buah">Buah</option>
+                                <option value="Set">Set</option>
+                                <option value="Dus">Dus</option>
+                                <option value="Pak">Pak</option>
+                                <option value="Lembar">Lembar</option>
+                                <option value="Ampul">Ampul</option>
+                                <option value="Botol">Botol</option>
+                                <option value="Pasang">Pasang</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Penempatan</label>
+                        <input type="text" name="penempatan" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Foto BHP (Maks 2MB)</label>
+                        <input type="file" id="file_bhp" name="foto" accept="image/*" class="hidden" onchange="previewImg(event, 'bhp')">
+                        <div class="flex gap-2 mb-2">
+                            <button type="button" onclick="triggerFile('bhp', true)" class="flex-1 bg-red-50 text-red-600 border border-red-200 py-2 rounded-lg hover:bg-red-100 flex items-center justify-center gap-2">
+                                <i class="fas fa-camera"></i> Kamera
+                            </button>
+                            <button type="button" onclick="triggerFile('bhp', false)" class="flex-1 bg-gray-50 text-gray-600 border border-gray-200 py-2 rounded-lg hover:bg-gray-100 flex items-center justify-center gap-2">
+                                <i class="fas fa-folder-open"></i> Galeri
+                            </button>
+                        </div>
+                        <div id="preview_container_bhp" class="hidden mt-2 relative inline-block">
+                            <img id="preview_img_bhp" class="h-32 rounded-lg border object-cover">
+                            <button type="button" onclick="removeImg('bhp')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"><i class="fas fa-times text-xs"></i></button>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-red-600 text-white font-bold py-3 rounded-lg hover:bg-red-700 mt-6 shadow-md transition-all">Simpan Data BHP</button>
+                </form>
+
+                <!-- FORM CINDERAMATA -->
+                <form id="form-cinderamata" onsubmit="submitData(event, 'cinderamata')" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Pemberi (Mahasiswa/Institusi)</label>
+                        <input type="text" name="nama_pemberi" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-shadow">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Asal Institusi / Universitas</label>
+                        <input type="text" name="institusi" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-shadow">
+                    </div>
+                    
+                    <!-- INPUT MULTI-KOLOM CINDERAMATA -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Rincian Barang yang Diberikan</label>
+                        <div id="cinderamata-items" class="space-y-2">
+                            <!-- Item ke-1 (Default) -->
+                            <div class="cinderamata-item flex gap-2">
+                                <input type="text" class="item-nama flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none" placeholder="Nama Barang (mis: Tensimeter)" required>
+                                <input type="number" class="item-qty w-20 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none" placeholder="Qty" min="1" required>
+                                <select class="item-satuan w-28 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none bg-white" required>
+                                    <option value="">Satuan</option>
+                                    <option value="Buah">Buah</option>
+                                    <option value="Set">Set</option>
+                                    <option value="Unit">Unit</option>
+                                    <option value="Dus">Dus</option>
+                                </select>
+                                <button type="button" class="invisible px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                        <button type="button" onclick="addCinderamataItem()" class="mt-2 text-sm text-teal-600 font-bold flex items-center gap-1 hover:text-teal-800 transition-colors">
+                            <i class="fas fa-plus-circle"></i> Tambah Barang Lain
+                        </button>
+                    </div>
+                    
+                    <!-- Upload Foto Cinderamata -->
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Foto Barang/Penyerahan (Maks 2MB)</label>
+                        <input type="file" id="file_cinderamata" name="foto" accept="image/*" class="hidden" onchange="previewImg(event, 'cinderamata')">
+                        <div class="flex gap-2 mb-2">
+                            <button type="button" onclick="triggerFile('cinderamata', true)" class="flex-1 bg-teal-50 text-teal-600 border border-teal-200 py-2 rounded-lg hover:bg-teal-100 transition-colors flex items-center justify-center gap-2">
+                                <i class="fas fa-camera"></i> Kamera
+                            </button>
+                            <button type="button" onclick="triggerFile('cinderamata', false)" class="flex-1 bg-gray-50 text-gray-600 border border-gray-200 py-2 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-2">
+                                <i class="fas fa-folder-open"></i> Galeri
+                            </button>
+                        </div>
+                        <div id="preview_container_cinderamata" class="hidden mt-2 relative inline-block">
+                            <img id="preview_img_cinderamata" class="h-32 rounded-lg border object-cover">
+                            <button type="button" onclick="removeImg('cinderamata')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                                <i class="fas fa-times text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tanda Tangan -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tanda Tangan Pemberi</label>
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden relative">
+                            <canvas id="signature-pad" class="w-full cursor-crosshair touch-none h-40"></canvas>
+                        </div>
+                        <div class="flex justify-end mt-2">
+                            <button type="button" onclick="clearSignature()" class="text-sm text-red-500 hover:text-red-700 flex items-center gap-1">
+                                <i class="fas fa-eraser"></i> Hapus Tanda Tangan
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-teal-600 text-white font-bold py-3 rounded-lg hover:bg-teal-700 mt-6 shadow-md transition-all">Simpan Data Cinderamata</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-slate-900/80 z-50 hidden flex flex-col items-center justify-center backdrop-blur-sm">
+        <div class="w-16 h-16 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+        <p id="loading-text" class="text-white text-lg font-semibold animate-pulse">Memproses...</p>
+    </div>
+
+    <!-- Alert Modal -->
+    <div id="alert-modal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl shadow-xl w-full max-w-sm p-8 text-center transform scale-95 transition-transform">
+            <div id="alert-icon" class="text-6xl mb-5"></div>
+            <h3 id="alert-title" class="text-2xl font-bold text-slate-800 mb-2"></h3>
+            <p id="alert-message" class="text-slate-600 mb-8"></p>
+            <button onclick="closeAlert()" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-900 transition-colors shadow-md">Tutup</button>
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI API URL ---
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSr56PwPq4_pPrL_GD_OyAG3jPfA01iJlaQTjhSPXvEykujYYpz_4ihM3-Gw3L-yqY/exec'; 
+
+        const forms = ['ruangan', 'barang', 'kunci', 'atk', 'bhp', 'cinderamata'];
+        let hasSignature = false;
+
+        // Fungsi Membuka Modal & Form tertentu
+        function openForm(tabId) {
+            document.body.classList.add('overflow-hidden'); // Cegah scroll di background
+            document.getElementById('form-modal-overlay').classList.remove('hidden');
+            
+            // Set Modal Title based on tab
+            const titles = {
+                'ruangan': 'Input Data Ruangan',
+                'barang': 'Input Data Barang',
+                'kunci': 'Input Data Kunci Loker',
+                'atk': 'Input Data ATK',
+                'bhp': 'Input Data BHP',
+                'cinderamata': 'Input Data Cinderamata'
+            };
+            document.getElementById('modal-title').innerText = titles[tabId];
+            
+            // Sembunyikan semua form
+            forms.forEach(f => {
+                const el = document.getElementById(`form-${f}`);
+                if(el) el.classList.add('hidden');
+            });
+
+            // Tampilkan form yang dipilih
+            document.getElementById(`form-${tabId}`).classList.remove('hidden');
+
+            // Khusus cinderamata, inisialisasi kanvas tanda tangan
+            if (tabId === 'cinderamata') {
+                setTimeout(initSignature, 300); // beri delay sedikit agar modal render ukurannya
+            }
+        }
+
+        // Fungsi Menutup Modal
+        function closeModal() {
+            document.body.classList.remove('overflow-hidden');
+            document.getElementById('form-modal-overlay').classList.add('hidden');
+        }
+
+        // Fungsi Trigger Input File (Kamera atau Galeri)
+        function triggerFile(type, useCamera) {
+            const input = document.getElementById(`file_${type}`);
+            if (useCamera) {
+                input.setAttribute('capture', 'environment'); // Paksa pakai kamera belakang (di HP)
+            } else {
+                input.removeAttribute('capture');
+            }
+            input.click();
+        }
+
+        // Fungsi Pratinjau Gambar
+        function previewImg(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validasi ukuran max 2MB (2 * 1024 * 1024 bytes)
+            if (file.size > 2097152) {
+                showAlert('error', 'File Terlalu Besar', 'Ukuran foto maksimal adalah 2MB. Silakan pilih foto lain.');
+                event.target.value = ''; // Reset input
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById(`preview_img_${type}`).src = e.target.result;
+                document.getElementById(`preview_container_${type}`).classList.remove('hidden');
+            }
+            reader.readAsDataURL(file);
+        }
+
+        // Fungsi Hapus Gambar
+        function removeImg(type) {
+            document.getElementById(`file_${type}`).value = ''; // Hapus dari input
+            document.getElementById(`preview_img_${type}`).src = '';
+            document.getElementById(`preview_container_${type}`).classList.add('hidden');
+        }
+
+        function showLoading(show) {
+            const el = document.getElementById('loading-overlay');
+            if (show) el.classList.remove('hidden');
+            else el.classList.add('hidden');
+        }
+
+        function showAlert(type, title, message) {
+            const modal = document.getElementById('alert-modal');
+            const iconEl = document.getElementById('alert-icon');
+            const titleEl = document.getElementById('alert-title');
+            const msgEl = document.getElementById('alert-message');
+
+            if (type === 'success') {
+                iconEl.innerHTML = '<i class="fas fa-check-circle text-green-500"></i>';
+                titleEl.className = 'text-xl font-bold text-green-600 mb-2';
+            } else {
+                iconEl.innerHTML = '<i class="fas fa-exclamation-circle text-red-500"></i>';
+                titleEl.className = 'text-xl font-bold text-red-600 mb-2';
+            }
+
+            titleEl.innerText = title;
+            msgEl.innerText = message;
+            modal.classList.remove('hidden');
+        }
+
+        function closeAlert() {
+            document.getElementById('alert-modal').classList.add('hidden');
+        }
+
+        // --- Logika Canvas Tanda Tangan ---
+        function initSignature() {
+            const canvas = document.getElementById('signature-pad');
+            const ctx = canvas.getContext('2d');
+            
+            // Set ukuran aslinya menyesuaikan container
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            ctx.fillStyle = '#f9fafb'; // warna bg-gray-50
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            hasSignature = false;
+
+            let isDrawing = false;
+            let lastX = 0; let lastY = 0;
+
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                let clientX = e.clientX;
+                let clientY = e.clientY;
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                }
+                return {
+                    x: clientX - rect.left,
+                    y: clientY - rect.top
+                };
+            }
+
+            const start = (e) => { 
+                e.preventDefault(); 
+                isDrawing = true; 
+                const pos = getPos(e); 
+                lastX = pos.x; 
+                lastY = pos.y; 
+            };
+            const move = (e) => {
+                e.preventDefault();
+                if (!isDrawing) return;
+                const pos = getPos(e);
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+                lastX = pos.x; 
+                lastY = pos.y;
+                hasSignature = true;
+            };
+            const end = (e) => { 
+                e.preventDefault(); 
+                isDrawing = false; 
+            };
+
+            // Hapus event lama jika form dibuka ulang agar tidak numpuk
+            canvas.onmousedown = start; canvas.ontouchstart = start;
+            canvas.onmousemove = move;  canvas.ontouchmove = move;
+            canvas.onmouseup = end;     canvas.ontouchend = end;
+            canvas.onmouseout = end;
+        }
+
+        function clearSignature() {
+            const canvas = document.getElementById('signature-pad');
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#f9fafb';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            hasSignature = false;
+        }
+
+        // Fungsi Tambah Baris Input Barang Cinderamata
+        function addCinderamataItem() {
+            const container = document.getElementById('cinderamata-items');
+            const itemHTML = `
+                <div class="cinderamata-item flex gap-2">
+                    <input type="text" class="item-nama flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none" placeholder="Nama Barang" required>
+                    <input type="number" class="item-qty w-20 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none" placeholder="Qty" min="1" required>
+                    <select class="item-satuan w-28 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none bg-white" required>
+                        <option value="">Satuan</option>
+                        <option value="Buah">Buah</option>
+                        <option value="Set">Set</option>
+                        <option value="Unit">Unit</option>
+                        <option value="Dus">Dus</option>
+                    </select>
+                    <button type="button" onclick="this.parentElement.remove()" class="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', itemHTML);
+        }
+
+        // Main Submit Function
+        async function submitData(event, type) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const payload = { type: type };
+
+            // Helper to convert file to base64
+            const toBase64 = file => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+
+            showLoading(true);
+            document.getElementById('loading-text').innerText = 'Menyiapkan data...';
+
+            for (let [key, value] of formData.entries()) {
+                if (key === 'foto') {
+                    if (value.size > 0) {
+                        try {
+                            const base64 = await toBase64(value);
+                            payload.foto = base64;
+                            payload.fotoName = value.name;
+                            payload.mimeType = value.type;
+                        } catch (e) {
+                            showLoading(false);
+                            showAlert('error', 'Error', 'Gagal memproses file foto.');
+                            return;
+                        }
+                    }
+                } else {
+                    payload[key] = value;
+                }
+            }
+
+            // Ambil data Multi-Item Cinderamata
+            if (type === 'cinderamata') {
+                const items = [];
+                document.querySelectorAll('.cinderamata-item').forEach(el => {
+                    const nama = el.querySelector('.item-nama').value;
+                    const qty = el.querySelector('.item-qty').value;
+                    const satuan = el.querySelector('.item-satuan').value;
+                    if (nama && qty && satuan) {
+                        items.push({ nama, qty, satuan });
+                    }
+                });
+                
+                if (items.length === 0) {
+                    showLoading(false);
+                    showAlert('error', 'Error', 'Harap isi minimal 1 barang cinderamata.');
+                    return;
+                }
+                payload.barang_list = JSON.stringify(items);
+            }
+
+            // Ambil data Tanda Tangan jika tipe = cinderamata
+            if (type === 'cinderamata') {
+                if (!hasSignature) {
+                    showLoading(false);
+                    showAlert('error', 'Tanda Tangan Kosong', 'Harap lengkapi tanda tangan pemberi.');
+                    return;
+                }
+                const canvas = document.getElementById('signature-pad');
+                // Format langsung ke base64
+                payload.ttd = canvas.toDataURL('image/png');
+            }
+
+            document.getElementById('loading-text').innerText = 'Mengirim data ke server...';
+
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                
+                showLoading(false);
+
+                if (result.status === 'success') {
+                    showAlert('success', 'Berhasil!', 'Data berhasil disimpan ke Spreadsheet.');
+                    form.reset(); 
+                    if(document.getElementById(`preview_container_${type}`)) {
+                        removeImg(type); // Reset foto pratinjau
+                    }
+                    if (type === 'cinderamata') {
+                        clearSignature(); // Reset tanda tangan
+                        // Reset list barang kembali ke 1 kolom default
+                        document.getElementById('cinderamata-items').innerHTML = `
+                            <div class="cinderamata-item flex gap-2">
+                                <input type="text" class="item-nama flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none" placeholder="Nama Barang (mis: Tensimeter)" required>
+                                <input type="number" class="item-qty w-20 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none" placeholder="Qty" min="1" required>
+                                <select class="item-satuan w-28 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none bg-white" required>
+                                    <option value="">Satuan</option>
+                                    <option value="Buah">Buah</option>
+                                    <option value="Set">Set</option>
+                                    <option value="Unit">Unit</option>
+                                    <option value="Dus">Dus</option>
+                                </select>
+                                <button type="button" class="invisible px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg"><i class="fas fa-trash"></i></button>
+                            </div>
+                        `;
+                    }
+                    closeModal(); // Tutup modal kembali ke menu utama
+                } else {
+                    showAlert('error', 'Gagal', 'Terjadi kesalahan di server: ' + (result.message || 'Unknown error'));
+                }
+            } catch (error) {
+                showLoading(false);
+                showAlert('error', 'Error Jaringan', 'Gagal terhubung ke server. Pastikan URL Web App benar dan internet stabil.');
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>

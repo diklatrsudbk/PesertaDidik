@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>E-Inventaris Aset Modern</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc',
+                            400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca',
+                            800: '#3730a3', 900: '#312e81',
+                        }
+                    },
+                    boxShadow: {
+                        'glass': '0 4px 30px rgba(0, 0, 0, 0.1)',
+                        'soft': '0 10px 40px -10px rgba(0,0,0,0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Memisahkan gaya Tailwind agar VS Code tidak memunculkan warning @apply -->
+    <style type="text/tailwindcss">
+        /* Modern Input Styling */
+        .input-modern {
+            width: 100%;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #0f172a;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            outline: none;
+            transition: all 200ms;
+        }
+
+        .dark .input-modern {
+            background-color: rgb(15 23 42 / 0.5);
+            border-color: #334155;
+            color: #fff;
+        }
+
+        .input-modern:focus {
+            border-color: #6366f1;
+            background-color: #fff;
+            box-shadow: 0 0 0 2px rgb(99 102 241 / 0.5);
+        }
+
+        .dark .input-modern:focus {
+            background-color: #1e293b;
+        }
+
+        .input-modern::placeholder {
+            color: #94a3b8;
+        }
+
+        /* Segmented Control untuk Radio Buttons */
+        .segmented-control input[type="radio"]:checked + div {
+            background-color: #fff;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .dark .segmented-control input[type="radio"]:checked + div {
+            background-color: #334155;
+            color: #fff;
+        }
+    </style>
+
+    <!-- Gaya standar CSS -->
+    <style>
+        body { background-color: #f8fafc; }
+        .dark body { background-color: #0f172a; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Fix AutoFill highlight putih pada Chrome/Edge di Mode Gelap */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        select:-webkit-autofill,
+        select:-webkit-autofill:hover, 
+        select:-webkit-autofill:focus {
+            -webkit-text-fill-color: inherit;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        @media print {
+            body { background: white; color: black; }
+            .no-print, .btn-action { display: none !important; }
+            .print-area { width: 100%; margin: 0; padding: 0; box-shadow: none; border: none; }
+            table { border-collapse: collapse; width: 100%; font-size: 12px; }
+            th, td { border: 1px solid #cbd5e1 !important; padding: 8px; text-align: left; }
+            /* Menambahkan print-color-adjust standar sesuai saran VS Code */
+            th { background-color: #f1f5f9 !important; color: black !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body class="text-slate-800 dark:text-slate-200 transition-colors duration-300 min-h-screen flex flex-col">
+
+    <div id="loading" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[100] flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 rounded-2xl flex flex-col items-center shadow-2xl border border-white/20 dark:border-slate-700/50">
+            <div class="relative w-12 h-12 mb-4">
+                <div class="absolute inset-0 border-4 border-slate-200 dark:border-slate-700 rounded-full"></div>
+                <div class="absolute inset-0 border-4 border-brand-500 rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            <p class="text-slate-700 dark:text-slate-200 font-semibold" id="loadingMsg">Sinkronisasi Data...</p>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8 print-area flex-grow flex flex-col">
+        
+        <!-- Header -->
+        <header class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-3xl shadow-soft border border-white/50 dark:border-slate-700/50 p-4 sm:p-5 mb-8 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-4 z-40">
+            
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <div class="h-12 w-24 bg-white dark:bg-slate-700 rounded-xl shadow-sm flex items-center justify-center p-2 border border-slate-100 dark:border-slate-600">
+                   <!-- Logo RSUD -->
+                   <img src="img/rsudbk.png" alt="Logo" class="h-full w-full object-contain">
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">Inventaris Ruangan</h1>
+                    <p class="text-xs font-medium text-brand-600 dark:text-brand-400">Sistem Pendataan Terpadu</p>
+                </div>
+            </div>
+            
+            <!-- Controls -->
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end no-print">
+                <button onclick="toggleDarkMode()" class="p-3 rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all focus:outline-none">
+                    <i class="fas fa-moon dark:hidden"></i><i class="fas fa-sun hidden dark:inline"></i>
+                </button>
+
+                <div class="relative group grow md:grow-0 min-w-[200px]">
+                     <select id="roomSelect" onchange="loadTableData()" class="w-full bg-slate-100/80 border-0 text-slate-900 text-sm rounded-xl focus:ring-2 focus:ring-brand-500 p-3 pl-4 pr-10 dark:bg-slate-700/80 dark:text-white transition-all appearance-none cursor-pointer font-semibold hover:bg-slate-200 dark:hover:bg-slate-600">
+                        <option value="">-- Pilih Area/Ruangan --</option>
+                    </select>
+                     <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-500">
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
+                     <button onclick="openModalAddRoom()" class="px-4 py-2 bg-white dark:bg-slate-700 hover:text-brand-600 dark:hover:text-brand-400 text-slate-700 dark:text-slate-200 rounded-lg font-medium transition-all shadow-sm text-sm flex items-center">
+                        <i class="fas fa-plus mr-2"></i> Ruangan
+                    </button>
+                    <button onclick="initApp()" class="px-4 py-2 bg-white dark:bg-slate-700 hover:text-brand-600 dark:hover:text-brand-400 text-slate-700 dark:text-slate-200 rounded-lg font-medium transition-all shadow-sm text-sm">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-grow bg-white dark:bg-slate-800 rounded-3xl shadow-soft border border-slate-200/60 dark:border-slate-700/60 overflow-hidden flex flex-col relative">
+            
+            <!-- Table Action Bar -->
+            <div class="p-5 border-b border-slate-100 dark:border-slate-700/50 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
+                <h2 id="tableTitle" class="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+                    Menunggu Pilihan Ruangan
+                </h2>
+                
+                <div class="flex gap-2 no-print">
+                    <button onclick="window.print()" id="btnPrint" class="hidden px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl font-medium transition-all text-sm items-center gap-2">
+                        <i class="fas fa-print"></i> Cetak
+                    </button>
+                     <button onclick="openModalAddItem('add')" id="btnTambahBarang" class="hidden px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-brand-500/30 text-sm flex items-center gap-2 transform hover:-translate-y-0.5">
+                        <i class="fas fa-plus"></i> Tambah Aset
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Data Table -->
+            <div id="tableContainer" class="overflow-x-auto overflow-y-auto no-scrollbar flex-grow block">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-slate-500 dark:text-slate-400 uppercase bg-white dark:bg-slate-800 sticky top-0 z-10 shadow-sm">
+                        <tr>
+                            <th class="px-6 py-4 font-semibold text-center w-16">No</th>
+                            <th class="px-6 py-4 font-semibold whitespace-nowrap">Nama Alat/Barang</th>
+                            <th class="px-6 py-4 font-semibold text-center">Jumlah</th>
+                            <th class="px-6 py-4 font-semibold text-center">Satuan</th>
+                            <th class="px-6 py-4 font-semibold text-center">Kondisi</th>
+                            <th class="px-6 py-4 font-semibold">Keterangan</th>
+                            <th class="px-6 py-4 font-semibold text-center">Foto</th>
+                            <th class="px-6 py-4 font-semibold text-center no-print w-24">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-slate-100 dark:divide-slate-700/50">
+                        <!-- Rows -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden flex-col items-center justify-center p-16 text-center flex-grow bg-white dark:bg-slate-800">
+                <div class="w-24 h-24 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                    <i class="fas fa-inbox text-4xl text-slate-400 dark:text-slate-500"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Belum Ada Data</h3>
+                <p class="text-slate-500 dark:text-slate-400 max-w-sm text-sm leading-relaxed">Pilih ruangan pada menu di atas, atau klik tombol "Tambah Aset" untuk memulai inventarisasi.</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Tambah Ruangan -->
+    <div id="modalAddRoom" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] hidden items-center justify-center p-4 transition-all opacity-0">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 transition-all duration-300" id="modalAddRoomContent">
+            <div class="p-6 border-b border-slate-100 dark:border-slate-700/50 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Buat Ruangan Baru</h3>
+                <button onclick="closeModal('modalAddRoom')" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="formAddRoom" onsubmit="submitRoom(event)" class="p-6">
+                <div class="mb-6">
+                    <label class="block mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">Nama Area / Ruangan <span class="text-red-500">*</span></label>
+                    <input type="text" id="inputRoomName" required class="input-modern" placeholder="Contoh: Poli Umum 1">
+                    <p class="mt-2 text-xs text-slate-500">Nama ini akan menjadi label tab di sistem database.</p>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeModal('modalAddRoom')" class="flex-1 py-3 bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300 rounded-xl font-semibold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Batal</button>
+                    <button type="submit" class="flex-1 py-3 bg-brand-600 text-white rounded-xl font-semibold hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/30">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Item (Form Estetik) -->
+    <div id="modalItem" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] hidden items-center justify-center p-4 overflow-y-auto transition-all opacity-0 py-8">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl transform scale-95 transition-all duration-300 my-auto" id="modalItemContent">
+            
+            <div class="px-8 py-5 border-b border-slate-100 dark:border-slate-700/50 flex justify-between items-center sticky top-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-t-3xl z-10">
+                <h3 id="modalItemTitle" class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-3">
+                    <div class="p-2 bg-brand-100 dark:bg-brand-900/50 text-brand-600 dark:text-brand-400 rounded-lg"><i class="fas fa-box-open text-sm"></i></div>
+                    Form Data Aset
+                </h3>
+                <button onclick="closeModal('modalItem')" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <form id="formItem" onsubmit="submitItemForm(event)" class="p-8 space-y-6">
+                <input type="hidden" id="editMode" value="add">
+                <input type="hidden" id="editRowIndex" value="">
+                <input type="hidden" id="editOldPhotoUrl" value="">
+
+                <!-- Input Group: Nama -->
+                <div>
+                    <label class="block mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">Identitas Barang <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <i class="fas fa-tag absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="itemNama" required class="input-modern !pl-11" placeholder="Masukkan nama alat atau barang">
+                    </div>
+                </div>
+
+                <!-- Input Group: Grid Qty & Satuan -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">Kuantitas <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <i class="fas fa-hashtag absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                            <input type="number" id="itemJumlah" required min="1" class="input-modern !pl-11" placeholder="0">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">Satuan <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <select id="itemSatuan" required class="input-modern !pr-10 appearance-none cursor-pointer">
+                                <option value="Unit">Unit</option>
+                                <option value="Buah">Buah</option>
+                                <option value="Set">Set</option>
+                                <option value="Pcs">Pcs</option>
+                                <option value="Box">Box</option>
+                                <option value="Lembar">Lembar</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none text-sm"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Group: Segmented Control Kondisi -->
+                <div>
+                    <label class="block mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">Kondisi Aset <span class="text-red-500">*</span></label>
+                    <div class="segmented-control flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="kondisi" value="Baik" class="sr-only" checked>
+                            <div class="text-center py-2.5 rounded-lg text-slate-500 transition-all duration-200 text-sm">Baik</div>
+                        </label>
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="kondisi" value="Rusak Ringan" class="sr-only">
+                            <div class="text-center py-2.5 rounded-lg text-slate-500 transition-all duration-200 text-sm">R. Ringan</div>
+                        </label>
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="kondisi" value="Rusak Berat" class="sr-only">
+                            <div class="text-center py-2.5 rounded-lg text-slate-500 transition-all duration-200 text-sm">R. Berat</div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Input Group: Grid Foto & Catatan -->
+                <div class="grid md:grid-cols-2 gap-6 pt-2">
+                    <!-- Modern Dropzone -->
+                    <div>
+                        <label class="block mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">Dokumentasi (Opsional)</label>
+                        <label for="itemFoto" class="relative flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 dark:border-slate-600 border-dashed rounded-2xl cursor-pointer bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/50 dark:hover:bg-slate-800 transition-all group overflow-hidden">
+                            
+                            <div id="uploadPlaceholder" class="flex flex-col items-center justify-center p-4 text-center z-10 transition-opacity">
+                                <div class="w-10 h-10 mb-2 rounded-full bg-brand-100 dark:bg-brand-900/50 flex items-center justify-center text-brand-600 group-hover:scale-110 transition-transform">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                                <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Pilih Foto</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Maks 5MB (JPG/PNG)</p>
+                            </div>
+                            
+                            <img id="fotoPreview" src="" class="absolute inset-0 w-full h-full object-cover hidden z-20">
+                            
+                            <!-- Overlay hapus/ganti -->
+                            <div id="fotoOverlay" class="absolute inset-0 bg-slate-900/50 hidden z-30 flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                <span class="text-white text-xs font-semibold bg-slate-800/80 px-3 py-1 rounded-full"><i class="fas fa-sync-alt mr-1"></i> Ganti</span>
+                            </div>
+
+                            <input id="itemFoto" type="file" accept="image/png, image/jpeg, image/jpg" class="hidden" onchange="previewImage(this)">
+                        </label>
+                        <p id="currentPhotoStatus" class="mt-2 text-[11px] text-emerald-600 dark:text-emerald-400 hidden font-medium flex items-center gap-1"><i class="fas fa-check-circle"></i> Foto tersimpan</p>
+                    </div>
+
+                    <!-- Catatan -->
+                    <div class="flex flex-col">
+                        <label class="block mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">Catatan Tambahan</label>
+                        <textarea id="itemKeterangan" rows="4" class="input-modern resize-none flex-grow" placeholder="Merk, seri, lokasi spesifik rak, dll..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Footer Form -->
+                <div class="flex gap-3 pt-6 mt-4 border-t border-slate-100 dark:border-slate-700/50">
+                    <button type="button" onclick="closeModal('modalItem')" class="w-1/3 py-3.5 bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Batal</button>
+                    <button type="submit" id="btnSubmitItem" class="w-2/3 py-3.5 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/30 flex items-center justify-center gap-2">
+                        Simpan Data
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 right-6 z-[100] hidden transition-all duration-400 transform translate-y-12 opacity-0">
+        <div class="flex items-center p-4 bg-slate-900/90 backdrop-blur-md rounded-2xl shadow-2xl max-w-sm border border-slate-700">
+            <div id="toastIcon" class="inline-flex items-center justify-center flex-shrink-0 w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="ml-4 mr-6">
+                <p class="text-sm font-bold text-white" id="toastTitle">Berhasil</p>
+                <p class="text-xs text-slate-300 mt-0.5" id="toastMessage">Tindakan selesai.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =================================================================
+        // URL WEB APP TERBARU ANDA
+        // =================================================================
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwmB9PW7eRA3gzFabbeKQ1Q2zsJaAN8xUhn80oakge6obE_DabEg1bV9gn5DwSZj3FO/exec'; 
+        
+        let currentRoomData = []; 
+
+        document.addEventListener('DOMContentLoaded', initApp);
+
+        function initApp() {
+            fetchRooms();
+            checkInitialTheme();
+        }
+
+        async function fetchAPI(payload) {
+            showLoading(true, payload.action);
+            
+            // Setup pengaman Timeout (Maks 45 detik)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 45000);
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    // SANGAT PENTING: Bypass Preflight CORS dengan text/plain
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8',
+                    },
+                    redirect: 'follow', // Penting karena GAS selalu melakukan redirect 302
+                    body: JSON.stringify(payload),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId); // Bersihkan timeout jika berhasil
+                const result = await response.json();
+                
+                if (result.status === 'error') throw new Error(result.message);
+                return result;
+            } catch (error) {
+                let errorMsg = error.message;
+                // Tangani jika terjadi timeout
+                if (error.name === 'AbortError') {
+                    errorMsg = 'Koneksi ke server terputus karena terlalu lama (Timeout). Coba lagi.';
+                } else if (errorMsg === 'Failed to fetch') {
+                    errorMsg = 'Gagal terhubung ke database. Coba muat ulang halaman.';
+                }
+                
+                showToast('Gagal', errorMsg, 'error');
+                throw error; 
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function fetchRooms() {
+            try {
+                const res = await fetchAPI({ action: 'getRooms' });
+                const select = document.getElementById('roomSelect');
+                const currentVal = select.value; 
+                
+                select.innerHTML = '<option value="">-- Pilih Area/Ruangan --</option>';
+                res.data.forEach(room => {
+                    const opt = document.createElement('option');
+                    opt.value = room;
+                    opt.textContent = room.replace(/_/g, ' '); 
+                    select.appendChild(opt);
+                });
+
+                if(currentVal && res.data.includes(currentVal)) {
+                    select.value = currentVal;
+                }
+                loadTableData(); 
+            } catch (e) { console.error(e); }
+        }
+
+        async function submitRoom(e) {
+            e.preventDefault();
+            const input = document.getElementById('inputRoomName');
+            const roomName = input.value.trim().replace(/\s+/g, '_'); 
+            if (!roomName) return showToast('Peringatan', 'Nama ruangan tidak boleh kosong', 'warning');
+
+            try {
+                await fetchAPI({ action: 'addRoom', roomName: roomName });
+                closeModal('modalAddRoom');
+                input.value = '';
+                showToast('Berhasil', 'Ruangan berhasil dibuat!', 'success');
+                await fetchRooms();
+                document.getElementById('roomSelect').value = roomName;
+                loadTableData();
+            } catch (error) {}
+        }
+
+        async function loadTableData() {
+            const roomName = document.getElementById('roomSelect').value;
+            updateUIState(roomName);
+            if (!roomName) return;
+
+            try {
+                const res = await fetchAPI({ action: 'getItems', roomName: roomName });
+                currentRoomData = res.data;
+                renderTable(currentRoomData);
+            } catch (error) {}
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            const emptyState = document.getElementById('emptyState');
+            const tableContainer = document.getElementById('tableContainer');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+                tableContainer.classList.add('hidden');
+                tableContainer.classList.remove('block');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            emptyState.classList.remove('flex');
+            tableContainer.classList.remove('hidden');
+            tableContainer.classList.add('block');
+
+            data.forEach((item, index) => {
+                // Photo Thumbnail Layout
+                let photoHtml = '<span class="text-xs text-slate-400 italic">Kosong</span>';
+                if(item.foto && item.foto !== '-' && item.foto.includes('http')) {
+                     // Ekstrak ID file dari URL Google Drive untuk membuat direct link gambar (thumbnail)
+                     let directImgUrl = item.foto;
+                     const idMatch = item.foto.match(/[-\w]{25,}/);
+                     if (idMatch && idMatch[0]) {
+                         // Menggunakan format API Thumbnail bawaan Drive yang lebih aman dari blokir
+                         directImgUrl = `https://drive.google.com/thumbnail?id=${idMatch[0]}&sz=w150-h150`;
+                     }
+                     
+                     photoHtml = `
+                     <a href="${item.foto}" target="_blank" class="w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-600 overflow-hidden block mx-auto relative group shadow-sm tooltip-trigger">
+                        <img src="${directImgUrl}" onerror="this.onerror=null; this.src='https://placehold.co/40x40/f1f5f9/64748b?text=Foto';" alt="Foto" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 bg-white">
+                        <div class="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center text-white"><i class="fas fa-external-link-alt text-xs"></i></div>
+                     </a>`;
+                }
+
+                // Kondisi Pill modern
+                let kondisiBadge = '';
+                if(item.kondisi === 'Baik') kondisiBadge = '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100/80 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 text-[11px] font-bold whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Baik</span>';
+                else if(item.kondisi === 'Rusak Ringan') kondisiBadge = '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100/80 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 text-[11px] font-bold whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> R. Ringan</span>';
+                else kondisiBadge = '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100/80 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 text-[11px] font-bold whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> R. Berat</span>';
+
+                const row = `
+                    <tr class="bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors group border-b border-slate-100 dark:border-slate-700/50 last:border-none">
+                        <td class="px-6 py-4 text-center font-medium text-slate-400">${item.no}</td>
+                        <td class="px-6 py-4 font-bold text-slate-900 dark:text-white whitespace-nowrap">${item.nama}</td>
+                        <td class="px-6 py-4 text-center font-bold text-slate-700 dark:text-slate-200">${item.jumlah}</td>
+                        <td class="px-6 py-4 text-center text-slate-500 dark:text-slate-400">${item.satuan}</td>
+                        <td class="px-6 py-4 text-center">${kondisiBadge}</td>
+                        <td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 max-w-xs truncate" title="${item.keterangan || ''}">${item.keterangan || '-'}</td>
+                        <td class="px-6 py-4 text-center">${photoHtml}</td>
+                        <td class="px-6 py-4 text-center no-print">
+                            <div class="flex items-center justify-center space-x-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick="openModalAddItem('edit', ${index})" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-brand-50 hover:text-brand-600 dark:hover:bg-brand-500/10 dark:hover:text-brand-400 transition-colors" title="Edit Data"><i class="fas fa-edit"></i></button>
+                                <button onclick="confirmDelete(${item.rowIndex}, '${item.nama}', '${item.foto}')" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10 dark:hover:text-rose-400 transition-colors" title="Hapus Data"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        async function confirmDelete(rowIndex, itemName, photoUrl) {
+            if(confirm(`Hapus permanen data "${itemName}"?\n(Foto terkait di Drive juga akan terhapus)`)) {
+                 const roomName = document.getElementById('roomSelect').value;
+                 try {
+                    await fetchAPI({ action: 'deleteItem', roomName: roomName, rowIndex: rowIndex, photoUrl: photoUrl });
+                    showToast('Terhapus', 'Data & foto berhasil dihapus', 'success');
+                    loadTableData(); 
+                } catch (error) {}
+            }
+        }
+
+        // Modal Forms
+        function openModalAddItem(mode, dataIndex = null) {
+            const btnSubmit = document.getElementById('btnSubmitItem');
+            const form = document.getElementById('formItem');
+            
+            form.reset(); 
+            resetPhotoPreview(); 
+
+            if (mode === 'edit' && dataIndex !== null) {
+                const item = currentRoomData[dataIndex];
+                
+                document.getElementById('itemNama').value = item.nama;
+                document.getElementById('itemJumlah').value = item.jumlah;
+                document.getElementById('itemSatuan').value = item.satuan;
+                document.querySelector(`input[name="kondisi"][value="${item.kondisi}"]`).checked = true;
+                document.getElementById('itemKeterangan').value = item.keterangan;
+                
+                document.getElementById('editMode').value = 'edit';
+                document.getElementById('editRowIndex').value = item.rowIndex;
+                document.getElementById('editOldPhotoUrl').value = item.foto || '-';
+
+                if(item.foto && item.foto !== '-' && item.foto.includes('http')) {
+                    document.getElementById('currentPhotoStatus').classList.remove('hidden');
+                }
+
+                btnSubmit.innerHTML = 'Update Data';
+            } else {
+                document.getElementById('editMode').value = 'add';
+                document.getElementById('editRowIndex').value = '';
+                document.getElementById('editOldPhotoUrl').value = '';
+                btnSubmit.innerHTML = 'Simpan Data';
+            }
+
+            openModal('modalItem');
+        }
+
+        async function submitItemForm(e) {
+            e.preventDefault();
+            const roomName = document.getElementById('roomSelect').value;
+            if (!roomName) return showToast('Info', 'Pilih ruangan terlebih dahulu', 'warning');
+
+            const mode = document.getElementById('editMode').value;
+            const fileInput = document.getElementById('itemFoto');
+            
+            if (fileInput.files.length > 0 && fileInput.files[0].size > 5 * 1024 * 1024) {
+                 return showToast('Gagal', 'File terlalu besar (Maks 5MB)', 'error');
+            }
+
+            let fotoBase64 = null, mimeType = null, filename = null;
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                filename = file.name;
+                mimeType = file.type;
+                fotoBase64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            const payload = {
+                roomName: roomName,
+                nama: document.getElementById('itemNama').value,
+                jumlah: document.getElementById('itemJumlah').value,
+                satuan: document.getElementById('itemSatuan').value,
+                kondisi: document.querySelector('input[name="kondisi"]:checked').value,
+                keterangan: document.getElementById('itemKeterangan').value,
+                fotoBase64: fotoBase64,
+                mimeType: mimeType,
+                filename: filename
+            };
+
+            if (mode === 'edit') {
+                payload.action = 'editItem';
+                payload.rowIndex = document.getElementById('editRowIndex').value;
+                payload.oldPhotoUrl = document.getElementById('editOldPhotoUrl').value;
+            } else {
+                payload.action = 'addItem';
+            }
+
+            try {
+                await fetchAPI(payload);
+                closeModal('modalItem');
+                showToast('Sukses', mode === 'edit' ? 'Perubahan disimpan!' : 'Aset baru ditambahkan!', 'success');
+                loadTableData();
+            } catch (error) {}
+        }
+        
+        function previewImage(input) {
+            const preview = document.getElementById('fotoPreview');
+            const placeholder = document.getElementById('uploadPlaceholder');
+            const overlay = document.getElementById('fotoOverlay');
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                    overlay.classList.remove('hidden');
+                    overlay.classList.add('flex');
+                    placeholder.classList.add('opacity-0');
+                    document.getElementById('currentPhotoStatus').classList.add('hidden'); // Sembunyikan status lama jika upload baru
+                }
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                resetPhotoPreview();
+            }
+        }
+
+        function resetPhotoPreview() {
+            const preview = document.getElementById('fotoPreview');
+            const placeholder = document.getElementById('uploadPlaceholder');
+            const overlay = document.getElementById('fotoOverlay');
+            
+            preview.src = '';
+            preview.classList.add('hidden');
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
+            placeholder.classList.remove('opacity-0');
+            document.getElementById('currentPhotoStatus').classList.add('hidden');
+            document.getElementById('itemFoto').value = ''; 
+        }
+
+        function updateUIState(roomName) {
+            const tableTitle = document.getElementById('tableTitle');
+            const tbody = document.getElementById('tableBody');
+            const emptyState = document.getElementById('emptyState');
+            const btnTambah = document.getElementById('btnTambahBarang');
+            const btnPrint = document.getElementById('btnPrint');
+
+            if (!roomName) {
+                tableTitle.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-300"></span> Pilih Ruangan';
+                tbody.innerHTML = '';
+                emptyState.classList.remove('hidden'); emptyState.classList.add('flex');
+                btnTambah.classList.add('hidden'); btnPrint.classList.add('hidden');
+            } else {
+                tableTitle.innerHTML = `<span class="w-2 h-2 rounded-full bg-brand-500"></span> Area: ${roomName.replace(/_/g, ' ')}`;
+                btnTambah.classList.remove('hidden'); btnPrint.classList.remove('hidden');
+            }
+        }
+        
+        function showLoading(show, actionType = '') {
+            const loading = document.getElementById('loading');
+            const msg = document.getElementById('loadingMsg');
+            
+            if(actionType === 'editItem' || actionType === 'addItem') msg.textContent = 'Menyimpan & Mengunggah...';
+            else if(actionType === 'deleteItem') msg.textContent = 'Menghapus Data...';
+            else msg.textContent = 'Sinkronisasi Data...';
+
+            if(show) {
+                loading.classList.remove('hidden');
+                void loading.offsetWidth; 
+                loading.classList.remove('opacity-0');
+            } else {
+                loading.classList.add('opacity-0');
+                setTimeout(() => { loading.classList.add('hidden'); }, 300);
+            }
+        }
+
+        let toastTimeout;
+        function showToast(title, message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            clearTimeout(toastTimeout); 
+
+            document.getElementById('toastTitle').textContent = title;
+            document.getElementById('toastMessage').textContent = message;
+            
+            toastIcon.className = 'inline-flex items-center justify-center flex-shrink-0 w-10 h-10 rounded-full';
+            if(type === 'success') {
+                toastIcon.classList.add('bg-emerald-500/20', 'text-emerald-400');
+                toastIcon.innerHTML = '<i class="fas fa-check"></i>';
+            } else if (type === 'error') {
+                toastIcon.classList.add('bg-rose-500/20', 'text-rose-400');
+                toastIcon.innerHTML = '<i class="fas fa-times"></i>';
+            } else {
+                 toastIcon.classList.add('bg-amber-500/20', 'text-amber-400');
+                 toastIcon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+            }
+
+            toast.classList.remove('hidden');
+            void toast.offsetWidth; 
+            toast.classList.remove('translate-y-12', 'opacity-0');
+
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('translate-y-12', 'opacity-0');
+                setTimeout(() => toast.classList.add('hidden'), 400);
+            }, 3500); 
+        }
+
+        function openModalAddRoom() { openModal('modalAddRoom'); }
+        
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            const content = document.getElementById(id + 'Content');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            const content = document.getElementById(id + 'Content');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        }
+        
+        function checkInitialTheme() {
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+    </script>
+</body>
+</html>

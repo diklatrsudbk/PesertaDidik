@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cetak ID Card Peserta Didik</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- QRCode.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Poppins', sans-serif; background-color: #f1f5f9; }
+        
+        .loader { border: 4px solid #e2e8f0; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* ==========================================
+           STYLING ELEMEN DALAM ID CARD (KALIBRASI)
+           ========================================== */
+        
+        /* Container 1 Kartu = 55x85mm */
+        .id-card { 
+            width: 55mm; height: 85mm; 
+            position: relative; overflow: hidden; 
+            background: white; 
+            box-sizing: border-box;
+        }
+        
+        .card-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        .card-content { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
+        
+        /* FOTO: Diperbesar dan digeser kiri atas menyesuaikan lubang background */
+        .c-photo { 
+            position: absolute; top: 15mm; left: 2.929mm; 
+            width: 25.929mm; height: 25.929mm; 
+            border-radius: 50%; object-fit: cover; 
+            background: #fff;
+        }
+        
+        /* TEKS KANAN: Ruang dilebarkan agar nama panjang bisa turun baris */
+        .c-text-area { 
+            position: absolute; top: 21mm; left: 32mm; right: 2mm; 
+            text-align: left; 
+        }
+        .c-name { font-size: 7.7pt; font-weight: 800; color: #111; margin-bottom: 1.5mm; line-height: 1.15;}
+        .c-major { font-size: 6pt; font-weight: 800; margin-bottom: 2mm; line-height: 1.15;}
+        
+        .c-label { font-size: 6pt; font-weight: 800; color: #111; margin-top: 1mm; line-height: 1.1;}
+        .c-value { font-size: 6pt; font-weight: 500; color: #111; line-height: 1.1;}
+        
+        /* LOGO INSTITUSI KIRI BAWAH */
+        .c-inst-logo { 
+            position: absolute; bottom: 12mm; left: 9.5mm; 
+            width: 10mm; height: 10mm; object-fit: contain; 
+        }
+        /* Teks Institusi auto center & warnanya akan dimanipulasi JS */
+        .c-inst-name { 
+            position: absolute; bottom: 4.5mm; left: 6.3mm; width: 16mm; 
+            text-align: center; font-size: 4pt; font-weight: 700; line-height: 1.1; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        
+        /* QR CODE: Pas di sudut kanan bawah menimpa area merah */
+        .c-qr-container { 
+            position: absolute; bottom: 9mm; right: 4mm; 
+            width: 22mm; height: 22mm; 
+            background: white; 
+            display: flex; justify-content: center; align-items: center;
+        }
+        .c-qr-container img, .c-qr-container canvas {
+            width: 100% !important; height: 100% !important;
+        }
+
+        /* ==========================================
+           PENGATURAN KERTAS A4 SAAT PRINT (GAP: 0)
+           ========================================== */
+        @media print {
+            @page { size: A4 portrait; margin: 0; } 
+            body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; padding: 0;}
+            
+            body > div:not(#print-container) { display: none !important; }
+            #print-container { display: block !important; }
+            
+            .a4-page { 
+                position: relative; 
+                width: 210mm; height: 297mm; 
+                padding-top: 21mm; padding-left: 22.5mm; 
+                display: grid; 
+                grid-template-columns: repeat(3, 55mm);
+                grid-auto-rows: 85mm;
+                gap: 0; 
+                page-break-after: always;
+                box-sizing: border-box;
+                background-color: white;
+                overflow: hidden; 
+            }
+
+            /* GARIS POTONG (CROP MARKS) ABSOLUT */
+            .cut-line-v { position: absolute; top: 0; bottom: 0; width: 0; border-left: 0.5pt dashed #000; z-index: 999; }
+            .cut-line-h { position: absolute; left: 0; right: 0; height: 0; border-top: 0.5pt dashed #000; z-index: 999; }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen">
+
+<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-900 tracking-tight"><i class="fas fa-id-badge text-blue-600 mr-2"></i>Cetak ID Card</h1>
+            <p class="text-sm text-slate-500 mt-1">Pilih peserta dari berbagai gelombang untuk dicetak (Format A4 Borderless)</p>
+        </div>
+        <button onclick="prepareAndPrint()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition-all flex items-center gap-2">
+            <i class="fas fa-print"></i> Cetak Terpilih
+        </button>
+    </div>
+
+    <!-- FILTER & SEARCH (4 Kolom) -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Filter Gelombang</label>
+            <!-- Diubah ke handleFilterChange agar set pilihan reset -->
+            <select id="filterSheet" onchange="handleFilterChange()" class="w-full rounded-lg border border-slate-300 p-2.5 outline-none focus:border-blue-500 font-medium text-slate-700 bg-slate-50">
+                <option value="ALL">Semua Gelombang</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Filter Institusi</label>
+            <select id="filterInstitusi" onchange="handleFilterChange()" class="w-full rounded-lg border border-slate-300 p-2.5 outline-none focus:border-blue-500 font-medium text-slate-700 bg-slate-50">
+                <option value="ALL">Semua Institusi</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Filter Status</label>
+            <select id="filterStatus" onchange="handleFilterChange()" class="w-full rounded-lg border border-slate-300 p-2.5 outline-none focus:border-blue-500 font-medium text-slate-700 bg-slate-50">
+                <option value="ALL">Semua Status</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Cari Nama / NIM</label>
+            <div class="relative">
+                <i class="fas fa-search absolute left-3 top-3.5 text-slate-400"></i>
+                <!-- Pencarian hanya merender tabel, tidak mereset pilihan -->
+                <input type="text" id="searchName" onkeyup="renderTable()" placeholder="Ketik nama atau NIM..." class="w-full pl-9 rounded-lg border border-slate-300 p-2.5 outline-none focus:border-blue-500 font-medium text-slate-700 bg-slate-50">
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADING STATE -->
+    <div id="loadingState" class="flex flex-col items-center justify-center py-20">
+        <div class="loader mb-4"></div>
+        <p class="text-slate-500 font-medium">Mengambil data peserta...</p>
+    </div>
+
+    <!-- TABEL DATA -->
+    <div id="tableContainer" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200">
+                        <th class="p-4 w-12 text-center">
+                            <!-- Checkbox Select All -->
+                            <input type="checkbox" id="checkAll" onchange="toggleAllCheckboxes()" class="w-4 h-4 text-blue-600 rounded cursor-pointer">
+                        </th>
+                        <th class="p-4 text-sm font-semibold text-slate-600 uppercase">Nama & NIM</th>
+                        <th class="p-4 text-sm font-semibold text-slate-600 uppercase">Institusi & Jurusan</th>
+                        <th class="p-4 text-sm font-semibold text-slate-600 uppercase">Gelombang</th>
+                        <th class="p-4 text-sm font-semibold text-slate-600 uppercase">Status / Tipe</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody" class="divide-y divide-slate-100">
+                    <!-- Baris Tabel Dirender via JS -->
+                </tbody>
+            </table>
+        </div>
+        <div class="p-4 bg-slate-50 border-t border-slate-200 text-sm flex justify-between items-center">
+            <span id="textTotal" class="text-slate-500 font-medium">Total: 0 Peserta</span>
+            <span id="textSelected" class="text-blue-600 font-bold bg-blue-50 px-3 py-1 rounded-lg border border-blue-100">Terpilih: 0</span>
+        </div>
+    </div>
+</div>
+
+<div id="print-container" class="hidden"></div>
+
+<script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxfyzcRd_2Rv6AwFWJ4phqpfguAmh8VG8tt_6aiyDMBRI-W7vZdh64faJVJ0ZTcmgk1/exec";
+    
+    let allParticipants = [];
+    let filteredParticipants = [];
+    let selectedNims = new Set(); // Memori yang menyimpan NIM peserta yang dipilih (persistent)
+
+    function getDriveImageSrc(url) {
+        if (!url) return 'https://via.placeholder.com/150';
+        const match = url.match(/[-\w]{25,}/);
+        if (match && match[0]) {
+            return `https://drive.google.com/thumbnail?id=${match[0]}&sz=w400-h400`;
+        }
+        return url;
+    }
+
+    function formatPrintDate(dateStr) {
+        if (!dateStr) return '-';
+        const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mmm = months[d.getMonth()];
+        const yy = String(d.getFullYear()).slice(-2);
+        return `${dd} ${mmm} ${yy}`;
+    }
+
+    // Ambil Data Pertama Kali
+    document.addEventListener("DOMContentLoaded", () => {
+        fetch(GAS_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: 'getAllParticipants' })
+        })
+        .then(res => res.json())
+        .then(res => {
+            if(res.success) {
+                allParticipants = res.data;
+                populateFilters();
+                renderTable();
+                
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('tableContainer').classList.remove('hidden');
+            } else {
+                Swal.fire('Error', res.message, 'error');
+            }
+        })
+        .catch(err => {
+            Swal.fire('Error Koneksi', 'Gagal memuat data dari server.', 'error');
+        });
+    });
+
+    function populateFilters() {
+        const sheets = [...new Set(allParticipants.map(p => p.sheetName))].sort();
+        const institusi = [...new Set(allParticipants.map(p => p.namasekolah))].sort();
+        const statuses = [...new Set(allParticipants.map(p => p.status_mahasiswa || '-'))].filter(s => s !== '-').sort();
+        
+        const selSheet = document.getElementById('filterSheet');
+        sheets.forEach(s => selSheet.innerHTML += `<option value="${s}">${s}</option>`);
+        
+        const selInst = document.getElementById('filterInstitusi');
+        institusi.forEach(i => selInst.innerHTML += `<option value="${i}">${i}</option>`);
+
+        const selStatus = document.getElementById('filterStatus');
+        statuses.forEach(s => selStatus.innerHTML += `<option value="${s}">${s}</option>`);
+    }
+
+    // Dipanggil HANYA KETIKA Dropdown Filter diubah (menghapus memori pilihan)
+    function handleFilterChange() {
+        selectedNims.clear();
+        document.getElementById('checkAll').checked = false;
+        renderTable();
+    }
+
+    // Dipanggil untuk merender baris, pencarian teks tidak akan mereset selectedNims
+    function renderTable() {
+        const fSheet = document.getElementById('filterSheet').value;
+        const fInst = document.getElementById('filterInstitusi').value;
+        const fStatus = document.getElementById('filterStatus').value;
+        const sQuery = document.getElementById('searchName').value.trim().toLowerCase();
+        
+        filteredParticipants = allParticipants.filter(p => {
+            const matchSheet = fSheet === "ALL" || p.sheetName === fSheet;
+            const matchInst = fInst === "ALL" || p.namasekolah === fInst;
+            const matchStatus = fStatus === "ALL" || (p.status_mahasiswa || '-') === fStatus;
+            
+            const nameStr = String(p.nama || "").toLowerCase();
+            const nimStr = String(p.nim || "").toLowerCase();
+            const matchSearch = nameStr.includes(sQuery) || nimStr.includes(sQuery);
+            
+            return matchSheet && matchInst && matchStatus && matchSearch;
+        });
+
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        
+        let allVisibleChecked = filteredParticipants.length > 0;
+
+        filteredParticipants.forEach((p) => {
+            let badgeColor = 'bg-emerald-100 text-emerald-700'; 
+            if(p.id_parent == 2) badgeColor = 'bg-yellow-100 text-yellow-700';
+            if(p.id_parent == 3) badgeColor = 'bg-red-100 text-red-700';
+
+            const isChecked = selectedNims.has(p.nim);
+            if (!isChecked) allVisibleChecked = false; // Evaluasi check all header
+
+            const tr = document.createElement('tr');
+            tr.className = `hover:bg-slate-50 transition-colors cursor-pointer ${isChecked ? 'bg-blue-50/30' : ''}`;
+            
+            // Klik baris tabel untuk mencentang
+            tr.onclick = (e) => {
+                if(e.target.tagName !== 'INPUT') toggleSelection(p.nim);
+            };
+            
+            tr.innerHTML = `
+                <td class="p-4 text-center">
+                    <input type="checkbox" class="participant-cb w-4 h-4 text-blue-600 rounded cursor-pointer" 
+                           ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelection('${p.nim}');">
+                </td>
+                <td class="p-4">
+                    <div class="font-bold text-slate-800">${p.nama}</div>
+                    <div class="text-xs text-slate-500 font-mono mt-0.5">${p.nim}</div>
+                </td>
+                <td class="p-4">
+                    <div class="font-medium text-slate-700 text-sm">${p.namasekolah}</div>
+                    <div class="text-xs text-slate-500">${p.jenjangpend} - ${p.jurusan}</div>
+                </td>
+                <td class="p-4">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                        <i class="fas fa-folder-open mr-1.5 text-slate-400"></i> ${p.sheetName}
+                    </span>
+                </td>
+                <td class="p-4 space-y-1">
+                    <div class="px-2 py-1 inline-block rounded text-xs font-bold ${badgeColor}">Tipe ${p.id_parent || 1}</div>
+                    ${p.status_mahasiswa ? `<div class="text-[11px] font-medium text-slate-500"><i class="fas fa-check-circle text-blue-500 mr-1"></i>${p.status_mahasiswa}</div>` : ''}
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('textTotal').textContent = `Total: ${filteredParticipants.length} Peserta (Hasil Filter)`;
+        document.getElementById('checkAll').checked = (allVisibleChecked && filteredParticipants.length > 0);
+        updateSelectedCount();
+    }
+
+    // Logika ketika Checkbox Ditekan
+    function toggleSelection(nim) {
+        if (selectedNims.has(nim)) {
+            selectedNims.delete(nim);
+        } else {
+            selectedNims.add(nim);
+        }
+        renderTable(); // Re-render untuk merubah background baris & mengecek master checkbox
+    }
+
+    // Logika ketika Checkbox Master (Header) ditekan
+    function toggleAllCheckboxes() {
+        const isChecked = document.getElementById('checkAll').checked;
+        filteredParticipants.forEach(p => {
+            if (isChecked) {
+                selectedNims.add(p.nim);
+            } else {
+                selectedNims.delete(p.nim);
+            }
+        });
+        renderTable(); 
+    }
+
+    function updateSelectedCount() {
+        document.getElementById('textSelected').innerHTML = `<i class="fas fa-check-double mr-1"></i> Terpilih: ${selectedNims.size}`;
+    }
+
+    async function prepareAndPrint() {
+        if (selectedNims.size === 0) {
+            Swal.fire('Peringatan', 'Pilih minimal 1 peserta untuk dicetak!', 'warning');
+            return;
+        }
+
+        // Ambil objek utuh dari data yang terpilih
+        const selectedParticipantsList = allParticipants.filter(p => selectedNims.has(p.nim));
+
+        Swal.fire({
+            title: 'Menyiapkan Dokumen...',
+            html: 'Menyusun ID Card dan mengunduh foto...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        const printContainer = document.getElementById('print-container');
+        printContainer.innerHTML = ''; 
+
+        let cardsHTML = '';
+        let qrDataList = [];
+
+        
+
+        selectedParticipantsList.forEach((p, i) => {
+            // Konfigurasi Warna Dasar
+            let bgImg = 'img/idcard/hijau.jpg';
+            let majorColor = '#059669'; 
+            let instTextColor = '#ffffff'; 
+            
+            if (p.id_parent == 2) { 
+                bgImg = 'img/idcard/kuning.jpg'; 
+                majorColor = '#d97706'; 
+                instTextColor = '#000000'; 
+            }
+            if (p.id_parent == 3) { 
+                bgImg = 'img/idcard/merah.jpg'; 
+                majorColor = '#dc2626'; 
+                instTextColor = '#ffffff'; 
+            }
+
+            // Title Case Konversi
+            const formattedName = p.nama.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+            const photoSrc = getDriveImageSrc(p.urlFoto);
+            const logoSrc = `img/logo_institusi/${p.namasekolah}.png`;
+            const periodStr = `${formatPrintDate(p.tanggal_mulai)} - ${formatPrintDate(p.tanggal_selesai)}`;
+            const qrId = `qr_${i}`; 
+
+            const cardHTML = `
+                <div class="id-card">
+                    <img src="${bgImg}" class="card-bg" alt="bg">
+                    <div class="card-content">
+                        <img src="${photoSrc}" class="c-photo" onerror="this.src='https://via.placeholder.com/100'">
+                        <div class="c-text-area">
+                            <div class="c-name">${formattedName}</div>
+                            <div class="c-major" style="color: #dc2626">${p.jenjangpend} - ${p.jurusan}</div>
+                            <div class="c-label">NIM - <span class="c-value">${p.nim}</span></div>
+                            <div class="c-label">PERIODE -</div>
+                            <div class="c-value">${periodStr}</div>
+                        </div>
+                        <img src="${logoSrc}" class="c-inst-logo" onerror="this.style.display='none'">
+                        <div class="c-inst-name" style="color: ${instTextColor};"><span>${p.namasekolah}</span></div>
+                        <div id="${qrId}" class="c-qr-container"></div>
+                    </div>
+                </div>
+            `;
+            
+            cardsHTML += cardHTML;
+            qrDataList.push({ id: qrId, text: p.nim });
+
+            if ((i + 1) % 9 === 0 || i === selectedParticipantsList.length - 1) {
+                const cutLines = `
+                    <div class="cut-line-v" style="left: 22.5mm;"></div>
+                    <div class="cut-line-v" style="left: 77.5mm;"></div>
+                    <div class="cut-line-v" style="left: 132.5mm;"></div>
+                    <div class="cut-line-v" style="left: 187.5mm;"></div>
+                    
+                    <div class="cut-line-h" style="top: 21mm;"></div>
+                    <div class="cut-line-h" style="top: 106mm;"></div>
+                    <div class="cut-line-h" style="top: 191mm;"></div>
+                    <div class="cut-line-h" style="top: 276mm;"></div>
+                `;
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'a4-page';
+                pageDiv.innerHTML = cutLines + cardsHTML;
+                printContainer.appendChild(pageDiv);
+                cardsHTML = ''; 
+            }
+        });
+
+        setTimeout(async () => {
+            // 1. Gambar QRCode di DOM
+            qrDataList.forEach(item => {
+                const qrEl = document.getElementById(item.id);
+                if(qrEl) {
+                    new QRCode(qrEl, { text: item.text, width: 200, height: 200, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.M });
+                }
+            });
+
+            // 2. Kumpulkan semua tag <img> yang baru digenerate
+            const images = printContainer.querySelectorAll('img');
+            const imagePromises = Array.from(images).map(img => {
+                if (img.complete) return Promise.resolve(); // Jika dari cache sudah selesai
+                return new Promise(resolve => {
+                    // Beri resolusi (lanjut) baik saat gambar sukses load maupun saat error/gagal (agar print tidak nge-hang).
+                    img.onload = resolve;
+                    img.onerror = resolve; 
+                });
+            });
+
+            // 3. TUNGGU sampai semua foto dan background selesai dimuat!
+            await Promise.all(imagePromises);
+
+            // 4. Buka Print Dialog setelah semuanya siap
+            setTimeout(() => {
+                Swal.close();
+                printContainer.classList.remove('hidden'); // Paksa render
+                window.print();
+                setTimeout(() => { printContainer.classList.add('hidden'); }, 1000); // Sembunyikan setelah selesai
+            }, 300); // Ekstra 300ms untuk memastikan kanvas QRCode 100% tergambar
+            
+        }, 100);
+    }
+</script>
+</body>
+</html>
