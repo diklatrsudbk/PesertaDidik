@@ -727,8 +727,8 @@
             const { data, sheetId, sheetGid } = response;
             
             let addLink = "#"; let printLink = "#"; let searchPlaceholder = "Search..."; 
-            if(menuId === 'pd') { addLink = "input_pesertadidik.html"; printLink = "print_IDCard.html"; searchPlaceholder = "Cari Nama/NIM..."; } 
-            else if (menuId === 'pl') { addLink = "input_pesertapelatihan.html"; printLink = "print_IDCard.html"; searchPlaceholder = "Cari Nama/NIK..."; } 
+            if(menuId === 'pd') { addLink = "input_pesertadidik.html"; printLink = "print_idcard.html"; searchPlaceholder = "Cari Nama/NIM..."; } 
+            else if (menuId === 'pl') { addLink = "input_pesertapelatihan.html"; printLink = "print_idcard.html"; searchPlaceholder = "Cari Nama/NIK..."; } 
             else if (menuId === 'dh') { addLink = "input_daftarhadir.html"; printLink = "print_daftarhadir.html"; searchPlaceholder = "Cari Nama..."; }
 
             let gsheetLink = `https://docs.google.com/spreadsheets/d/${sheetId}/edit`;
